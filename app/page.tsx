@@ -6,7 +6,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 // ==========================================
-//  PART 1: THE HIGH-PERFORMANCE LANDING PAGE
+//  PART 1: THE CYBER-CORE LANDING PAGE
 // ==========================================
 
 const LandingPage = () => {
@@ -20,7 +20,7 @@ const LandingPage = () => {
         e.preventDefault();
         const element = document.querySelector(anchor.hash);
         if (element) {
-          const y = element.getBoundingClientRect().top + window.scrollY - 100; 
+          const y = element.getBoundingClientRect().top + window.scrollY - 80; 
           window.scrollTo({ top: y, behavior: 'smooth' });
         }
       }
@@ -29,8 +29,31 @@ const LandingPage = () => {
     return () => document.removeEventListener('click', handleScroll);
   }, []);
 
+  // --- LIVE STATS COUNTER ---
+  const [profileCount, setProfileCount] = useState(470);
+  const [issueCount, setIssueCount] = useState(1890);
+
+  useEffect(() => {
+    let start = 0;
+    const end = 369;
+    const timer = setInterval(() => {
+      start += 3; 
+      if (start > end) {
+        start = end;
+        clearInterval(timer);
+        setInterval(() => {
+            setProfileCount(prev => prev + 1);
+            setIssueCount(prev => prev + Math.floor(Math.random() * 5)); 
+        }, 5000); 
+      }
+      setProfileCount(start);
+      setIssueCount(Math.floor(start * 4.2)); 
+    }, 10);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#030712] text-white font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden relative">
+    <div className="min-h-screen bg-[#030712] text-white font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden relative flex flex-col justify-between">
       
       {/* --- GLOBAL BACKGROUND --- */}
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -40,20 +63,19 @@ const LandingPage = () => {
 
       {/* --- NAVBAR --- */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
            <div className="flex items-center gap-3">
-              {/* LOGO REMOVED HERE */}
-              <span className="text-lg font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
+              <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
            </div>
-           <div className="flex items-center gap-8">
+           <div className="flex items-center gap-4 md:gap-8">
               <div className="hidden md:flex items-center gap-8 text-xs font-medium text-gray-400 uppercase tracking-widest">
                  <a href="#benefits" className="hover:text-cyan-400 transition cursor-pointer">Architecture</a>
                  <a href="#protocol" className="hover:text-cyan-400 transition cursor-pointer">How It Works</a>
-                 <a href="#modules" className="hover:text-cyan-400 transition cursor-pointer">Modules</a>
+                 <a href="#faq" className="hover:text-cyan-400 transition cursor-pointer">FAQs</a>
               </div>
               <button 
                 onClick={() => signIn("google")} 
-                className="group relative px-6 py-2 bg-white text-black text-sm font-bold rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                className="group relative px-4 py-2 md:px-6 md:py-2 bg-white text-black text-xs md:text-sm font-bold rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
               >
                 <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-gray-200 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                 <span className="relative">Get Started</span>
@@ -63,39 +85,39 @@ const LandingPage = () => {
       </nav>
 
       {/* --- HERO SECTION --- */}
-      <main className="relative z-10 pt-32 text-center">
-         <div className="max-w-6xl mx-auto px-6">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono mb-8 animate-fade-in-up">
+      <main className="relative z-10 pt-24 md:pt-32 text-center flex-grow">
+         <div className="max-w-6xl mx-auto px-4 md:px-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] md:text-xs font-mono mb-6 md:mb-8 animate-fade-in-up">
                 <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
                 SYSTEM V2.4 ONLINE
             </div>
             
-            <h1 className="text-5xl md:text-8xl font-bold tracking-tighter mb-8 leading-[0.9] text-white">
+            <h1 className="text-4xl md:text-8xl font-bold tracking-tighter mb-6 md:mb-8 leading-[1.1] md:leading-[0.9] text-white">
                 DECODE LOCAL <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600">
                 SEARCH ALGORITHMS
                 </span>
             </h1>
             
-            <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-12 font-light leading-relaxed">
+            <p className="text-base md:text-xl text-gray-400 max-w-xl md:max-w-2xl mx-auto mb-8 md:mb-12 font-light leading-relaxed">
                 Analyze ranking vectors, detect competitor weaknesses, and auto-generate 
                 strategic growth protocols using enterprise-grade AI.
             </p>
 
-            <div className="flex justify-center mb-24">
+            <div className="flex justify-center mb-16 md:mb-24">
                 <button 
                 onClick={() => signIn("google")}
-                className="px-12 py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_40px_-10px_rgba(6,182,212,0.5)] flex items-center justify-center gap-3"
+                className="w-full md:w-auto px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_40px_-10px_rgba(6,182,212,0.5)] flex items-center justify-center gap-3"
                 >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Run Diagnostics
+                Start Auditing
                 </button>
             </div>
          </div>
 
          {/* --- SCANNER VISUALIZATION --- */}
-         <div className="relative w-full max-w-5xl mx-auto h-[400px] border-y border-white/5 bg-[#0B1120]/30 backdrop-blur-sm overflow-hidden mb-32">
-            <div className="absolute inset-0 flex items-center justify-center">
+         <div className="relative w-full max-w-5xl mx-auto h-[350px] md:h-[400px] border-y border-white/5 bg-[#0B1120]/30 backdrop-blur-sm overflow-hidden mb-20 md:mb-32">
+            <div className="absolute inset-0 flex items-center justify-center scale-75 md:scale-100">
                 {/* Radar Circles */}
                 <div className="w-[600px] h-[600px] border border-white/5 rounded-full absolute"></div>
                 <div className="w-[400px] h-[400px] border border-white/5 rounded-full absolute"></div>
@@ -105,11 +127,11 @@ const LandingPage = () => {
             <div className="absolute top-0 left-0 w-full h-[4px] bg-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.8)] animate-[scan_4s_ease-in-out_infinite]"></div>
             
             {/* Code Terminal Overlay */}
-            <div className="absolute bottom-8 left-8 p-6 bg-black/80 border border-white/10 rounded-lg font-mono text-xs text-left max-w-sm backdrop-blur-md">
+            <div className="absolute bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-auto md:w-auto p-4 md:p-6 bg-black/80 border border-white/10 rounded-lg font-mono text-[10px] md:text-xs text-left max-w-sm backdrop-blur-md">
                 <div className="flex gap-2 mb-3">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                 </div>
                 <div className="space-y-1 text-gray-400">
                     <p>&gt; Connecting to GMB API...</p>
@@ -121,22 +143,75 @@ const LandingPage = () => {
             </div>
          </div>
 
+         {/* --- LIVE STATS GRID --- */}
+         <div className="max-w-7xl mx-auto px-4 md:px-6 mb-24 md:mb-32">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                {/* Card 1 */}
+                <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-blue-500/30 transition group">
+                    <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Profiles Analyzed</p>
+                    <div className="flex items-end gap-2 mb-2">
+                        <span className="text-2xl md:text-4xl font-bold text-white tabular-nums">{profileCount}</span>
+                        <span className="text-blue-500 mb-1 font-bold">+</span>
+                    </div>
+                    <div className="hidden md:flex items-center gap-2 text-xs text-blue-400">
+                        <span>Real-time processing</span>
+                    </div>
+                </div>
+
+                {/* Card 2 */}
+                <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-purple-500/30 transition group">
+                    <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Issues Detected</p>
+                    <div className="flex items-end gap-2 mb-2">
+                        <span className="text-2xl md:text-4xl font-bold text-white tabular-nums">{issueCount}</span>
+                        <span className="text-purple-500 mb-1 font-bold">+</span>
+                    </div>
+                    <div className="hidden md:flex items-center gap-2 text-xs text-purple-400">
+                        <span>Critical gaps found</span>
+                    </div>
+                </div>
+
+                {/* Card 3 */}
+                <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-green-500/30 transition group">
+                    <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Accuracy Rate</p>
+                    <div className="flex items-end gap-2 mb-2">
+                        <span className="text-2xl md:text-4xl font-bold text-white">99.8</span>
+                        <span className="text-green-500 mb-1 font-bold">%</span>
+                    </div>
+                    <div className="hidden md:flex items-center gap-2 text-xs text-green-400">
+                        <span>Verified data sources</span>
+                    </div>
+                </div>
+
+                {/* Card 4 */}
+                <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-cyan-500/30 transition group">
+                    <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Hrs Saved</p>
+                    <div className="flex items-end gap-2 mb-2">
+                        <span className="text-2xl md:text-4xl font-bold text-white">4.5</span>
+                        <span className="text-cyan-500 mb-1 font-bold">hrs</span>
+                    </div>
+                    <div className="hidden md:flex items-center gap-2 text-xs text-cyan-400">
+                        <span>vs Manual Auditing</span>
+                    </div>
+                </div>
+            </div>
+         </div>
+
          {/* --- BENEFITS SECTION --- */}
-         <div id="benefits" className="max-w-7xl mx-auto px-6 mb-40 text-left">
-            <div className="grid md:grid-cols-2 gap-16 items-center">
+         <div id="benefits" className="max-w-7xl mx-auto px-4 md:px-6 mb-24 md:mb-40 text-left">
+            <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-center">
                <div>
-                  <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">SYSTEM ARCHITECTURE</h2>
-                  <p className="text-gray-400 text-lg leading-relaxed mb-8">
+                  <h2 className="text-2xl md:text-5xl font-bold text-white mb-4 md:mb-6">SYSTEM ARCHITECTURE</h2>
+                  <p className="text-gray-400 text-base md:text-lg leading-relaxed mb-6 md:mb-8">
                      Most audit tools just dump data. We process it. Our engine cross-references 20+ ranking signals against the top 3 competitors in your exact proximity to find the "Winning Formula."
                   </p>
-                  <ul className="space-y-4">
+                  <ul className="space-y-3 md:space-y-4">
                      {[
                         "Real-time Local Pack Extraction",
                         "Sentiment Analysis using OpenAI GPT-4",
                         "Suspension Risk Probability Calculation",
                         "Week-by-Week Growth Roadmap"
                      ].map((item, i) => (
-                        <li key={i} className="flex items-center gap-3 text-gray-300">
+                        <li key={i} className="flex items-center gap-3 text-gray-300 text-sm md:text-base">
                            <span className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs">✓</span>
                            {item}
                         </li>
@@ -144,44 +219,45 @@ const LandingPage = () => {
                   </ul>
                </div>
                
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300">
-                     <div className="text-4xl mb-4">🚀</div>
-                     <h3 className="font-bold text-white mb-2">High Velocity</h3>
-                     <p className="text-xs text-gray-500">20x faster than manual auditing. Get results in 45 seconds.</p>
+               <div className="grid grid-cols-2 gap-3 md:gap-4">
+                  <div className="bg-[#0f172a] p-4 md:p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300">
+                     <div className="text-2xl md:text-4xl mb-3 md:mb-4">🚀</div>
+                     <h3 className="font-bold text-white mb-1 md:mb-2 text-sm md:text-base">High Velocity</h3>
+                     <p className="text-[10px] md:text-xs text-gray-500">20x faster than manual auditing. Get results in 45 seconds.</p>
                   </div>
-                  <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300 mt-8">
-                     <div className="text-4xl mb-4">🎯</div>
-                     <h3 className="font-bold text-white mb-2">Hyper Accuracy</h3>
-                     <p className="text-xs text-gray-500">Live data scraping ensures 100% current market reality.</p>
+                  <div className="bg-[#0f172a] p-4 md:p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300 mt-0 md:mt-8">
+                     <div className="text-2xl md:text-4xl mb-3 md:mb-4">🎯</div>
+                     <h3 className="font-bold text-white mb-1 md:mb-2 text-sm md:text-base">Hyper Accuracy</h3>
+                     <p className="text-[10px] md:text-xs text-gray-500">Live data scraping ensures 100% current market reality.</p>
                   </div>
-                  <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300">
-                     <div className="text-4xl mb-4">🛡️</div>
-                     <h3 className="font-bold text-white mb-2">Safe & Secure</h3>
-                     <p className="text-xs text-gray-500">Official API compliance. No account risk.</p>
+                  <div className="bg-[#0f172a] p-4 md:p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300">
+                     <div className="text-2xl md:text-4xl mb-3 md:mb-4">🛡️</div>
+                     <h3 className="font-bold text-white mb-1 md:mb-2 text-sm md:text-base">Safe & Secure</h3>
+                     <p className="text-[10px] md:text-xs text-gray-500">Official API compliance. No account risk.</p>
                   </div>
-                  <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300 mt-8">
-                     <div className="text-4xl mb-4">🤖</div>
-                     <h3 className="font-bold text-white mb-2">Automated Strategy</h3>
-                     <p className="text-xs text-gray-500">We don't just find problems; we generate the fix.</p>
+                  <div className="bg-[#0f172a] p-4 md:p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300 mt-0 md:mt-8">
+                     <div className="text-2xl md:text-4xl mb-3 md:mb-4">🤖</div>
+                     <h3 className="font-bold text-white mb-1 md:mb-2 text-sm md:text-base">Automated Strategy</h3>
+                     <p className="text-[10px] md:text-xs text-gray-500">We don't just find problems; we generate the fix.</p>
                   </div>
                </div>
             </div>
          </div>
 
          {/* --- HOW IT WORKS (PROTOCOL) --- */}
-         <div id="protocol" className="max-w-7xl mx-auto px-6 mb-40 text-left pt-20">
-            <div className="flex items-end justify-between mb-16 border-b border-white/10 pb-6">
-                <div>
-                    <h2 className="text-3xl font-bold text-white mb-2">OPERATIONAL PROTOCOL</h2>
-                    <p className="text-gray-500 text-sm font-mono">SYSTEM WORKFLOW V2.0</p>
+         <div id="protocol" className="max-w-7xl mx-auto px-4 md:px-6 mb-24 md:mb-40 text-left pt-10 md:pt-20">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 md:mb-16 border-b border-white/10 pb-6">
+                <div className="mb-4 md:mb-0">
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">OPERATIONAL PROTOCOL</h2>
+                    <p className="text-gray-500 text-xs md:text-sm font-mono">SYSTEM WORKFLOW V2.0</p>
                 </div>
-                <div className="text-right hidden md:block">
-                    <p className="text-cyan-500 font-mono text-xs">STATUS: READY</p>
+                <div className="text-left md:text-right">
+                    <p className="text-cyan-500 font-mono text-[10px] md:text-xs">STATUS: READY</p>
                 </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 relative">
+            <div className="grid md:grid-cols-3 gap-6 md:gap-8 relative">
+                {/* Connector Line (Hidden on Mobile) */}
                 <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-[2px] bg-gradient-to-r from-blue-900 via-cyan-900 to-blue-900 -z-10"></div>
 
                 {[
@@ -189,25 +265,25 @@ const LandingPage = () => {
                     { step: "02", title: "Gap Analysis", desc: "AI compares your review velocity, sentiment, and profile completeness against the market leaders." },
                     { step: "03", title: "Strategic Injection", desc: "Receive a 4-week tactical roadmap to inject missing signals and boost ranking authority." }
                 ].map((item, i) => (
-                    <div key={i} className="group relative bg-[#030712] p-8 border border-white/10 rounded-xl hover:border-cyan-500/50 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(6,182,212,0.2)]">
-                        <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center border border-white/10 mb-6 text-xl font-mono font-bold text-cyan-400 group-hover:bg-cyan-500/10 transition-colors">
+                    <div key={i} className="group relative bg-[#030712] p-6 md:p-8 border border-white/10 rounded-xl hover:border-cyan-500/50 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(6,182,212,0.2)]">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-white/5 rounded-lg flex items-center justify-center border border-white/10 mb-4 md:mb-6 text-lg md:text-xl font-mono font-bold text-cyan-400 group-hover:bg-cyan-500/10 transition-colors">
                             {item.step}
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">{item.title}</h3>
-                        <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                        <h3 className="text-lg md:text-xl font-bold text-white mb-2 md:mb-3 group-hover:text-cyan-400 transition-colors">{item.title}</h3>
+                        <p className="text-gray-400 text-xs md:text-sm leading-relaxed">{item.desc}</p>
                     </div>
                 ))}
             </div>
          </div>
 
          {/* --- MODULES GRID --- */}
-         <div id="modules" className="max-w-7xl mx-auto px-6 mb-32 pt-20">
-            <div className="bg-[#0B1120] border border-white/10 rounded-2xl p-8 md:p-12 overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[100px]"></div>
+         <div id="modules" className="max-w-7xl mx-auto px-4 md:px-6 mb-24 md:mb-32 pt-10 md:pt-20">
+            <div className="bg-[#0B1120] border border-white/10 rounded-2xl p-6 md:p-12 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-32 md:w-64 h-32 md:h-64 bg-blue-600/10 rounded-full blur-[100px]"></div>
                 
-                <h2 className="text-3xl font-bold text-white mb-12 text-center">INTELLIGENCE MODULES</h2>
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-8 md:mb-12 text-center">INTELLIGENCE MODULES</h2>
                 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {[
                         { title: "Sentiment Engine", val: "ACTIVE", desc: "Natural Language Processing to detect negative sentiment clusters in reviews." },
                         { title: "Velocity Tracker", val: "ACTIVE", desc: "Monitors the frequency of new reviews compared to the 90-day average." },
@@ -216,10 +292,10 @@ const LandingPage = () => {
                         { title: "Risk Assessor", val: "ACTIVE", desc: "Calculates probability of profile suspension based on policy violations." },
                         { title: "Growth Architect", val: "BETA", desc: "Generates actionable weekly tasks to systematically improve rank." }
                     ].map((mod, i) => (
-                        <div key={i} className="bg-white/5 border border-white/5 p-6 rounded-xl hover:bg-white/10 transition duration-300">
-                            <div className="flex justify-between items-start mb-4">
-                                <h4 className="font-bold text-white">{mod.title}</h4>
-                                <span className="text-[10px] font-mono bg-cyan-500/10 text-cyan-400 px-2 py-1 rounded border border-cyan-500/20">{mod.val}</span>
+                        <div key={i} className="bg-white/5 border border-white/5 p-4 md:p-6 rounded-xl hover:bg-white/10 transition duration-300">
+                            <div className="flex justify-between items-start mb-3 md:mb-4">
+                                <h4 className="font-bold text-white text-sm md:text-base">{mod.title}</h4>
+                                <span className="text-[9px] md:text-[10px] font-mono bg-cyan-500/10 text-cyan-400 px-2 py-1 rounded border border-cyan-500/20">{mod.val}</span>
                             </div>
                             <p className="text-gray-400 text-xs leading-relaxed">{mod.desc}</p>
                         </div>
@@ -228,15 +304,45 @@ const LandingPage = () => {
             </div>
          </div>
 
+         {/* --- FAQS SECTION --- */}
+         <div id="faq" className="max-w-6xl mx-auto px-4 md:px-6 mb-24 md:mb-32">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-8 md:mb-10 text-center">SYSTEM FAQs</h2>
+            <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+                {[
+                    { q: "Is this data accurate?", a: "Yes. We pull live data directly from the Google Places API, ensuring 100% fidelity with current search results." },
+                    { q: "Will this flag my account?", a: "No. Our audit is a passive 'read-only' scan. We do not make automated edits to your profile, so there is zero suspension risk." },
+                    { q: "How long does an audit take?", a: "The Deep Scan typically completes in 45-60 seconds, depending on the volume of competitor reviews to analyze." },
+                    { q: "What is the 'Growth Plan'?", a: "It is a customized checklist of actions (e.g., 'Upload 3 photos', 'Reply to John's review') generated by AI to boost your specific ranking gaps." }
+                ].map((item, i) => (
+                    <div key={i} className="bg-white/5 border border-white/10 p-5 md:p-6 rounded-lg hover:border-blue-500/30 transition">
+                        <h4 className="font-bold text-white mb-2 text-sm">{item.q}</h4>
+                        <p className="text-gray-400 text-xs md:text-sm leading-relaxed">{item.a}</p>
+                    </div>
+                ))}
+                
+                {/* Contact / Support Card */}
+                <div className="bg-gradient-to-br from-blue-900/40 to-black border border-blue-500/30 p-6 rounded-lg col-span-1 md:col-span-2 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="text-center md:text-left">
+                        <h4 className="font-bold text-white mb-1 text-sm">Need Enterprise Support?</h4>
+                        <p className="text-gray-400 text-xs md:text-sm">Contact our technical team for custom integrations.</p>
+                    </div>
+                    <div className="text-center md:text-right">
+                        <p className="text-white font-mono text-sm">nayan@addinfi.com</p>
+                        <p className="text-gray-500 text-xs font-mono">+91 83810 32114</p>
+                    </div>
+                </div>
+            </div>
+         </div>
+
          {/* --- FINAL CTA --- */}
-         <div className="max-w-3xl mx-auto px-6 text-center">
-             <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">Ready to deploy?</h2>
-             <p className="text-gray-400 mb-10">Access the full suite of auditing tools. No credit card required for initial diagnostics.</p>
+         <div className="max-w-3xl mx-auto px-6 text-center mb-24">
+             <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 md:mb-8">Ready to deploy?</h2>
+             <p className="text-gray-400 mb-8 md:mb-10 text-sm md:text-base">Access the full suite of auditing tools. No credit card required for initial diagnostics.</p>
              <button 
                onClick={() => signIn("google")}
                className="w-full md:w-auto px-16 py-5 bg-white text-black rounded-xl font-bold text-lg hover:scale-105 transition shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)]"
             >
-               Enter Dashboard
+               Start Auditing
             </button>
          </div>
 
@@ -245,10 +351,23 @@ const LandingPage = () => {
       <footer className="border-t border-white/5 py-12 text-center relative z-10 bg-[#02040a]">
          <div className="flex items-center justify-center gap-2 mb-4 opacity-50">
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="text-xs font-mono text-gray-400">ALL SYSTEMS OPERATIONAL</span>
+            <span className="text-[10px] md:text-xs font-mono text-gray-400">ALL SYSTEMS OPERATIONAL</span>
          </div>
-         <p className="text-gray-600 text-xs font-mono">&copy; {new Date().getFullYear()} ADDINFI TECHNOLOGY INC. // SECURE CONNECTION</p>
+         <p className="text-gray-600 text-[10px] md:text-xs font-mono">&copy; {new Date().getFullYear()} ADDINFI DIGITECH PVT. LTD. // SECURE CONNECTION</p>
       </footer>
+      
+      <style jsx global>{`
+        @keyframes grid-move {
+          0% { background-position: 0 0; }
+          100% { background-position: 40px 40px; }
+        }
+        @keyframes scan {
+          0%, 100% { top: 0%; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { top: 100%; opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 };
@@ -483,54 +602,55 @@ function DashboardLogic() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-      <div className="mx-auto max-w-[95rem] bg-white shadow-none min-h-screen relative">
+    <div className="min-h-screen bg-[#030712] font-sans text-white flex flex-col justify-between">
+      <div className="mx-auto w-full max-w-[95rem] bg-[#030712] shadow-none min-h-screen relative flex flex-col">
         
         {/* HEADER */}
-        <div className="bg-white px-8 py-6 border-b flex justify-between items-center sticky top-0 z-50 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="bg-blue-600 text-white p-2 rounded-lg"><SearchIcon /></span>
-            <h1 className="text-xl font-bold text-gray-800 tracking-tight">GMB Strategic Auditor</h1>
+        <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
+          <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
+             <div className="flex items-center gap-3">
+                <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
+             </div>
+             <div className="flex items-center gap-4">
+                {step === 3 && !errorMsg && (
+                    <button 
+                       onClick={initiateDownload} 
+                       disabled={downloading} 
+                       data-html2canvas-ignore="true" 
+                       className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-xs md:text-sm hover:bg-green-700 transition flex items-center gap-2"
+                    >
+                       {downloading ? "Generating..." : "Download PDF 📥"}
+                    </button>
+                )}
+                {step > 1 && <button onClick={() => { window.location.reload(); }} className="text-xs md:text-sm text-gray-400 hover:text-red-400 font-medium transition">Reset</button>}
+                <button onClick={() => signOut()} className="text-xs md:text-sm text-gray-400 hover:text-white font-medium ml-2 transition">Sign Out</button>
+             </div>
           </div>
-          <div className="flex gap-4">
-             {step === 3 && !errorMsg && (
-                 <button 
-                    onClick={initiateDownload} 
-                    disabled={downloading} 
-                    data-html2canvas-ignore="true" 
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-700 transition flex items-center gap-2"
-                 >
-                    {downloading ? "Generating..." : "Download PDF 📥"}
-                 </button>
-             )}
-             {step > 1 && <button onClick={() => { window.location.reload(); }} className="text-sm text-gray-500 hover:text-red-500 font-medium">Reset Audit</button>}
-             <button onClick={() => signOut()} className="text-sm text-gray-500 hover:text-gray-900 font-medium ml-2">Sign Out</button>
-          </div>
-        </div>
+        </nav>
 
         {/* STEP 1: FIND ME */}
         {step === 1 && (
-          <div className="flex flex-col items-center justify-center pt-24 pb-12 px-4">
-            <h2 className="text-4xl font-extrabold text-gray-900 mb-3">Find Your Business</h2>
-            <p className="text-gray-500 text-lg mb-10">Search for your GMB profile to start the audit.</p>
+          <div className="flex-grow flex flex-col items-center justify-center pt-24 pb-12 px-4 animate-[fadeIn_0.5s_ease-out]">
+            <h2 className="text-4xl font-extrabold text-white mb-3 tracking-tight">Find Your Business</h2>
+            <p className="text-gray-400 text-lg mb-10">Search for your GMB profile to start the audit.</p>
             <div className="relative w-full max-w-2xl">
                 <div className="relative flex items-center">
                     <div className="absolute left-4 text-gray-400"><SearchIcon /></div>
-                    <input className="w-full border-2 border-gray-200 pl-12 pr-4 py-5 rounded-xl text-xl shadow-sm focus:border-blue-500 outline-none transition" placeholder="Type business name..." value={myQuery} onChange={e => { setMyQuery(e.target.value); setMyBusiness(null); }} />
+                    <input className="w-full bg-[#0B1120] border border-white/10 pl-12 pr-4 py-5 rounded-xl text-xl text-white placeholder-gray-500 shadow-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition" placeholder="Type business name..." value={myQuery} onChange={e => { setMyQuery(e.target.value); setMyBusiness(null); }} />
                 </div>
                 {mySuggestions.length > 0 && !myBusiness && (
-                    <div className="absolute top-full left-0 w-full bg-white border rounded-xl shadow-2xl mt-2 z-50 max-h-80 overflow-y-auto text-left">
+                    <div className="absolute top-full left-0 w-full bg-[#0B1120] border border-white/10 rounded-xl shadow-2xl mt-2 z-50 max-h-80 overflow-y-auto text-left">
                         {mySuggestions.map((place) => (
-                            <div key={place.place_id} className="p-4 hover:bg-blue-50 cursor-pointer border-b last:border-0 flex justify-between items-start group" onClick={() => { setMyBusiness(place); setStep(2); setMyQuery(place.title); setMySuggestions([]); }}>
+                            <div key={place.place_id} className="p-4 hover:bg-cyan-500/10 cursor-pointer border-b border-white/5 last:border-0 flex justify-between items-start group transition-colors" onClick={() => { setMyBusiness(place); setStep(2); setMyQuery(place.title); setMySuggestions([]); }}>
                                 <div className="flex items-start gap-3">
-                                   <div className="mt-1 bg-gray-100 p-2 rounded-full group-hover:bg-blue-200 group-hover:text-blue-600 transition"><MapPinIcon /></div>
+                                   <div className="mt-1 bg-white/5 p-2 rounded-full group-hover:bg-cyan-500/20 group-hover:text-cyan-400 text-gray-400 transition"><MapPinIcon /></div>
                                    <div>
-                                       <div className="font-bold text-lg group-hover:text-blue-700">{place.title}</div>
-                                       <div className="text-sm text-gray-400">{place.address}</div>
-                                       <div className="flex items-center gap-2 mt-1"><span className="flex items-center gap-1 bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded text-xs font-bold border border-yellow-100"><StarIcon /> {place.rating || "N/A"}</span><span className="text-xs text-gray-400 font-medium">({place.reviews || place.user_ratings_total || 0} reviews)</span></div>
+                                       <div className="font-bold text-lg text-gray-200 group-hover:text-cyan-400 transition-colors">{place.title}</div>
+                                       <div className="text-sm text-gray-500">{place.address}</div>
+                                       <div className="flex items-center gap-2 mt-1"><span className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded text-xs font-bold border border-yellow-500/20"><StarIcon /> {place.rating || "N/A"}</span><span className="text-xs text-gray-500 font-medium">({place.reviews || place.user_ratings_total || 0} reviews)</span></div>
                                    </div>
                                 </div>
-                                <span className="text-xs bg-gray-100 px-2 py-1 rounded group-hover:bg-blue-200 text-blue-800 font-bold mt-2">SELECT</span>
+                                <span className="text-xs bg-cyan-500/10 border border-cyan-500/20 px-2 py-1 rounded group-hover:bg-cyan-500/20 text-cyan-400 font-bold mt-2">SELECT</span>
                             </div>
                         ))}
                     </div>
@@ -541,37 +661,42 @@ function DashboardLogic() {
 
         {/* STEP 2: COMPETITORS */}
         {step === 2 && !errorMsg && (
-          <div className="p-10 space-y-8 max-w-4xl mx-auto">
-             <div className="bg-white border border-blue-100 p-6 rounded-2xl flex items-center gap-4 shadow-sm">
-               <div className="bg-blue-600 text-white p-3 rounded-xl shadow-lg shadow-blue-200"><span className="font-bold text-xl">{myBusiness?.title.charAt(0)}</span></div>
+          <div className="flex-grow pt-24 md:pt-32 px-4 md:px-10 pb-10 space-y-8 max-w-4xl mx-auto animate-[fadeIn_0.5s_ease-out]">
+             {/* TARGET CARD */}
+             <div className="bg-[#0B1120] border border-cyan-500/30 p-6 rounded-2xl flex items-center gap-4 shadow-[0_0_30px_-10px_rgba(6,182,212,0.15)] relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-[50px] -z-10"></div>
+               <div className="bg-gradient-to-br from-blue-600 to-cyan-600 text-white p-4 rounded-xl shadow-lg shadow-blue-500/20 font-bold text-2xl w-14 h-14 flex items-center justify-center">{myBusiness?.title.charAt(0)}</div>
                <div className="flex-1">
-                  <div className="text-xs font-bold text-blue-500 uppercase tracking-wide">Auditing Target</div>
-                  <div className="font-bold text-2xl text-gray-900">{myBusiness?.title}</div>
-                  <div className="flex items-center gap-2 mt-2"><span className="flex items-center gap-1 text-sm font-bold text-gray-800 bg-yellow-100 border border-yellow-200 px-2 py-1 rounded-md"><StarIcon /> {myBusiness?.rating || "N/A"}</span><span className="text-sm text-gray-500 font-medium tracking-tight">({myBusiness?.reviews || myBusiness?.user_ratings_total || 0} reviews)</span></div>
+                  <div className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest mb-1">Auditing Target</div>
+                  <div className="font-bold text-2xl text-white tracking-tight">{myBusiness?.title}</div>
+                  <div className="flex items-center gap-2 mt-2">
+                      <span className="flex items-center gap-1 text-sm font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 px-2 py-1 rounded-md"><StarIcon /> {myBusiness?.rating || "N/A"}</span>
+                      <span className="text-sm text-gray-500 font-medium tracking-tight">({myBusiness?.reviews || myBusiness?.user_ratings_total || 0} reviews)</span>
+                  </div>
                </div>
-               <button onClick={() => setStep(1)} className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border rounded-lg hover:bg-gray-50">Change</button>
+               <button onClick={() => setStep(1)} className="px-4 py-2 text-sm font-medium text-gray-400 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition">Change</button>
             </div>
 
-            <div className="flex justify-between items-center mt-10 mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">Step 2: Add Competitors <span className="text-sm font-normal text-gray-500 ml-2">(Max 2)</span></h2>
-                <button onClick={handleAnalyze} disabled={loading || competitors.length === 0} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center gap-2">
+            <div className="flex justify-between items-center mt-12 mb-6">
+                <h2 className="text-2xl font-bold text-white">Step 2: Add Competitors <span className="text-sm font-normal text-gray-500 ml-2">(Max 2)</span></h2>
+                <button onClick={handleAnalyze} disabled={loading || competitors.length === 0} className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center gap-2 border border-white/10">
                     {loading ? "Analyzing..." : `Audit vs ${competitors.length} Rivals 🚀`}
                 </button>
             </div>
 
             <div className="relative z-50">
-                <input className="w-full border-2 border-gray-200 p-4 rounded-lg text-lg focus:border-blue-500 outline-none" placeholder="Search for a competitor..." value={compQuery} onChange={e => setCompQuery(e.target.value)} />
+                <input className="w-full bg-[#0B1120] border border-white/10 p-4 rounded-xl text-lg text-white placeholder-gray-500 focus:border-cyan-500 outline-none transition" placeholder="Search for a competitor..." value={compQuery} onChange={e => setCompQuery(e.target.value)} />
                 {compSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 w-full bg-white border rounded-xl shadow-2xl mt-2 max-h-60 overflow-y-auto z-50">
+                    <div className="absolute top-full left-0 w-full bg-[#0B1120] border border-white/10 rounded-xl shadow-2xl mt-2 max-h-60 overflow-y-auto z-50">
                          {compSuggestions.map((place) => {
                            const isAdded = competitors.find(c => c.place_id === place.place_id);
                            return (
-                            <div key={place.place_id} onClick={() => toggleCompetitor(place)} className={`p-4 cursor-pointer border-b flex justify-between items-center ${isAdded ? 'bg-green-50' : 'hover:bg-gray-50'}`}>
-                                <div className="font-medium text-gray-900 truncate pr-4">{place.title}</div>
+                            <div key={place.place_id} onClick={() => toggleCompetitor(place)} className={`p-4 cursor-pointer border-b border-white/5 flex justify-between items-center transition-colors ${isAdded ? 'bg-green-900/20' : 'hover:bg-white/5'}`}>
+                                <div className="font-medium text-gray-200 truncate pr-4">{place.title}</div>
                                 <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5 whitespace-nowrap">
-                                    <span className="flex items-center gap-1 text-yellow-600 font-bold bg-yellow-50 px-1.5 py-0.5 rounded border border-yellow-100"><StarIcon /> {place.rating || "N/A"}</span>
+                                    <span className="flex items-center gap-1 text-yellow-500 font-bold bg-yellow-500/10 px-1.5 py-0.5 rounded border border-yellow-500/20"><StarIcon /> {place.rating || "N/A"}</span>
                                 </div>
-                                <button className={`ml-auto font-bold text-xs px-3 py-1 rounded whitespace-nowrap ${isAdded ? 'bg-gray-200 text-gray-500' : 'bg-green-100 text-green-700'}`}>{isAdded ? "ADDED ✓" : "+ ADD"}</button>
+                                <button className={`ml-auto font-bold text-xs px-3 py-1 rounded whitespace-nowrap border ${isAdded ? 'bg-white/10 border-white/20 text-gray-400' : 'bg-green-500/10 border-green-500/50 text-green-400 hover:bg-green-500/20'}`}>{isAdded ? "ADDED ✓" : "+ ADD"}</button>
                             </div>
                            );
                          })}
@@ -581,9 +706,9 @@ function DashboardLogic() {
 
             <div className="grid md:grid-cols-2 gap-4 mt-8">
               {competitors.map((place) => (
-                <div key={place.place_id} className="p-4 border-2 border-green-500 bg-green-50 rounded-xl flex justify-between items-center shadow-sm">
-                  <div className="font-bold text-green-900 truncate pr-2">{place.title}</div>
-                  <button onClick={() => toggleCompetitor(place)} className="text-red-500 hover:bg-red-100 p-2 rounded text-sm font-bold flex-shrink-0">✕</button>
+                <div key={place.place_id} className="p-4 border border-green-500/50 bg-green-500/10 rounded-xl flex justify-between items-center shadow-[0_0_15px_rgba(34,197,94,0.1)] backdrop-blur-sm">
+                  <div className="font-bold text-green-400 truncate pr-2">{place.title}</div>
+                  <button onClick={() => toggleCompetitor(place)} className="text-red-400 hover:bg-red-500/20 p-2 rounded text-sm font-bold flex-shrink-0 transition">✕</button>
                 </div>
               ))}
             </div>
@@ -592,15 +717,15 @@ function DashboardLogic() {
 
         {/* --- ERROR DISPLAY --- */}
         {errorMsg && (
-            <div className="flex flex-col items-center justify-center min-h-[500px] p-8 text-center">
+            <div className="flex-grow flex flex-col items-center justify-center min-h-[500px] p-8 text-center">
                 <ErrorIcon />
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Report Cannot Be Analyzed</h2>
-                <div className="bg-red-50 border border-red-200 p-6 rounded-xl max-w-2xl w-full">
-                    <p className="text-red-800 font-medium mb-2">Reason for failure:</p>
-                    <p className="text-gray-700 font-mono text-sm break-words">{errorMsg}</p>
+                <h2 className="text-3xl font-bold text-white mb-4">Report Cannot Be Analyzed</h2>
+                <div className="bg-red-500/10 border border-red-500/30 p-6 rounded-xl max-w-2xl w-full">
+                    <p className="text-red-400 font-medium mb-2">Reason for failure:</p>
+                    <p className="text-gray-300 font-mono text-sm break-words">{errorMsg}</p>
                 </div>
                 <div className="mt-8 flex gap-4">
-                    <button onClick={() => setErrorMsg(null)} className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-bold hover:bg-gray-300 transition">Try Again</button>
+                    <button onClick={() => setErrorMsg(null)} className="px-6 py-3 bg-white/10 text-white rounded-lg font-bold hover:bg-white/20 transition">Try Again</button>
                     <button onClick={() => window.location.reload()} className="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition">Restart</button>
                 </div>
             </div>
@@ -608,15 +733,16 @@ function DashboardLogic() {
 
         {/* STEP 3: REPORT */}
         {step === 3 && report && !errorMsg && (
-          // WRAPPER REF FOR PDF CAPTURE
-          <div ref={reportRef} id="report-content" className="bg-gray-50 pb-40 p-12 min-h-screen">
+          // WRAPPER REF FOR PDF CAPTURE (UPDATED STYLES FOR PDF MODE)
+          <div ref={reportRef} id="report-content" className="bg-[#030712] pt-24 md:pt-32 px-4 md:px-12 pb-40 min-h-screen text-white">
             
-            <div className="bg-gray-900 text-white pt-16 pb-24 text-center rounded-xl shadow-xl mb-12 relative overflow-hidden">
+            <div className="bg-[#0B1120] border border-white/10 pt-16 pb-24 text-center rounded-xl shadow-2xl mb-12 relative overflow-hidden">
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
               <div className="relative z-10 flex flex-col items-center">
-                  <div className="text-sm font-bold tracking-[0.3em] text-blue-400 uppercase mb-4">Overall Performance</div>
+                  <div className="text-sm font-bold tracking-[0.3em] text-cyan-400 uppercase mb-4">Overall Performance</div>
                   <div className="flex items-baseline gap-2">
                      <div className="text-9xl font-black tracking-tighter text-white">{report.audit_score}<span className="text-5xl text-gray-500">/100</span></div>
-                     <span className="text-xs font-medium text-white opacity-90 -mt-2">- Powered by Addinfi</span>
+                     <span className="text-xs font-medium text-gray-400 opacity-90 -mt-2">- Powered by Addinfi</span>
                   </div>
               </div>
             </div>
@@ -624,12 +750,12 @@ function DashboardLogic() {
             {/* EXECUTIVE SUMMARY */}
             {report.executive_summary && (
                 <div className="max-w-5xl mx-auto -mt-24 mb-20 relative z-20">
-                    <div className="bg-white p-8 rounded-xl shadow-2xl border-t-4 border-blue-600">
+                    <div className="bg-[#0B1120] p-8 rounded-xl shadow-2xl border-t-4 border-blue-600 border-x border-b border-white/5">
                         <div className="flex items-center gap-3 mb-4">
-                            <span className="bg-blue-100 text-blue-700 p-2 rounded-lg"><SearchIcon /></span>
-                            <h3 className="font-bold text-gray-900 text-xl uppercase tracking-wide">Executive Summary</h3>
+                            <span className="bg-blue-900/30 text-blue-400 p-2 rounded-lg border border-blue-500/20"><SearchIcon /></span>
+                            <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Executive Summary</h3>
                         </div>
-                        <p className="text-gray-700 leading-8 text-lg font-medium text-justify whitespace-pre-line">{report.executive_summary}</p>
+                        <p className="text-gray-300 leading-8 text-lg font-medium text-justify whitespace-pre-line">{report.executive_summary}</p>
                     </div>
                 </div>
             )}
@@ -637,38 +763,38 @@ function DashboardLogic() {
             <div className="max-w-[95rem] mx-auto space-y-20">
               
               {/* MATRIX TABLE */}
-              <div className="bg-white rounded-2xl shadow-xl border overflow-hidden">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <div className="bg-[#0B1120] rounded-2xl shadow-xl border border-white/10 overflow-hidden">
+                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                    <div className="flex items-center gap-3">
-                        <span className="bg-blue-100 text-blue-700 p-2 rounded-lg"><ChartIcon /></span>
-                        <h3 className="font-bold text-gray-900 text-xl uppercase tracking-wide">Detailed Market Data</h3>
+                        <span className="bg-blue-900/30 text-blue-400 p-2 rounded-lg border border-blue-500/20"><ChartIcon /></span>
+                        <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Detailed Market Data</h3>
                    </div>
                 </div>
-                <div className="w-full">
-                  <table className="w-full table-fixed">
+                <div className="w-full overflow-x-auto">
+                  <table className="w-full table-fixed min-w-[800px]">
                     <thead>
-                      <tr className="bg-white text-left text-gray-500 text-sm uppercase tracking-wider">
-                        <th className="p-4 font-medium border-b w-[20%]">Metric</th>
-                        <th className="p-4 text-blue-600 font-bold text-lg border-b border-l-4 border-blue-500 w-[26%] bg-blue-50/50 align-top">YOU</th>
-                        {report.matrix?.competitors?.map((c: any, i: number) => <th key={i} className="p-4 font-bold text-gray-800 border-b border-l w-[27%] align-top break-words">{c.name}</th>)}
+                      <tr className="bg-[#0B1120] text-left text-gray-400 text-sm uppercase tracking-wider">
+                        <th className="p-4 font-medium border-b border-white/10 w-[20%]">Metric</th>
+                        <th className="p-4 text-cyan-400 font-bold text-lg border-b border-white/10 border-l-4 border-l-cyan-500 w-[26%] bg-cyan-900/10 align-top">YOU</th>
+                        {report.matrix?.competitors?.map((c: any, i: number) => <th key={i} className="p-4 font-bold text-gray-200 border-b border-white/10 border-l border-white/5 w-[27%] align-top break-words">{c.name}</th>)}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-gray-700 text-base">
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Category</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.category}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.category}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Reviews</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.rating}⭐ ({report.matrix?.me?.reviews})</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.rating}⭐ ({c.reviews})</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Review Velocity</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.review_velocity}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.review_velocity}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Review Response</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.review_response}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.review_response}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Review Growth</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.review_growth}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.review_growth}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Rating Trend</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.rating_trend}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.rating_trend}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Sentiment</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.sentiment}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.sentiment}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">NPS Score</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.nps}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.nps}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Post Freq</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.post_frequency}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.post_frequency}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Engagement</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.post_engagement}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.post_engagement}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Photos</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.total_photos}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.total_photos}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Age</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.listing_age}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.listing_age}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Profile Strength</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.profile_strength}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.profile_strength}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Risk</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.suspension_risk}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.suspension_risk}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-gray-50">Audit Gap</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.audit_gap}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.audit_gap}</td>)}</tr>
+                    <tbody className="divide-y divide-white/5 text-gray-300 text-base">
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Category</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.category}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.category}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Reviews</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.rating}⭐ ({report.matrix?.me?.reviews})</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.rating}⭐ ({c.reviews})</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Review Velocity</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.review_velocity}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.review_velocity}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Review Response</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.review_response}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.review_response}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Review Growth</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.review_growth}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.review_growth}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Rating Trend</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.rating_trend}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.rating_trend}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Sentiment</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.sentiment}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.sentiment}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">NPS Score</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.nps}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.nps}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Post Freq</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.post_frequency}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.post_frequency}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Engagement</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.post_engagement}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.post_engagement}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Photos</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.total_photos}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.total_photos}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Age</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.listing_age}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.listing_age}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Profile Strength</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.profile_strength}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.profile_strength}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Risk</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.suspension_risk}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.suspension_risk}</td>)}</tr>
+                      <tr><td className="py-6 px-4 font-bold bg-white/5">Audit Gap</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.audit_gap}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.audit_gap}</td>)}</tr>
                     </tbody>
                   </table>
                 </div>
@@ -676,26 +802,26 @@ function DashboardLogic() {
 
               {/* STRATEGIC CARDS */}
               <div className="grid md:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-xl shadow-lg border-l-4 border-red-500 p-6">
+                  <div className="bg-[#0B1120] rounded-xl shadow-lg border-l-4 border-red-500 p-6 border border-white/5">
                       <div className="flex items-center gap-3 mb-4">
-                        <span className="bg-red-100 text-red-700 p-0.5 rounded-lg"><ErrorIcon /></span>
-                        <h3 className="font-bold text-gray-900 text-xl uppercase tracking-wide">Your Profile Gaps</h3>
+                        <span className="bg-red-500/10 text-red-500 p-0.5 rounded-lg border border-red-500/20"><ErrorIcon /></span>
+                        <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Your Profile Gaps</h3>
                       </div>
                       <ul className="space-y-3">
                           {report.weaknesses?.map((item: string, i: number) => (
-                              <li key={i} className="flex items-start gap-3 text-gray-600 text-lg"><span className="text-red-500 font-bold mt-0.5 flex-shrink-0">✕</span>{item}</li>
-                          )) || <p className="text-gray-400 italic">No critical issues found.</p>}
+                              <li key={i} className="flex items-start gap-3 text-gray-300 text-lg"><span className="text-red-500 font-bold mt-0.5 flex-shrink-0">✕</span>{item}</li>
+                          )) || <p className="text-gray-500 italic">No critical issues found.</p>}
                       </ul>
                   </div>
-                  <div className="bg-white rounded-xl shadow-lg border-l-4 border-green-500 p-6">
+                  <div className="bg-[#0B1120] rounded-xl shadow-lg border-l-4 border-green-500 p-6 border border-white/5">
                       <div className="flex items-center gap-3 mb-4">
-                        <span className="bg-green-100 text-green-700 p-2 rounded-lg"><TrophyIcon /></span>
-                        <h3 className="font-bold text-gray-900 text-xl uppercase tracking-wide">Competitor Wins</h3>
+                        <span className="bg-green-500/10 text-green-500 p-2 rounded-lg border border-green-500/20"><TrophyIcon /></span>
+                        <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Competitor Wins</h3>
                       </div>
                       <ul className="space-y-3">
                           {report.competitor_strengths?.map((item: string, i: number) => (
-                              <li key={i} className="flex items-start gap-3 text-gray-600 text-lg"><span className="text-green-500 font-bold mt-0.5 flex-shrink-0">✓</span>{item}</li>
-                          )) || <p className="text-gray-400 italic">Analyzing competitor data...</p>}
+                              <li key={i} className="flex items-start gap-3 text-gray-300 text-lg"><span className="text-green-500 font-bold mt-0.5 flex-shrink-0">✓</span>{item}</li>
+                          )) || <p className="text-gray-500 italic">Analyzing competitor data...</p>}
                       </ul>
                   </div>
               </div>
@@ -704,22 +830,22 @@ function DashboardLogic() {
                {report.gap_analysis && (
                  <div className="space-y-6">
                     <div className="flex items-center gap-4">
-                        <div className="h-px bg-gray-300 flex-1"></div>
-                        <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wide">Metric Gap Analysis & Fixes</h2>
-                        <div className="h-px bg-gray-300 flex-1"></div>
+                        <div className="h-px bg-white/10 flex-1"></div>
+                        <h2 className="text-xl font-bold text-gray-100 uppercase tracking-wide">Metric Gap Analysis & Fixes</h2>
+                        <div className="h-px bg-white/10 flex-1"></div>
                     </div>
                     <div className="grid md:grid-cols-3 gap-6">
-                        <div className="bg-white border rounded-xl p-6 shadow-md">
-                            <h3 className="font-bold text-blue-600 mb-4 uppercase pb-2">Reputation Fixes</h3>
-                            <ul className="space-y-4">{report.gap_analysis.reputation?.map((fix: string, i: number) => <li key={i} className="text-base text-gray-700 bg-blue-50 p-4 rounded-lg"><span className="font-bold text-blue-800 block mb-1">Step {i+1}:</span> {fix}</li>)}</ul>
+                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md">
+                            <h3 className="font-bold text-blue-400 mb-4 uppercase pb-2">Reputation Fixes</h3>
+                            <ul className="space-y-4">{report.gap_analysis.reputation?.map((fix: string, i: number) => <li key={i} className="text-base text-gray-300 bg-blue-500/5 p-4 rounded-lg border border-blue-500/10"><span className="font-bold text-blue-400 block mb-1">Step {i+1}:</span> {fix}</li>)}</ul>
                         </div>
-                        <div className="bg-white border rounded-xl p-6 shadow-md">
-                            <h3 className="font-bold text-purple-600 mb-4 uppercase pb-2">Engagement Fixes</h3>
-                             <ul className="space-y-4">{report.gap_analysis.engagement?.map((fix: string, i: number) => <li key={i} className="text-base text-gray-700 bg-purple-50 p-4 rounded-lg"><span className="font-bold text-purple-800 block mb-1">Step {i+1}:</span> {fix}</li>)}</ul>
+                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md">
+                            <h3 className="font-bold text-purple-400 mb-4 uppercase pb-2">Engagement Fixes</h3>
+                             <ul className="space-y-4">{report.gap_analysis.engagement?.map((fix: string, i: number) => <li key={i} className="text-base text-gray-300 bg-purple-500/5 p-4 rounded-lg border border-purple-500/10"><span className="font-bold text-purple-400 block mb-1">Step {i+1}:</span> {fix}</li>)}</ul>
                         </div>
-                        <div className="bg-white border rounded-xl p-6 shadow-md">
-                            <h3 className="font-bold text-green-600 mb-4 uppercase pb-2">Relevance Fixes</h3>
-                             <ul className="space-y-4">{report.gap_analysis.relevance?.map((fix: string, i: number) => <li key={i} className="text-base text-gray-700 bg-green-50 p-4 rounded-lg"><span className="font-bold text-green-800 block mb-1">Step {i+1}:</span> {fix}</li>)}</ul>
+                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md">
+                            <h3 className="font-bold text-green-400 mb-4 uppercase pb-2">Relevance Fixes</h3>
+                             <ul className="space-y-4">{report.gap_analysis.relevance?.map((fix: string, i: number) => <li key={i} className="text-base text-gray-300 bg-green-500/5 p-4 rounded-lg border border-green-500/10"><span className="font-bold text-green-400 block mb-1">Step {i+1}:</span> {fix}</li>)}</ul>
                         </div>
                     </div>
                  </div>
@@ -729,22 +855,22 @@ function DashboardLogic() {
                {report.four_week_plan && (
                 <div className="space-y-6">
                    <div className="flex items-center gap-4">
-                      <div className="h-px bg-gray-300 flex-1"></div>
+                      <div className="h-px bg-white/10 flex-1"></div>
                       <div className="flex items-center gap-3">
-                         <span className="bg-blue-100 text-blue-700 p-2 rounded-lg"><ListIcon /></span>
-                         <h3 className="font-bold text-gray-900 text-xl uppercase tracking-wide">4-Week Growth Architecture</h3>
+                         <span className="bg-blue-900/30 text-blue-400 p-2 rounded-lg border border-blue-500/20"><ListIcon /></span>
+                         <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">4-Week Growth Architecture</h3>
                       </div>
-                      <div className="h-px bg-gray-300 flex-1"></div>
+                      <div className="h-px bg-white/10 flex-1"></div>
                    </div>
                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                       {report.four_week_plan.map((week: any, i: number) => (
-                        <div key={i} className="bg-white rounded-xl shadow-lg border p-6">
+                        <div key={i} className="bg-[#0B1120] rounded-xl shadow-lg border border-white/10 p-6 hover:border-cyan-500/30 transition">
                            <div className="flex justify-between items-center mb-4">
-                              <h3 className="font-black text-2xl text-blue-900">{week.week}</h3>
-                              <span className="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 rounded border border-blue-100">{week.time_est}</span>
+                              <h3 className="font-black text-2xl text-blue-400">{week.week}</h3>
+                              <span className="text-xs font-medium bg-blue-500/10 text-blue-400 px-2 py-1 rounded border border-blue-500/20">{week.time_est}</span>
                            </div>
-                           <div className="text-sm font-bold text-indigo-500 uppercase tracking-widest mb-4 pb-2">{week.focus}</div>
-                           <ul className="space-y-3">{week.tasks?.map((task: string, k: number) => <li key={k} className="flex items-start gap-2 text-base text-gray-600"><span className="text-blue-400 font-bold mt-px">•</span><span className="leading-snug font-medium">{task}</span></li>)}</ul>
+                           <div className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2">{week.focus}</div>
+                           <ul className="space-y-3">{week.tasks?.map((task: string, k: number) => <li key={k} className="flex items-start gap-2 text-base text-gray-300"><span className="text-blue-500 font-bold mt-px">•</span><span className="leading-snug font-medium">{task}</span></li>)}</ul>
                         </div>
                       ))}
                    </div>
@@ -754,18 +880,18 @@ function DashboardLogic() {
               {/* GLOSSARY */}
               <div className="space-y-6">
                    <div className="flex items-center gap-4">
-                      <div className="h-px bg-gray-300 flex-1"></div>
+                      <div className="h-px bg-white/10 flex-1"></div>
                       <div className="flex items-center gap-3">
-                         <span className="bg-gray-100 text-gray-700 p-2 rounded-lg"><BookIcon /></span>
-                         <h3 className="font-bold text-gray-900 text-xl uppercase tracking-wide">Metric Definitions</h3>
+                         <span className="bg-white/5 text-gray-400 p-2 rounded-lg border border-white/10"><BookIcon /></span>
+                         <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Metric Definitions</h3>
                       </div>
-                      <div className="h-px bg-gray-300 flex-1"></div>
+                      <div className="h-px bg-white/10 flex-1"></div>
                    </div>
-                   <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+                   <div className="bg-[#0B1120] p-8 rounded-2xl shadow-lg border border-white/10">
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6 text-sm">
                         {METRIC_DEFINITIONS.map((def, i) => (
                             <div key={i} className="flex flex-col">
-                                <span className="font-bold text-gray-900 mb-1">{def.label}</span>
+                                <span className="font-bold text-gray-200 mb-1">{def.label}</span>
                                 <span className="text-gray-500 leading-snug">{def.desc}</span>
                             </div>
                         ))}
@@ -779,18 +905,18 @@ function DashboardLogic() {
 
         {/* --- LOADER --- */}
         {loading && (
-          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm transition-all duration-300">
+          <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#030712]/90 backdrop-blur-sm transition-all duration-300">
             <div className="relative mb-6">
-              <div className="w-20 h-20 border-4 border-blue-100 rounded-full"></div>
-              <div className="w-20 h-20 border-4 border-blue-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="w-20 h-20 border-4 border-blue-900 rounded-full"></div>
+              <div className="w-20 h-20 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-cyan-500">
                 <SearchIcon />
               </div>
             </div>
             
-            <h3 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Generating Audit Report</h3>
+            <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Generating Audit Report</h3>
             
-            <p key={loadingMsgIndex} className="text-gray-500 font-medium animate-[fadeIn_0.5s_ease-in-out]">
+            <p key={loadingMsgIndex} className="text-gray-400 font-medium animate-[fadeIn_0.5s_ease-in-out]">
               {LOADING_MESSAGES[loadingMsgIndex]}
             </p>
           </div>
@@ -798,21 +924,21 @@ function DashboardLogic() {
 
         {/* --- PAYMENT MODAL --- */}
         {showPaymentModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center border border-gray-100 transform transition-all scale-100">
-                 <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+             <div className="bg-[#0B1120] rounded-2xl shadow-2xl max-w-md w-full p-8 text-center border border-white/10 transform transition-all scale-100">
+                 <div className="bg-blue-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
                     <LockIcon />
                  </div>
-                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Unlock Full Report</h2>
-                 <p className="text-gray-500 mb-6 text-sm">Get immediate access to your comprehensive audit PDF, including competitor data and the 4-week growth plan.</p>
+                 <h2 className="text-2xl font-bold text-white mb-2">Unlock Full Report</h2>
+                 <p className="text-gray-400 mb-6 text-sm">Get immediate access to your comprehensive audit PDF, including competitor data and the 4-week growth plan.</p>
                  
                  <div className="space-y-4">
                     <div className="relative">
-                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 text-sm font-bold">PROMO</div>
+                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 text-sm font-bold">PROMO</div>
                        <input 
                          type="text" 
                          placeholder="Enter Coupon Code" 
-                         className="w-full border-2 border-gray-200 pl-16 pr-4 py-3 rounded-xl focus:border-blue-500 outline-none font-mono text-center uppercase"
+                         className="w-full bg-[#020617] border-2 border-white/10 pl-16 pr-4 py-3 rounded-xl focus:border-cyan-500 outline-none font-mono text-center uppercase text-white"
                          value={couponCode}
                          onChange={(e) => { setCouponCode(e.target.value); setCouponError(""); }}
                        />
@@ -821,13 +947,13 @@ function DashboardLogic() {
                     
                     <button 
                        onClick={handleUnlock}
-                       className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200"
+                       className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 rounded-xl font-bold hover:from-blue-500 hover:to-cyan-500 transition shadow-[0_0_20px_rgba(6,182,212,0.4)]"
                     >
                        Unlock Download 🔓
                     </button>
                     
-                    <div className="text-xs text-gray-400 mt-4">
-                        Limited time: Use code <span className="font-mono bg-yellow-100 text-yellow-800 px-1 rounded">first20</span> for free access.
+                    <div className="text-xs text-gray-500 mt-4">
+                        Limited time: Use code <span className="font-mono bg-yellow-500/10 text-yellow-500 px-1 rounded border border-yellow-500/20">first20</span> for free access.
                     </div>
                  </div>
              </div>
@@ -835,6 +961,15 @@ function DashboardLogic() {
         )}
         
       </div>
+      
+      {/* --- FOOTER FOR BOTH LANDING & DASHBOARD --- */}
+      <footer className="border-t border-white/5 py-12 text-center relative z-10 bg-[#02040a]">
+         <div className="flex items-center justify-center gap-2 mb-4 opacity-50">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span className="text-[10px] md:text-xs font-mono text-gray-400">ALL SYSTEMS OPERATIONAL</span>
+         </div>
+         <p className="text-gray-600 text-[10px] md:text-xs font-mono">&copy; {new Date().getFullYear()} ADDINFI DIGITECH PVT. LTD. // SECURE CONNECTION</p>
+      </footer>
     </div>
   );
 }
