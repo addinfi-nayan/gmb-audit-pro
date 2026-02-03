@@ -23,6 +23,15 @@ const METRIC_DEFINITIONS = [
   { label: "Audit Gap", desc: "The percentage difference in overall performance metrics between you and the market leader." }
 ];
 
+// --- LOADING MESSAGES ---
+const LOADING_MESSAGES = [
+  "Initiating secure profile scan...",
+  "Identifying top local competitors...",
+  "Analyzing review sentiment & gaps...",
+  "Synthesizing strategic growth insights...",
+  "Almost there! Finalizing your report..."
+];
+
 // --- ICONS ---
 const SearchIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>);
 const MapPinIcon = () => (<svg className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>);
@@ -62,6 +71,8 @@ export default function Dashboard() {
   const [competitors, setCompetitors] = useState<any[]>([]);
   
   const [loading, setLoading] = useState(false);
+  const [loadingMsgIndex, setLoadingMsgIndex] = useState(0); // NEW: Track message index
+
   const [downloading, setDownloading] = useState(false);
   const [report, setReport] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -71,6 +82,18 @@ export default function Dashboard() {
   const [couponCode, setCouponCode] = useState("");
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [couponError, setCouponError] = useState("");
+
+  // --- LOADER EFFECT: Cycle Messages every 5 seconds ---
+  useEffect(() => {
+    if (!loading) {
+      setLoadingMsgIndex(0); // Reset when not loading
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingMsgIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   // --- SEARCH EFFECTS ---
   useEffect(() => {
@@ -141,49 +164,37 @@ export default function Dashboard() {
     if (couponCode.toLowerCase() === "first20") {
       setIsUnlocked(true);
       setShowPaymentModal(false);
-      // Automatically trigger download after unlock
-      setTimeout(() => {
-        generatePDF();
-      }, 500);
+      setTimeout(() => { generatePDF(); }, 500);
     } else {
       setCouponError("Invalid coupon code or limit reached.");
     }
   };
 
   const initiateDownload = () => {
-    if (isUnlocked) {
-      generatePDF();
-    } else {
-      setShowPaymentModal(true);
-    }
+    if (isUnlocked) { generatePDF(); } else { setShowPaymentModal(true); }
   };
 
   // --- PDF GENERATION ---
   const generatePDF = async () => {
     if (!reportRef.current) return;
     setDownloading(true);
-    
-    // 1. Force Scroll Top for clean capture
     window.scrollTo(0, 0);
     await new Promise((resolve) => setTimeout(resolve, 500)); 
 
     try {
         const element = reportRef.current;
-        
-        // 2. CONFIG: Set fixed width to emulate desktop view for the PDF
         const canvas = await html2canvas(element, { 
             scale: 2, 
             useCORS: true,
             allowTaint: true,
             scrollY: 0, 
-            windowWidth: 1440, // Forces desktop layout even on mobile
+            windowWidth: 1440,
             backgroundColor: "#ffffff"
         });
         
         const imgData = canvas.toDataURL('image/png');
         const imgWidthPx = canvas.width;
         const imgHeightPx = canvas.height;
-
         const marginPx = 40; 
         const pdfWidth = imgWidthPx + (marginPx * 2);
         const pdfHeight = imgHeightPx + (marginPx * 2);
@@ -197,7 +208,6 @@ export default function Dashboard() {
         pdf.setFillColor(255, 255, 255);
         pdf.rect(0, 0, pdfWidth, pdfHeight, 'F');
         pdf.addImage(imgData, 'PNG', marginPx, marginPx, imgWidthPx, imgHeightPx);
-        
         pdf.save(`${myBusiness?.title || 'GMB'}_Audit_Report.pdf`);
     } catch (err) {
         console.error("PDF Error", err);
@@ -232,7 +242,7 @@ export default function Dashboard() {
                  <button 
                     onClick={initiateDownload} 
                     disabled={downloading} 
-                    data-html2canvas-ignore="true" // Prevents button from appearing in PDF
+                    data-html2canvas-ignore="true" 
                     className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-700 transition flex items-center gap-2"
                  >
                     {downloading ? "Generating..." : "Download PDF 📥"}
@@ -526,11 +536,13 @@ export default function Dashboard() {
                 <SearchIcon />
               </div>
             </div>
+            
             <h3 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Generating Audit Report</h3>
-            <p className="text-gray-500 font-medium animate-pulse">Analyzing competitors, sentiment, and ranking gaps...</p>
-            <div className="w-64 h-1.5 bg-gray-100 rounded-full mt-6 overflow-hidden">
-              <div className="h-full bg-blue-600 animate-[loading_2s_ease-in-out_infinite] w-1/2 rounded-full"></div>
-            </div>
+            
+            {/* UPDATED ANIMATED TEXT: Changes every 5s with Fade Effect */}
+            <p key={loadingMsgIndex} className="text-gray-500 font-medium animate-[fadeIn_0.5s_ease-in-out]">
+              {LOADING_MESSAGES[loadingMsgIndex]}
+            </p>
           </div>
         )}
 
