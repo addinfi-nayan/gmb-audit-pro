@@ -335,7 +335,7 @@ const LandingPage = () => {
          </div>
 
          {/* --- FINAL CTA --- */}
-         <div className="max-w-3xl mx-auto px-6 text-center mb-24">
+         <div className="max-w-3xl mx-auto px-6 text-center mb-10">
              <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 md:mb-8">Ready to deploy?</h2>
              <p className="text-gray-400 mb-8 md:mb-10 text-sm md:text-base">Access the full suite of auditing tools. No credit card required for initial diagnostics.</p>
              <button 
@@ -409,7 +409,7 @@ const SearchIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" str
 const MapPinIcon = () => (<svg className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>);
 const StarIcon = () => (<svg className="w-3 h-3 text-yellow-500 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>);
 const ErrorIcon = () => (<svg className="w-12 h-12 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>);
-const LockIcon = () => (<svg className="w-12 h-12 text-blue-600 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>);
+const LockIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>);
 const ChartIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>);
 const TrophyIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>);
 const ListIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>);
@@ -601,6 +601,21 @@ function DashboardLogic() {
     }
   };
 
+  // --- HELPER COMPONENT FOR PAYWALL BLUR ---
+  const PaywallBlur = ({ children, isLocked }: { children: React.ReactNode, isLocked: boolean }) => {
+    if (!isLocked) return <>{children}</>;
+    return (
+      <div className="relative group cursor-pointer" onClick={() => setShowPaymentModal(true)}>
+        <div className="blur-sm select-none opacity-50 pointer-events-none grayscale">{children}</div>
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+           <div className="bg-black/60 p-3 rounded-full border border-cyan-500/50 text-cyan-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(6,182,212,0.5)]">
+              <LockIcon />
+           </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#030712] font-sans text-white flex flex-col justify-between">
       <div className="mx-auto w-full max-w-[95rem] bg-[#030712] shadow-none min-h-screen relative flex flex-col">
@@ -780,6 +795,7 @@ function DashboardLogic() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5 text-gray-300 text-base">
+                      {/* FIRST 7 ROWS (ALWAYS VISIBLE) */}
                       <tr><td className="py-6 px-4 font-bold bg-white/5">Category</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.category}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.category}</td>)}</tr>
                       <tr><td className="py-6 px-4 font-bold bg-white/5">Reviews</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.rating}⭐ ({report.matrix?.me?.reviews})</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.rating}⭐ ({c.reviews})</td>)}</tr>
                       <tr><td className="py-6 px-4 font-bold bg-white/5">Review Velocity</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.review_velocity}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.review_velocity}</td>)}</tr>
@@ -787,14 +803,40 @@ function DashboardLogic() {
                       <tr><td className="py-6 px-4 font-bold bg-white/5">Review Growth</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.review_growth}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.review_growth}</td>)}</tr>
                       <tr><td className="py-6 px-4 font-bold bg-white/5">Rating Trend</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.rating_trend}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.rating_trend}</td>)}</tr>
                       <tr><td className="py-6 px-4 font-bold bg-white/5">Sentiment</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.sentiment}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.sentiment}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-white/5">NPS Score</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.nps}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.nps}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-white/5">Post Freq</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.post_frequency}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.post_frequency}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-white/5">Engagement</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.post_engagement}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.post_engagement}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-white/5">Photos</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.total_photos}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.total_photos}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-white/5">Age</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.listing_age}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.listing_age}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-white/5">Profile Strength</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.profile_strength}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.profile_strength}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-white/5">Risk</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.suspension_risk}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.suspension_risk}</td>)}</tr>
-                      <tr><td className="py-6 px-4 font-bold bg-white/5">Audit Gap</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.audit_gap}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.audit_gap}</td>)}</tr>
+                      
+                      {/* LOCKED ROWS (HIDDEN BEHIND BLUR IF NOT UNLOCKED) */}
+                      {!isUnlocked ? (
+                         <tr>
+                            <td colSpan={2 + (report.matrix?.competitors?.length || 0)} className="p-0 relative h-64">
+                               <div className="absolute inset-0 overflow-hidden">
+                                  <table className="w-full table-fixed h-full opacity-30 pointer-events-none select-none filter blur-sm">
+                                     <tbody className="divide-y divide-white/5">
+                                        <tr><td className="py-6 px-4 font-bold">NPS Score</td><td className="py-6 px-4">82</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4">76</td>)}</tr>
+                                        <tr><td className="py-6 px-4 font-bold">Post Freq</td><td className="py-6 px-4">Weekly</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4">Monthly</td>)}</tr>
+                                        <tr><td className="py-6 px-4 font-bold">Engagement</td><td className="py-6 px-4">High</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4">Low</td>)}</tr>
+                                        <tr><td className="py-6 px-4 font-bold">Photos</td><td className="py-6 px-4">120</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4">45</td>)}</tr>
+                                     </tbody>
+                                  </table>
+                               </div>
+                               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-[#0B1120] to-transparent z-10 cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
+                                  <div className="bg-black/60 p-3 rounded-full border border-cyan-500/50 text-cyan-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(6,182,212,0.5)]">
+                                     <LockIcon />
+                                  </div>
+                               </div>
+                            </td>
+                         </tr>
+                      ) : (
+                         <>
+                            <tr><td className="py-6 px-4 font-bold bg-white/5">NPS Score</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.nps}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.nps}</td>)}</tr>
+                            <tr><td className="py-6 px-4 font-bold bg-white/5">Post Freq</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.post_frequency}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.post_frequency}</td>)}</tr>
+                            <tr><td className="py-6 px-4 font-bold bg-white/5">Engagement</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.post_engagement}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.post_engagement}</td>)}</tr>
+                            <tr><td className="py-6 px-4 font-bold bg-white/5">Photos</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.total_photos}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.total_photos}</td>)}</tr>
+                            <tr><td className="py-6 px-4 font-bold bg-white/5">Age</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.listing_age}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.listing_age}</td>)}</tr>
+                            <tr><td className="py-6 px-4 font-bold bg-white/5">Profile Strength</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.profile_strength}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.profile_strength}</td>)}</tr>
+                            <tr><td className="py-6 px-4 font-bold bg-white/5">Risk</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.suspension_risk}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.suspension_risk}</td>)}</tr>
+                            <tr><td className="py-6 px-4 font-bold bg-white/5">Audit Gap</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.audit_gap}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.audit_gap}</td>)}</tr>
+                         </>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -802,27 +844,55 @@ function DashboardLogic() {
 
               {/* STRATEGIC CARDS */}
               <div className="grid md:grid-cols-2 gap-6">
-                  <div className="bg-[#0B1120] rounded-xl shadow-lg border-l-4 border-red-500 p-6 border border-white/5">
+                  {/* GAPS CARD */}
+                  <div className="bg-[#0B1120] rounded-xl shadow-lg border-l-4 border-red-500 p-6 border border-white/5 relative overflow-hidden">
                       <div className="flex items-center gap-3 mb-4">
                         <span className="bg-red-500/10 text-red-500 p-0.5 rounded-lg border border-red-500/20"><ErrorIcon /></span>
                         <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Your Profile Gaps</h3>
                       </div>
                       <ul className="space-y-3">
-                          {report.weaknesses?.map((item: string, i: number) => (
+                          {/* SHOW TOP 3 ONLY */}
+                          {report.weaknesses?.slice(0, 3).map((item: string, i: number) => (
                               <li key={i} className="flex items-start gap-3 text-gray-300 text-lg"><span className="text-red-500 font-bold mt-0.5 flex-shrink-0">✕</span>{item}</li>
                           )) || <p className="text-gray-500 italic">No critical issues found.</p>}
                       </ul>
+                      {/* PAYWALL BLUR FOR REMAINING */}
+                      {!isUnlocked && report.weaknesses?.length > 3 && (
+                          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/90 to-transparent flex items-center justify-center pt-10 cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
+                              <div className="bg-black/60 p-3 rounded-full border border-red-500/50 text-red-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(248,113,113,0.5)]">
+                                  <LockIcon />
+                              </div>
+                          </div>
+                      )}
+                      {/* SHOW REST IF UNLOCKED */}
+                      {isUnlocked && report.weaknesses?.slice(3).map((item: string, i: number) => (
+                          <li key={i+3} className="flex items-start gap-3 text-gray-300 text-lg mt-3"><span className="text-red-500 font-bold mt-0.5 flex-shrink-0">✕</span>{item}</li>
+                      ))}
                   </div>
-                  <div className="bg-[#0B1120] rounded-xl shadow-lg border-l-4 border-green-500 p-6 border border-white/5">
+
+                  {/* WINS CARD */}
+                  <div className="bg-[#0B1120] rounded-xl shadow-lg border-l-4 border-green-500 p-6 border border-white/5 relative overflow-hidden">
                       <div className="flex items-center gap-3 mb-4">
                         <span className="bg-green-500/10 text-green-500 p-2 rounded-lg border border-green-500/20"><TrophyIcon /></span>
                         <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Competitor Wins</h3>
                       </div>
                       <ul className="space-y-3">
-                          {report.competitor_strengths?.map((item: string, i: number) => (
+                          {/* SHOW TOP 3 ONLY */}
+                          {report.competitor_strengths?.slice(0, 3).map((item: string, i: number) => (
                               <li key={i} className="flex items-start gap-3 text-gray-300 text-lg"><span className="text-green-500 font-bold mt-0.5 flex-shrink-0">✓</span>{item}</li>
                           )) || <p className="text-gray-500 italic">Analyzing competitor data...</p>}
                       </ul>
+                      {/* PAYWALL BLUR */}
+                      {!isUnlocked && report.competitor_strengths?.length > 3 && (
+                          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/90 to-transparent flex items-center justify-center pt-10 cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
+                              <div className="bg-black/60 p-3 rounded-full border border-green-500/50 text-green-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(34,197,94,0.5)]">
+                                  <LockIcon />
+                              </div>
+                          </div>
+                      )}
+                      {isUnlocked && report.competitor_strengths?.slice(3).map((item: string, i: number) => (
+                          <li key={i+3} className="flex items-start gap-3 text-gray-300 text-lg mt-3"><span className="text-green-500 font-bold mt-0.5 flex-shrink-0">✓</span>{item}</li>
+                      ))}
                   </div>
               </div>
 
@@ -835,17 +905,47 @@ function DashboardLogic() {
                         <div className="h-px bg-white/10 flex-1"></div>
                     </div>
                     <div className="grid md:grid-cols-3 gap-6">
-                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md">
+                        {/* REPUTATION */}
+                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md relative overflow-hidden">
                             <h3 className="font-bold text-blue-400 mb-4 uppercase pb-2">Reputation Fixes</h3>
-                            <ul className="space-y-4">{report.gap_analysis.reputation?.map((fix: string, i: number) => <li key={i} className="text-base text-gray-300 bg-blue-500/5 p-4 rounded-lg border border-blue-500/10"><span className="font-bold text-blue-400 block mb-1">Step {i+1}:</span> {fix}</li>)}</ul>
+                            <ul className="space-y-4">
+                                {isUnlocked ? report.gap_analysis.reputation?.map((fix: string, i: number) => (
+                                    <li key={i} className="text-base text-gray-300 bg-blue-500/5 p-4 rounded-lg border border-blue-500/10"><span className="font-bold text-blue-400 block mb-1">Step {i+1}:</span> {fix}</li>
+                                )) : (
+                                    <>
+                                        <li className="text-base text-gray-300 bg-blue-500/5 p-4 rounded-lg border border-blue-500/10"><span className="font-bold text-blue-400 block mb-1">Step 1:</span> {report.gap_analysis.reputation?.[0]}</li>
+                                        <PaywallBlur isLocked={true}><li className="text-base text-gray-300 bg-blue-500/5 p-4 rounded-lg border border-blue-500/10 blur-sm"><span className="font-bold text-blue-400 block mb-1">Step 2:</span> Hidden Strategy</li></PaywallBlur>
+                                    </>
+                                )}
+                            </ul>
                         </div>
-                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md">
+                        {/* ENGAGEMENT */}
+                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md relative overflow-hidden">
                             <h3 className="font-bold text-purple-400 mb-4 uppercase pb-2">Engagement Fixes</h3>
-                             <ul className="space-y-4">{report.gap_analysis.engagement?.map((fix: string, i: number) => <li key={i} className="text-base text-gray-300 bg-purple-500/5 p-4 rounded-lg border border-purple-500/10"><span className="font-bold text-purple-400 block mb-1">Step {i+1}:</span> {fix}</li>)}</ul>
+                             <ul className="space-y-4">
+                                {isUnlocked ? report.gap_analysis.engagement?.map((fix: string, i: number) => (
+                                    <li key={i} className="text-base text-gray-300 bg-purple-500/5 p-4 rounded-lg border border-purple-500/10"><span className="font-bold text-purple-400 block mb-1">Step {i+1}:</span> {fix}</li>
+                                )) : (
+                                    <>
+                                        <li className="text-base text-gray-300 bg-purple-500/5 p-4 rounded-lg border border-purple-500/10"><span className="font-bold text-purple-400 block mb-1">Step 1:</span> {report.gap_analysis.engagement?.[0]}</li>
+                                        <PaywallBlur isLocked={true}><li className="text-base text-gray-300 bg-purple-500/5 p-4 rounded-lg border border-purple-500/10 blur-sm"><span className="font-bold text-purple-400 block mb-1">Step 2:</span> Hidden Strategy</li></PaywallBlur>
+                                    </>
+                                )}
+                             </ul>
                         </div>
-                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md">
+                        {/* RELEVANCE */}
+                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md relative overflow-hidden">
                             <h3 className="font-bold text-green-400 mb-4 uppercase pb-2">Relevance Fixes</h3>
-                             <ul className="space-y-4">{report.gap_analysis.relevance?.map((fix: string, i: number) => <li key={i} className="text-base text-gray-300 bg-green-500/5 p-4 rounded-lg border border-green-500/10"><span className="font-bold text-green-400 block mb-1">Step {i+1}:</span> {fix}</li>)}</ul>
+                             <ul className="space-y-4">
+                                {isUnlocked ? report.gap_analysis.relevance?.map((fix: string, i: number) => (
+                                    <li key={i} className="text-base text-gray-300 bg-green-500/5 p-4 rounded-lg border border-green-500/10"><span className="font-bold text-green-400 block mb-1">Step {i+1}:</span> {fix}</li>
+                                )) : (
+                                    <>
+                                        <li className="text-base text-gray-300 bg-green-500/5 p-4 rounded-lg border border-green-500/10"><span className="font-bold text-green-400 block mb-1">Step 1:</span> {report.gap_analysis.relevance?.[0]}</li>
+                                        <PaywallBlur isLocked={true}><li className="text-base text-gray-300 bg-green-500/5 p-4 rounded-lg border border-green-500/10 blur-sm"><span className="font-bold text-green-400 block mb-1">Step 2:</span> Hidden Strategy</li></PaywallBlur>
+                                    </>
+                                )}
+                             </ul>
                         </div>
                     </div>
                  </div>
@@ -863,16 +963,48 @@ function DashboardLogic() {
                       <div className="h-px bg-white/10 flex-1"></div>
                    </div>
                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                      {report.four_week_plan.map((week: any, i: number) => (
-                        <div key={i} className="bg-[#0B1120] rounded-xl shadow-lg border border-white/10 p-6 hover:border-cyan-500/30 transition">
-                           <div className="flex justify-between items-center mb-4">
-                              <h3 className="font-black text-2xl text-blue-400">{week.week}</h3>
-                              <span className="text-xs font-medium bg-blue-500/10 text-blue-400 px-2 py-1 rounded border border-blue-500/20">{week.time_est}</span>
-                           </div>
-                           <div className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2">{week.focus}</div>
-                           <ul className="space-y-3">{week.tasks?.map((task: string, k: number) => <li key={k} className="flex items-start gap-2 text-base text-gray-300"><span className="text-blue-500 font-bold mt-px">•</span><span className="leading-snug font-medium">{task}</span></li>)}</ul>
-                        </div>
-                      ))}
+                      {report.four_week_plan.map((week: any, i: number) => {
+                        const isWeekLocked = !isUnlocked && i > 0; // Lock weeks 2,3,4
+                        return (
+                            <div key={i} className={`bg-[#0B1120] rounded-xl shadow-lg border border-white/10 p-6 relative overflow-hidden ${isWeekLocked ? 'opacity-70' : 'hover:border-cyan-500/30 transition'}`}>
+                               <div className="flex justify-between items-center mb-4">
+                                  <h3 className="font-black text-2xl text-blue-400">{week.week}</h3>
+                                  <span className="text-xs font-medium bg-blue-500/10 text-blue-400 px-2 py-1 rounded border border-blue-500/20">{week.time_est}</span>
+                               </div>
+                               <div className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2">{week.focus}</div>
+                               
+                               <ul className="space-y-3">
+                                   {!isUnlocked && i === 0 ? (
+                                       // Week 1: Show half tasks, blur rest
+                                       <>
+                                           {week.tasks?.slice(0, Math.ceil(week.tasks.length / 2)).map((task: string, k: number) => (
+                                               <li key={k} className="flex items-start gap-2 text-base text-gray-300"><span className="text-blue-500 font-bold mt-px">•</span><span className="leading-snug font-medium">{task}</span></li>
+                                           ))}
+                                           <div className="relative mt-4 cursor-pointer group flex justify-center" onClick={() => setShowPaymentModal(true)}>
+                                                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/80 to-transparent"></div>
+                                                <div className="relative z-10 bg-black/60 p-3 rounded-full border border-blue-500/50 text-blue-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                                                    <LockIcon />
+                                                </div>
+                                           </div>
+                                       </>
+                                   ) : isWeekLocked ? (
+                                       // Weeks 2-4: Completely Blurred
+                                       <div className="h-40 flex items-center justify-center relative cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
+                                           <div className="absolute inset-0 filter blur-md bg-white/5"></div>
+                                           <div className="relative z-10 bg-black/60 p-3 rounded-full border border-white/20 text-gray-400 group-hover:text-white group-hover:scale-110 transition-all shadow-lg">
+                                               <LockIcon />
+                                           </div>
+                                       </div>
+                                   ) : (
+                                       // Unlocked: Show all
+                                       week.tasks?.map((task: string, k: number) => (
+                                           <li key={k} className="flex items-start gap-2 text-base text-gray-300"><span className="text-blue-500 font-bold mt-px">•</span><span className="leading-snug font-medium">{task}</span></li>
+                                       ))
+                                   )}
+                               </ul>
+                            </div>
+                        );
+                      })}
                    </div>
                 </div>
               )}
