@@ -409,7 +409,7 @@ const SearchIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" str
 const MapPinIcon = () => (<svg className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>);
 const StarIcon = () => (<svg className="w-3 h-3 text-yellow-500 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>);
 const ErrorIcon = () => (<svg className="w-12 h-12 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>);
-const LockIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>);
+const LockIcon = () => (<svg className="w-12 h-12 text-blue-600 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>);
 const ChartIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>);
 const TrophyIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>);
 const ListIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>);
@@ -607,9 +607,9 @@ function DashboardLogic() {
     return (
       <div className="relative group cursor-pointer" onClick={() => setShowPaymentModal(true)}>
         <div className="blur-sm select-none opacity-50 pointer-events-none grayscale">{children}</div>
-        <div className="absolute inset-0 flex items-center justify-center z-10">
-           <div className="bg-black/60 p-3 rounded-full border border-cyan-500/50 text-cyan-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-              <LockIcon />
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/10 group-hover:bg-black/20 transition-all rounded-xl z-10">
+           <div className="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transform group-hover:scale-105 transition-transform">
+              <LockIcon /> Unlock Full Report
            </div>
         </div>
       </div>
@@ -818,10 +818,10 @@ function DashboardLogic() {
                                      </tbody>
                                   </table>
                                </div>
-                               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-[#0B1120] to-transparent z-10 cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
-                                  <div className="bg-black/60 p-3 rounded-full border border-cyan-500/50 text-cyan-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-                                     <LockIcon />
-                                  </div>
+                               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-[#0B1120] to-transparent z-10">
+                                  <button onClick={() => setShowPaymentModal(true)} className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full shadow-lg flex items-center gap-2 transition-all transform hover:scale-105">
+                                     <LockIcon /> Unlock Full Market Data
+                                  </button>
                                </div>
                             </td>
                          </tr>
@@ -858,10 +858,10 @@ function DashboardLogic() {
                       </ul>
                       {/* PAYWALL BLUR FOR REMAINING */}
                       {!isUnlocked && report.weaknesses?.length > 3 && (
-                          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/90 to-transparent flex items-center justify-center pt-10 cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
-                              <div className="bg-black/60 p-3 rounded-full border border-red-500/50 text-red-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(248,113,113,0.5)]">
-                                  <LockIcon />
-                              </div>
+                          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/90 to-transparent flex items-center justify-center pt-10">
+                              <button onClick={() => setShowPaymentModal(true)} className="px-4 py-2 bg-red-900/80 hover:bg-red-800 text-red-100 text-sm font-bold rounded-full flex items-center gap-2 border border-red-500/30 backdrop-blur-sm transition-all">
+                                  <LockIcon /> Unlock {report.weaknesses.length - 3} More Gaps
+                              </button>
                           </div>
                       )}
                       {/* SHOW REST IF UNLOCKED */}
@@ -884,10 +884,10 @@ function DashboardLogic() {
                       </ul>
                       {/* PAYWALL BLUR */}
                       {!isUnlocked && report.competitor_strengths?.length > 3 && (
-                          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/90 to-transparent flex items-center justify-center pt-10 cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
-                              <div className="bg-black/60 p-3 rounded-full border border-green-500/50 text-green-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(34,197,94,0.5)]">
-                                  <LockIcon />
-                              </div>
+                          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/90 to-transparent flex items-center justify-center pt-10">
+                              <button onClick={() => setShowPaymentModal(true)} className="px-4 py-2 bg-green-900/80 hover:bg-green-800 text-green-100 text-sm font-bold rounded-full flex items-center gap-2 border border-green-500/30 backdrop-blur-sm transition-all">
+                                  <LockIcon /> Unlock Full Competitor Intel
+                              </button>
                           </div>
                       )}
                       {isUnlocked && report.competitor_strengths?.slice(3).map((item: string, i: number) => (
@@ -980,19 +980,19 @@ function DashboardLogic() {
                                            {week.tasks?.slice(0, Math.ceil(week.tasks.length / 2)).map((task: string, k: number) => (
                                                <li key={k} className="flex items-start gap-2 text-base text-gray-300"><span className="text-blue-500 font-bold mt-px">•</span><span className="leading-snug font-medium">{task}</span></li>
                                            ))}
-                                           <div className="relative mt-4 cursor-pointer group flex justify-center" onClick={() => setShowPaymentModal(true)}>
-                                                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/80 to-transparent"></div>
-                                                <div className="relative z-10 bg-black/60 p-3 rounded-full border border-blue-500/50 text-blue-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-                                                    <LockIcon />
+                                           <div className="relative mt-4 cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
+                                                <div className="absolute inset-0 bg-white/5 blur-sm rounded-lg"></div>
+                                                <div className="relative flex items-center justify-center py-2 text-xs text-blue-400 font-bold gap-2 group-hover:text-white transition-colors">
+                                                    <LockIcon /> Unlock Remaining Tasks
                                                 </div>
                                            </div>
                                        </>
                                    ) : isWeekLocked ? (
                                        // Weeks 2-4: Completely Blurred
-                                       <div className="h-40 flex items-center justify-center relative cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
+                                       <div className="h-40 flex items-center justify-center relative cursor-pointer" onClick={() => setShowPaymentModal(true)}>
                                            <div className="absolute inset-0 filter blur-md bg-white/5"></div>
-                                           <div className="relative z-10 bg-black/60 p-3 rounded-full border border-white/20 text-gray-400 group-hover:text-white group-hover:scale-110 transition-all shadow-lg">
-                                               <LockIcon />
+                                           <div className="relative z-10 bg-black/50 px-4 py-2 rounded-full border border-white/20 text-white text-xs font-bold flex items-center gap-2 hover:bg-blue-600 transition-colors">
+                                               <LockIcon /> Unlock Week {i+1}
                                            </div>
                                        </div>
                                    ) : (
