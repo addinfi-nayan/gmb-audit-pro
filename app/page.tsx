@@ -5,6 +5,259 @@ import axios from "axios";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+// ==========================================
+//  PART 1: THE HIGH-PERFORMANCE LANDING PAGE
+// ==========================================
+
+const LandingPage = () => {
+  
+  // --- FAST SCROLL ENGINE ---
+  useEffect(() => {
+    const handleScroll = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest('a');
+      if (anchor && anchor.hash && anchor.hash.startsWith('#')) {
+        e.preventDefault();
+        const element = document.querySelector(anchor.hash);
+        if (element) {
+          const y = element.getBoundingClientRect().top + window.scrollY - 100; 
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }
+    };
+    document.addEventListener('click', handleScroll);
+    return () => document.removeEventListener('click', handleScroll);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#030712] text-white font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden relative">
+      
+      {/* --- GLOBAL BACKGROUND --- */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_200px,#030712,transparent)]"></div>
+      </div>
+
+      {/* --- NAVBAR --- */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+              {/* LOGO REMOVED HERE */}
+              <span className="text-lg font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
+           </div>
+           <div className="flex items-center gap-8">
+              <div className="hidden md:flex items-center gap-8 text-xs font-medium text-gray-400 uppercase tracking-widest">
+                 <a href="#benefits" className="hover:text-cyan-400 transition cursor-pointer">Architecture</a>
+                 <a href="#protocol" className="hover:text-cyan-400 transition cursor-pointer">How It Works</a>
+                 <a href="#modules" className="hover:text-cyan-400 transition cursor-pointer">Modules</a>
+              </div>
+              <button 
+                onClick={() => signIn("google")} 
+                className="group relative px-6 py-2 bg-white text-black text-sm font-bold rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+              >
+                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-gray-200 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                <span className="relative">Get Started</span>
+              </button>
+           </div>
+        </div>
+      </nav>
+
+      {/* --- HERO SECTION --- */}
+      <main className="relative z-10 pt-32 text-center">
+         <div className="max-w-6xl mx-auto px-6">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono mb-8 animate-fade-in-up">
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                SYSTEM V2.4 ONLINE
+            </div>
+            
+            <h1 className="text-5xl md:text-8xl font-bold tracking-tighter mb-8 leading-[0.9] text-white">
+                DECODE LOCAL <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600">
+                SEARCH ALGORITHMS
+                </span>
+            </h1>
+            
+            <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-12 font-light leading-relaxed">
+                Analyze ranking vectors, detect competitor weaknesses, and auto-generate 
+                strategic growth protocols using enterprise-grade AI.
+            </p>
+
+            <div className="flex justify-center mb-24">
+                <button 
+                onClick={() => signIn("google")}
+                className="px-12 py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_40px_-10px_rgba(6,182,212,0.5)] flex items-center justify-center gap-3"
+                >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Run Diagnostics
+                </button>
+            </div>
+         </div>
+
+         {/* --- SCANNER VISUALIZATION --- */}
+         <div className="relative w-full max-w-5xl mx-auto h-[400px] border-y border-white/5 bg-[#0B1120]/30 backdrop-blur-sm overflow-hidden mb-32">
+            <div className="absolute inset-0 flex items-center justify-center">
+                {/* Radar Circles */}
+                <div className="w-[600px] h-[600px] border border-white/5 rounded-full absolute"></div>
+                <div className="w-[400px] h-[400px] border border-white/5 rounded-full absolute"></div>
+                <div className="w-[200px] h-[200px] border border-blue-500/20 rounded-full absolute animate-pulse"></div>
+            </div>
+            {/* Moving Grid Line */}
+            <div className="absolute top-0 left-0 w-full h-[4px] bg-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.8)] animate-[scan_4s_ease-in-out_infinite]"></div>
+            
+            {/* Code Terminal Overlay */}
+            <div className="absolute bottom-8 left-8 p-6 bg-black/80 border border-white/10 rounded-lg font-mono text-xs text-left max-w-sm backdrop-blur-md">
+                <div className="flex gap-2 mb-3">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div className="space-y-1 text-gray-400">
+                    <p>&gt; Connecting to GMB API...</p>
+                    <p className="text-green-400">&gt; Connection Established (24ms)</p>
+                    <p>&gt; Fetching Competitor Nodes [Node 1, Node 2]...</p>
+                    <p>&gt; Analyzing Sentiment Vectors...</p>
+                    <p className="text-cyan-400 animate-pulse">&gt; WAITING FOR USER INPUT_</p>
+                </div>
+            </div>
+         </div>
+
+         {/* --- BENEFITS SECTION --- */}
+         <div id="benefits" className="max-w-7xl mx-auto px-6 mb-40 text-left">
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+               <div>
+                  <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">SYSTEM ARCHITECTURE</h2>
+                  <p className="text-gray-400 text-lg leading-relaxed mb-8">
+                     Most audit tools just dump data. We process it. Our engine cross-references 20+ ranking signals against the top 3 competitors in your exact proximity to find the "Winning Formula."
+                  </p>
+                  <ul className="space-y-4">
+                     {[
+                        "Real-time Local Pack Extraction",
+                        "Sentiment Analysis using OpenAI GPT-4",
+                        "Suspension Risk Probability Calculation",
+                        "Week-by-Week Growth Roadmap"
+                     ].map((item, i) => (
+                        <li key={i} className="flex items-center gap-3 text-gray-300">
+                           <span className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs">✓</span>
+                           {item}
+                        </li>
+                     ))}
+                  </ul>
+               </div>
+               
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300">
+                     <div className="text-4xl mb-4">🚀</div>
+                     <h3 className="font-bold text-white mb-2">High Velocity</h3>
+                     <p className="text-xs text-gray-500">20x faster than manual auditing. Get results in 45 seconds.</p>
+                  </div>
+                  <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300 mt-8">
+                     <div className="text-4xl mb-4">🎯</div>
+                     <h3 className="font-bold text-white mb-2">Hyper Accuracy</h3>
+                     <p className="text-xs text-gray-500">Live data scraping ensures 100% current market reality.</p>
+                  </div>
+                  <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300">
+                     <div className="text-4xl mb-4">🛡️</div>
+                     <h3 className="font-bold text-white mb-2">Safe & Secure</h3>
+                     <p className="text-xs text-gray-500">Official API compliance. No account risk.</p>
+                  </div>
+                  <div className="bg-[#0f172a] p-6 rounded-2xl border border-white/5 hover:border-cyan-500/50 transition duration-300 mt-8">
+                     <div className="text-4xl mb-4">🤖</div>
+                     <h3 className="font-bold text-white mb-2">Automated Strategy</h3>
+                     <p className="text-xs text-gray-500">We don't just find problems; we generate the fix.</p>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         {/* --- HOW IT WORKS (PROTOCOL) --- */}
+         <div id="protocol" className="max-w-7xl mx-auto px-6 mb-40 text-left pt-20">
+            <div className="flex items-end justify-between mb-16 border-b border-white/10 pb-6">
+                <div>
+                    <h2 className="text-3xl font-bold text-white mb-2">OPERATIONAL PROTOCOL</h2>
+                    <p className="text-gray-500 text-sm font-mono">SYSTEM WORKFLOW V2.0</p>
+                </div>
+                <div className="text-right hidden md:block">
+                    <p className="text-cyan-500 font-mono text-xs">STATUS: READY</p>
+                </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 relative">
+                <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-[2px] bg-gradient-to-r from-blue-900 via-cyan-900 to-blue-900 -z-10"></div>
+
+                {[
+                    { step: "01", title: "Target Identification", desc: "System scans local pack specifically for your niche keywords to identify the dominant competitors." },
+                    { step: "02", title: "Gap Analysis", desc: "AI compares your review velocity, sentiment, and profile completeness against the market leaders." },
+                    { step: "03", title: "Strategic Injection", desc: "Receive a 4-week tactical roadmap to inject missing signals and boost ranking authority." }
+                ].map((item, i) => (
+                    <div key={i} className="group relative bg-[#030712] p-8 border border-white/10 rounded-xl hover:border-cyan-500/50 transition-all duration-300 hover:shadow-[0_0_30px_-10px_rgba(6,182,212,0.2)]">
+                        <div className="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center border border-white/10 mb-6 text-xl font-mono font-bold text-cyan-400 group-hover:bg-cyan-500/10 transition-colors">
+                            {item.step}
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">{item.title}</h3>
+                        <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                ))}
+            </div>
+         </div>
+
+         {/* --- MODULES GRID --- */}
+         <div id="modules" className="max-w-7xl mx-auto px-6 mb-32 pt-20">
+            <div className="bg-[#0B1120] border border-white/10 rounded-2xl p-8 md:p-12 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[100px]"></div>
+                
+                <h2 className="text-3xl font-bold text-white mb-12 text-center">INTELLIGENCE MODULES</h2>
+                
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[
+                        { title: "Sentiment Engine", val: "ACTIVE", desc: "Natural Language Processing to detect negative sentiment clusters in reviews." },
+                        { title: "Velocity Tracker", val: "ACTIVE", desc: "Monitors the frequency of new reviews compared to the 90-day average." },
+                        { title: "Keyword Matrix", val: "ACTIVE", desc: "Identifies high-value keywords missing from your business description." },
+                        { title: "Rival Spy", val: "ACTIVE", desc: "Deconstructs competitor profiles to reveal their ranking category strategy." },
+                        { title: "Risk Assessor", val: "ACTIVE", desc: "Calculates probability of profile suspension based on policy violations." },
+                        { title: "Growth Architect", val: "BETA", desc: "Generates actionable weekly tasks to systematically improve rank." }
+                    ].map((mod, i) => (
+                        <div key={i} className="bg-white/5 border border-white/5 p-6 rounded-xl hover:bg-white/10 transition duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <h4 className="font-bold text-white">{mod.title}</h4>
+                                <span className="text-[10px] font-mono bg-cyan-500/10 text-cyan-400 px-2 py-1 rounded border border-cyan-500/20">{mod.val}</span>
+                            </div>
+                            <p className="text-gray-400 text-xs leading-relaxed">{mod.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+         </div>
+
+         {/* --- FINAL CTA --- */}
+         <div className="max-w-3xl mx-auto px-6 text-center">
+             <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">Ready to deploy?</h2>
+             <p className="text-gray-400 mb-10">Access the full suite of auditing tools. No credit card required for initial diagnostics.</p>
+             <button 
+               onClick={() => signIn("google")}
+               className="w-full md:w-auto px-16 py-5 bg-white text-black rounded-xl font-bold text-lg hover:scale-105 transition shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)]"
+            >
+               Enter Dashboard
+            </button>
+         </div>
+
+      </main>
+
+      <footer className="border-t border-white/5 py-12 text-center relative z-10 bg-[#02040a]">
+         <div className="flex items-center justify-center gap-2 mb-4 opacity-50">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span className="text-xs font-mono text-gray-400">ALL SYSTEMS OPERATIONAL</span>
+         </div>
+         <p className="text-gray-600 text-xs font-mono">&copy; {new Date().getFullYear()} ADDINFI TECHNOLOGY INC. // SECURE CONNECTION</p>
+      </footer>
+    </div>
+  );
+};
+
+
+// ==========================================
+//  PART 2: THE DASHBOARD (Logged In)
+// ==========================================
+
 // --- STATIC DEFINITIONS (GLOSSARY) ---
 const METRIC_DEFINITIONS = [
   { label: "Review Velocity", desc: "The frequency at which you acquire new reviews compared to competitors." },
@@ -53,8 +306,15 @@ function useDebounce(value: string, delay: number) {
   return debouncedValue;
 }
 
-export default function Dashboard() {
+// --- MAIN PAGE COMPONENT ---
+export default function Page() {
   const { data: session } = useSession();
+  if (!session) { return <LandingPage />; }
+  return <DashboardLogic />;
+}
+
+// --- DASHBOARD COMPONENT ---
+function DashboardLogic() {
   const reportRef = useRef<HTMLDivElement>(null);
   
   // STATE
@@ -71,7 +331,7 @@ export default function Dashboard() {
   const [competitors, setCompetitors] = useState<any[]>([]);
   
   const [loading, setLoading] = useState(false);
-  const [loadingMsgIndex, setLoadingMsgIndex] = useState(0); // NEW: Track message index
+  const [loadingMsgIndex, setLoadingMsgIndex] = useState(0); 
 
   const [downloading, setDownloading] = useState(false);
   const [report, setReport] = useState<any>(null);
@@ -83,12 +343,9 @@ export default function Dashboard() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [couponError, setCouponError] = useState("");
 
-  // --- LOADER EFFECT: Cycle Messages every 5 seconds ---
+  // --- LOADER EFFECT ---
   useEffect(() => {
-    if (!loading) {
-      setLoadingMsgIndex(0); // Reset when not loading
-      return;
-    }
+    if (!loading) { setLoadingMsgIndex(0); return; }
     const interval = setInterval(() => {
       setLoadingMsgIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
     }, 5000);
@@ -225,8 +482,6 @@ export default function Dashboard() {
     }
   };
 
-  if (!session) return <div className="flex h-screen items-center justify-center"><button onClick={() => signIn("google")} className="bg-blue-600 text-white px-6 py-3 rounded font-bold">Sign in</button></div>;
-
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
       <div className="mx-auto max-w-[95rem] bg-white shadow-none min-h-screen relative">
@@ -249,6 +504,7 @@ export default function Dashboard() {
                  </button>
              )}
              {step > 1 && <button onClick={() => { window.location.reload(); }} className="text-sm text-gray-500 hover:text-red-500 font-medium">Reset Audit</button>}
+             <button onClick={() => signOut()} className="text-sm text-gray-500 hover:text-gray-900 font-medium ml-2">Sign Out</button>
           </div>
         </div>
 
@@ -352,7 +608,7 @@ export default function Dashboard() {
 
         {/* STEP 3: REPORT */}
         {step === 3 && report && !errorMsg && (
-          // WRAPPER REF FOR PDF CAPTURE: NOW INCLUDES GLOSSARY
+          // WRAPPER REF FOR PDF CAPTURE
           <div ref={reportRef} id="report-content" className="bg-gray-50 pb-40 p-12 min-h-screen">
             
             <div className="bg-gray-900 text-white pt-16 pb-24 text-center rounded-xl shadow-xl mb-12 relative overflow-hidden">
@@ -360,7 +616,6 @@ export default function Dashboard() {
                   <div className="text-sm font-bold tracking-[0.3em] text-blue-400 uppercase mb-4">Overall Performance</div>
                   <div className="flex items-baseline gap-2">
                      <div className="text-9xl font-black tracking-tighter text-white">{report.audit_score}<span className="text-5xl text-gray-500">/100</span></div>
-                     {/* ADDINFI BRANDING */}
                      <span className="text-xs font-medium text-white opacity-90 -mt-2">- Powered by Addinfi</span>
                   </div>
               </div>
@@ -384,7 +639,6 @@ export default function Dashboard() {
               {/* MATRIX TABLE */}
               <div className="bg-white rounded-2xl shadow-xl border overflow-hidden">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                   {/* HEADER MATCHING EXEC SUMMARY */}
                    <div className="flex items-center gap-3">
                         <span className="bg-blue-100 text-blue-700 p-2 rounded-lg"><ChartIcon /></span>
                         <h3 className="font-bold text-gray-900 text-xl uppercase tracking-wide">Detailed Market Data</h3>
@@ -400,7 +654,6 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 text-gray-700 text-base">
-                      {/* INCREASED PADDING (py-6) AND ADDED DIVIDERS */}
                       <tr><td className="py-6 px-4 font-bold bg-gray-50">Category</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.category}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.category}</td>)}</tr>
                       <tr><td className="py-6 px-4 font-bold bg-gray-50">Reviews</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.rating}⭐ ({report.matrix?.me?.reviews})</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.rating}⭐ ({c.reviews})</td>)}</tr>
                       <tr><td className="py-6 px-4 font-bold bg-gray-50">Review Velocity</td><td className="py-6 px-4 bg-blue-50/50 border-l-4 border-blue-500 font-medium break-words align-top">{report.matrix?.me?.review_velocity}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l break-words align-top">{c.review_velocity}</td>)}</tr>
@@ -424,7 +677,6 @@ export default function Dashboard() {
               {/* STRATEGIC CARDS */}
               <div className="grid md:grid-cols-2 gap-6">
                   <div className="bg-white rounded-xl shadow-lg border-l-4 border-red-500 p-6">
-                      {/* HEADER MATCHING EXEC SUMMARY */}
                       <div className="flex items-center gap-3 mb-4">
                         <span className="bg-red-100 text-red-700 p-0.5 rounded-lg"><ErrorIcon /></span>
                         <h3 className="font-bold text-gray-900 text-xl uppercase tracking-wide">Your Profile Gaps</h3>
@@ -436,7 +688,6 @@ export default function Dashboard() {
                       </ul>
                   </div>
                   <div className="bg-white rounded-xl shadow-lg border-l-4 border-green-500 p-6">
-                      {/* HEADER MATCHING EXEC SUMMARY */}
                       <div className="flex items-center gap-3 mb-4">
                         <span className="bg-green-100 text-green-700 p-2 rounded-lg"><TrophyIcon /></span>
                         <h3 className="font-bold text-gray-900 text-xl uppercase tracking-wide">Competitor Wins</h3>
@@ -539,7 +790,6 @@ export default function Dashboard() {
             
             <h3 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">Generating Audit Report</h3>
             
-            {/* UPDATED ANIMATED TEXT: Changes every 5s with Fade Effect */}
             <p key={loadingMsgIndex} className="text-gray-500 font-medium animate-[fadeIn_0.5s_ease-in-out]">
               {LOADING_MESSAGES[loadingMsgIndex]}
             </p>
