@@ -597,6 +597,7 @@ function DashboardLogic() {
   const [couponCode, setCouponCode] = useState("");
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [couponError, setCouponError] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // --- LOADER EFFECT ---
   useEffect(() => {
@@ -768,7 +769,9 @@ function DashboardLogic() {
              <div className="flex items-center gap-3">
                 <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
              </div>
-             <div className="flex items-center gap-4">
+             
+             {/* Desktop Actions */}
+             <div className="hidden md:flex items-center gap-4">
                 {step === 3 && !errorMsg && (
                     <button 
                        onClick={initiateDownload} 
@@ -782,7 +785,51 @@ function DashboardLogic() {
                 {step > 1 && <button onClick={() => { window.location.reload(); }} className="text-xs md:text-sm text-gray-400 hover:text-red-400 font-medium transition">Reset</button>}
                 <button onClick={() => window.location.href = "/"} className="text-xs md:text-sm text-gray-400 hover:text-white font-medium ml-2 transition">Home</button>
              </div>
+
+             {/* Mobile Menu Toggle */}
+             <div className="md:hidden flex items-center">
+                <button 
+                    className="text-gray-300 hover:text-white focus:outline-none"
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                >
+                    {isMobileMenuOpen ? (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    ) : (
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    )}
+                </button>
+             </div>
           </div>
+
+          {/* Mobile Menu Dropdown */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col">
+                 {step === 3 && !errorMsg && (
+                    <button 
+                       onClick={() => { setIsMobileMenuOpen(false); initiateDownload(); }} 
+                       disabled={downloading} 
+                       data-html2canvas-ignore="true" 
+                       className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold text-sm hover:bg-green-700 transition flex items-center justify-center gap-2 mb-4"
+                    >
+                       {downloading ? "Generating..." : "Download PDF 📥"}
+                    </button>
+                )}
+                {step > 1 && (
+                    <button 
+                        onClick={() => { setIsMobileMenuOpen(false); window.location.reload(); }} 
+                        className="w-full text-left text-sm text-gray-400 hover:text-red-400 font-medium transition py-3 border-b border-white/5"
+                    >
+                        Reset Audit
+                    </button>
+                )}
+                <button 
+                    onClick={() => { setIsMobileMenuOpen(false); window.location.href = "/"; }} 
+                    className="w-full text-left text-sm text-gray-400 hover:text-white font-medium transition py-3"
+                >
+                    Home
+                </button>
+            </div>
+          )}
         </nav>
 
         {/* STEP 1: FIND ME */}
