@@ -731,8 +731,8 @@ function DashboardLogic() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] font-sans text-white flex flex-col justify-between">
-      <div className="mx-auto w-full max-w-[95rem] bg-[#030712] shadow-none min-h-screen relative flex flex-col">
+    <div className={`bg-[#030712] font-sans text-white flex flex-col justify-between ${step === 1 ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+      <div className="mx-auto w-full max-w-[95rem] bg-[#030712] shadow-none flex-grow relative flex flex-col">
         
         {/* HEADER */}
         <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
@@ -1209,7 +1209,7 @@ function DashboardLogic() {
       </div>
       
       {/* --- FOOTER FOR BOTH LANDING & DASHBOARD --- */}
-      <footer className="border-t border-white/5 py-12 text-center relative z-10 bg-[#02040a]">
+      <footer className={`border-t border-white/5 text-center relative z-10 bg-[#02040a] ${step === 1 ? 'py-6' : 'py-12'}`}>
          <div className="flex items-center justify-center gap-2 mb-4 opacity-50">
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
             <span className="text-[10px] md:text-xs font-mono text-gray-400">ALL SYSTEMS OPERATIONAL</span>
