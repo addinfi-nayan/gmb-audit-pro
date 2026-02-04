@@ -9,6 +9,24 @@ import jsPDF from "jspdf";
 //  PART 1: THE CYBER-CORE LANDING PAGE
 // ==========================================
 
+const FAQItem = ({ q, a }: { q: string, a: string }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+        <div className="bg-[#0B1120] border border-white/5 rounded-xl overflow-hidden hover:border-white/10 transition">
+            <button 
+                onClick={() => setIsOpen(!isOpen)} 
+                className="w-full flex items-center justify-between p-4 text-left focus:outline-none"
+            >
+                <h3 className="text-base font-bold text-gray-200 pr-8">{q}</h3>
+                <svg className={`w-5 h-5 text-blue-500 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div className={`px-4 text-gray-400 text-sm leading-relaxed transition-all duration-300 overflow-hidden ${isOpen ? 'max-h-96 pb-4 opacity-100' : 'max-h-0 opacity-0'}`}>
+                {a}
+            </div>
+        </div>
+    );
+};
+
 const LandingPage = () => {
   
   // --- FAST SCROLL ENGINE ---
@@ -139,19 +157,36 @@ const LandingPage = () => {
                 <div className="text-cyan-400 text-[10px] mt-1 animate-pulse tracking-widest font-bold">[&gt;] TARGET ACQUIRED</div>
             </div>
 
-            {/* Code Terminal Overlay */}
-            <div className="absolute bottom-4 left-4 right-4 md:bottom-8 md:left-8 md:right-auto md:w-auto p-4 md:p-6 bg-black/80 border border-white/10 rounded-lg font-mono text-[10px] md:text-xs text-left max-w-sm backdrop-blur-md">
-                <div className="flex gap-2 mb-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+            {/* Modern Glass Card Overlay */}
+            <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl shadow-2xl max-w-sm w-full animate-fade-in-up hidden md:block">
+                <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
+                        <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>
+                    </div>
+                    <div>
+                        <div className="text-base font-bold text-white">Live Intelligence</div>
+                        <div className="text-xs text-blue-400 font-medium flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                            Processing Data
+                        </div>
+                    </div>
                 </div>
-                <div className="space-y-1 text-gray-400">
-                    <p>&gt; Connecting to GMB API...</p>
-                    <p className="text-green-400">&gt; Connection Established (24ms)</p>
-                    <p>&gt; Fetching Competitor Nodes [Node 1, Node 2]...</p>
-                    <p>&gt; Analyzing Sentiment Vectors...</p>
-                    <p className="text-cyan-400 animate-pulse">&gt; WAITING FOR USER INPUT_</p>
+                <div className="space-y-3">
+                    <div className="flex justify-between text-xs text-gray-400 mb-1">
+                        <span>Sentiment Analysis</span>
+                        <span className="text-white font-mono">98%</span>
+                    </div>
+                    <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-[98%] rounded-full"></div>
+                    </div>
+                    
+                    <div className="flex justify-between text-xs text-gray-400 mb-1 mt-3">
+                        <span>Competitor Benchmarking</span>
+                        <span className="text-white font-mono">Processing...</span>
+                    </div>
+                    <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-full w-[65%] rounded-full animate-[shimmer_2s_infinite]"></div>
+                    </div>
                 </div>
             </div>
          </div>
@@ -162,9 +197,9 @@ const LandingPage = () => {
                 {/* Card 1 */}
                 <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-blue-500/30 transition group">
                     <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Profiles Analyzed</p>
-                    <div className="flex items-end gap-2 mb-2">
-                        <span className="text-2xl md:text-4xl font-bold text-white tabular-nums">{profileCount}</span>
-                        <span className="text-blue-500 mb-1 font-bold">+</span>
+                    <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-3xl md:text-4xl font-bold text-white tabular-nums leading-none">{profileCount.toLocaleString()}</span>
+                        <span className="text-blue-500 font-bold text-xl leading-none">+</span>
                     </div>
                     <div className="hidden md:flex items-center gap-2 text-xs text-blue-400">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
@@ -174,9 +209,9 @@ const LandingPage = () => {
                 {/* ... other cards (same structure) ... */}
                 <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-purple-500/30 transition group">
                     <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Issues Detected</p>
-                    <div className="flex items-end gap-2 mb-2">
-                        <span className="text-2xl md:text-4xl font-bold text-white tabular-nums">{issueCount}</span>
-                        <span className="text-purple-500 mb-1 font-bold">+</span>
+                    <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-3xl md:text-4xl font-bold text-white tabular-nums leading-none">{issueCount.toLocaleString()}</span>
+                        <span className="text-purple-500 font-bold text-xl leading-none">+</span>
                     </div>
                     <div className="hidden md:flex items-center gap-2 text-xs text-purple-400">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -185,9 +220,9 @@ const LandingPage = () => {
                 </div>
                 <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-green-500/30 transition group">
                     <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Accuracy Rate</p>
-                    <div className="flex items-end gap-2 mb-2">
-                        <span className="text-2xl md:text-4xl font-bold text-white">99.8</span>
-                        <span className="text-green-500 mb-1 font-bold">%</span>
+                    <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-3xl md:text-4xl font-bold text-white leading-none">99.8</span>
+                        <span className="text-green-500 font-bold text-xl leading-none">%</span>
                     </div>
                     <div className="hidden md:flex items-center gap-2 text-xs text-green-400">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -196,9 +231,9 @@ const LandingPage = () => {
                 </div>
                 <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-cyan-500/30 transition group">
                     <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Hrs Saved</p>
-                    <div className="flex items-end gap-2 mb-2">
-                        <span className="text-2xl md:text-4xl font-bold text-white">4.5</span>
-                        <span className="text-cyan-500 mb-1 font-bold">hrs</span>
+                    <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-3xl md:text-4xl font-bold text-white leading-none">4.5</span>
+                        <span className="text-cyan-500 font-bold text-xl leading-none">hrs</span>
                     </div>
                     <div className="hidden md:flex items-center gap-2 text-xs text-cyan-400">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -209,7 +244,221 @@ const LandingPage = () => {
          </div>
 
          {/* --- BENEFITS & PROTOCOL SECTIONS --- */}
-         {/* ... (Kept existing content, just ensuring wrapper class is correct) ... */}
+         <section id="benefits" className="py-20 md:py-32 relative border-t border-white/5 overflow-hidden">
+            {/* Background Tech Elements */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl"></div>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-6 relative z-10">
+                <div className="text-center mb-20">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-xs font-mono mb-6">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                        SYSTEM ARCHITECTURE V2.0
+                    </div>
+                    <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Neural <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Propulsion Engine</span></h2>
+                    <p className="text-gray-400 max-w-2xl mx-auto text-lg">Our proprietary stack processes 50+ ranking signals to launch your profile to the top of local search grids.</p>
+                </div>
+
+                <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center">
+                    {/* Left Column - Features */}
+                    <div className="flex-1 space-y-6 w-full">
+                        {[
+                            { title: "Sentiment Decoding", desc: "NLP algorithms parse review text to identify specific service complaints.", icon: "🧠", color: "text-pink-400", border: "group-hover:border-pink-500/30" },
+                            { title: "Competitor Matrix", desc: "Real-time benchmarking against top 3 local rivals to expose weakness.", icon: "⚔️", color: "text-red-400", border: "group-hover:border-red-500/30" },
+                            { title: "Ranking Vectors", desc: "Reverse-engineering local search signals for maximum visibility.", icon: "📊", color: "text-green-400", border: "group-hover:border-green-500/30" }
+                        ].map((item, i) => (
+                            <div key={i} className={`bg-[#0B1120]/80 backdrop-blur-sm p-6 rounded-xl border border-white/5 transition-all group hover:translate-x-2 ${item.border}`}>
+                                <div className="flex items-start gap-4">
+                                    <div className={`p-3 rounded-lg bg-white/5 border border-white/10 text-2xl ${item.color}`}>{item.icon}</div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-100 mb-1 group-hover:text-white transition">{item.title}</h3>
+                                        <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Center - Rocket Animation */}
+                    <div className="relative w-full max-w-sm flex justify-center py-10 lg:py-0">
+                        <div className="relative w-64 h-64 md:w-80 md:h-80 border border-white/10 rounded-full flex items-center justify-center bg-[#0B1120]/50 backdrop-blur-md shadow-[0_0_50px_-10px_rgba(6,182,212,0.2)]">
+                            <div className="absolute inset-0 border border-dashed border-white/20 rounded-full animate-[spin_10s_linear_infinite]"></div>
+                            <div className="absolute inset-4 border border-white/5 rounded-full"></div>
+                            
+                            {/* Rocket Container */}
+                            <div className="relative z-10 animate-[bounce_3s_infinite]">
+                                <div className="text-7xl md:text-8xl filter drop-shadow-[0_0_20px_rgba(59,130,246,0.5)] transform -rotate-45">🚀</div>
+                                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-8 h-16 bg-gradient-to-t from-transparent to-orange-500/80 blur-md rounded-full"></div>
+                            </div>
+
+                            {/* Orbiting Elements */}
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#030712] px-3 py-1 rounded-full border border-cyan-500/30 text-cyan-400 text-[10px] font-mono shadow-lg tracking-widest">SCANNING</div>
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-[#030712] px-3 py-1 rounded-full border border-green-500/30 text-green-400 text-[10px] font-mono shadow-lg tracking-widest">OPTIMIZING</div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - Features */}
+                    <div className="flex-1 space-y-6 w-full">
+                        {[
+                            { title: "Growth Protocol", desc: "Auto-generated 4-week action plan prioritized by impact probability.", icon: "📈", color: "text-purple-400", border: "group-hover:border-purple-500/30" },
+                            { title: "Grid Triangulation", desc: "Hyper-local proximity analysis to dominate neighborhood search.", icon: "📍", color: "text-yellow-400", border: "group-hover:border-yellow-500/30" },
+                            { title: "Conversion Heuristics", desc: "Traffic pattern optimization to turn views into paying customers.", icon: "💎", color: "text-cyan-400", border: "group-hover:border-cyan-500/30" }
+                        ].map((item, i) => (
+                            <div key={i} className={`bg-[#0B1120]/80 backdrop-blur-sm p-6 rounded-xl border border-white/5 transition-all group lg:hover:-translate-x-2 hover:translate-x-2 ${item.border}`}>
+                                <div className="flex items-start gap-4 flex-row lg:flex-row-reverse text-left lg:text-right">
+                                    <div className={`p-3 rounded-lg bg-white/5 border border-white/10 text-2xl ${item.color}`}>{item.icon}</div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-100 mb-1 group-hover:text-white transition">{item.title}</h3>
+                                        <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+         </section>
+
+         <section id="protocol" className="py-20 md:py-32 bg-[#0B1120]/30 border-t border-white/5">
+            <div className="max-w-7xl mx-auto px-6">
+                 <div className="flex flex-col md:flex-row gap-12 items-center">
+                    <div className="flex-1">
+                        <div className="inline-block text-cyan-500 font-mono text-xs tracking-widest mb-4 border border-cyan-500/20 px-2 py-1 rounded bg-cyan-500/10">OPERATIONAL PROTOCOL</div>
+                        <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-white">Precision Auditing in <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">3 Simple Steps</span></h2>
+                        <p className="text-gray-400 mb-8 text-lg">Bypass manual analysis. Our system automates the data collection and strategy formulation process.</p>
+                        
+                        <div className="space-y-8">
+                            {[
+                                { step: "01", title: "Target Identification", desc: "Input your business name. We locate your specific GMB Node ID." },
+                                { step: "02", title: "Deep Scan Analysis", desc: "We extract 2 years of data points and cross-reference with category leaders." },
+                                { step: "03", title: "Strategy Deployment", desc: "Receive a PDF report with exact keywords, fixes, and response scripts." }
+                            ].map((s, i) => (
+                                <div key={i} className="flex gap-4 items-start">
+                                    <div className="font-mono text-blue-500 font-bold text-xl opacity-50 leading-none mt-1">{s.step}</div>
+                                    <div>
+                                        <h4 className="text-white font-bold text-lg">{s.title}</h4>
+                                        <p className="text-gray-500 text-sm">{s.desc}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="flex-1 relative w-full">
+                        {/* Abstract Visual - Modern Replacement */}
+                        <div className="relative z-10 bg-[#0B1120] border border-white/10 rounded-2xl p-8 shadow-2xl backdrop-blur-xl">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <div className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-1">System Active</div>
+                                    <div className="text-xl font-bold text-white">Audit Protocol</div>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 animate-pulse">
+                                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-6">
+                                {/* Step 1 Visual */}
+                                <div className="flex items-center gap-4">
+                                    <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/30 text-green-400">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div className="h-full bg-green-500 w-full"></div>
+                                        </div>
+                                        <div className="flex justify-between mt-1">
+                                            <span className="text-xs text-gray-400">Target Identification</span>
+                                            <span className="text-xs text-green-400">Complete</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Step 2 Visual */}
+                                <div className="flex items-center gap-4">
+                                    <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30 text-blue-400">
+                                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div className="h-full bg-blue-500 w-[70%] animate-[shimmer_2s_infinite]"></div>
+                                        </div>
+                                        <div className="flex justify-between mt-1">
+                                            <span className="text-xs text-gray-400">Deep Scan Analysis</span>
+                                            <span className="text-xs text-blue-400">Processing...</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Step 3 Visual */}
+                                <div className="flex items-center gap-4 opacity-50">
+                                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10 text-gray-500">
+                                        <span className="text-xs font-bold">03</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="h-2 bg-white/5 rounded-full"></div>
+                                        <div className="flex justify-between mt-1">
+                                            <span className="text-xs text-gray-500">Strategy Deployment</span>
+                                            <span className="text-xs text-gray-600">Pending</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="absolute -top-10 -right-10 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] -z-10"></div>
+                    </div>
+                 </div>
+            </div>
+         </section>
+
+         <section id="faq" className="py-20 md:py-32 border-t border-white/5">
+            <div className="max-w-4xl mx-auto px-6">
+                <h2 className="text-3xl md:text-5xl font-bold mb-12 text-center text-white">Frequently Asked <span className="text-blue-500">Questions</span></h2>
+                <div className="space-y-4">
+                    {[
+                        { q: "Is this audit really free?", a: "Yes. The initial diagnostic scan and summary report are completely free. We offer a premium unlock for the detailed 4-week execution plan." },
+                        { q: "Do I need to give you access to my GMB?", a: "No. We use public data available via Google Maps API. No login credentials or manager access is required." },
+                        { q: "How long does the scan take?", a: "Approximately 30-60 seconds depending on the volume of reviews and competitor data we need to process." },
+                        { q: "Can I download the report?", a: "Yes, the full report is generated as a high-resolution PDF suitable for presentation to stakeholders or clients." },
+                        { q: "How accurate is the competitor analysis?", a: "We use real-time data directly from Google Maps API to ensure 100% accuracy in benchmarking your profile against live competitors." },
+                        { q: "Can I audit multiple locations?", a: "Yes. You can run separate audits for each location. For enterprise bulk auditing, please contact our support team." },
+                        { q: "What if my business isn't listed?", a: "If your business doesn't appear in the search, ensure it's verified on Google. You can also try searching by your exact Google Maps address." }
+                    ].map((item, i) => (
+                        <FAQItem key={i} q={item.q} a={item.a} />
+                    ))}
+                </div>
+
+                {/* Contact Section */}
+                <div className="mt-16 pt-10 border-t border-white/5">
+                    <div className="text-center mb-8">
+                        <h3 className="text-xl font-bold text-white">Still have questions?</h3>
+                        <p className="text-gray-400 text-sm mt-2">Our support team is ready to help you optimize your local presence.</p>
+                    </div>
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
+                        <a href="mailto:nayan@addinfi.com" className="flex items-center gap-4 bg-[#0B1120] border border-white/5 p-4 rounded-xl hover:border-cyan-500/30 transition group min-w-[250px]">
+                            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </div>
+                            <div className="text-left">
+                                <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Email Support</div>
+                                <div className="text-sm font-bold text-gray-200 group-hover:text-cyan-400 transition">nayan@addinfi.com</div>
+                            </div>
+                        </a>
+
+                        <a href="tel:+918381032114" className="flex items-center gap-4 bg-[#0B1120] border border-white/5 p-4 rounded-xl hover:border-green-500/30 transition group min-w-[250px]">
+                            <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-400 group-hover:scale-110 transition">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                            </div>
+                            <div className="text-left">
+                                <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Call Us</div>
+                                <div className="text-sm font-bold text-gray-200 group-hover:text-green-400 transition">+91 83810 32114</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+         </section>
 
          {/* --- FINAL CTA --- */}
          <div className="max-w-3xl mx-auto px-6 text-center mb-10">
@@ -968,4 +1217,4 @@ function DashboardLogic() {
       </footer>
     </div>
   );
-}
+} 
