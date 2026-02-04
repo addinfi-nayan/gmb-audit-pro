@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   try {
     // 1. Parse the incoming data from the Frontend
     const body = await req.json();
-    const { myBusiness, competitors, keyword } = body;
+    const { myBusiness, competitors, keyword, userDetails } = body;
 
     // 2. Validate data
     if (!myBusiness || !competitors || competitors.length === 0) {
@@ -37,7 +37,10 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         myBusiness,
         competitors,
-        keyword
+        
+        keyword,
+        location: "India",
+        userDetails,
       }),
     });
 
@@ -52,8 +55,17 @@ export async function POST(req: Request) {
     }
 
     // 6. Return the AI Analysis to the Frontend
-    const data = await n8nResponse.json();
-    return NextResponse.json(data);
+    const responseText = await n8nResponse.text();
+    try {
+      const data = JSON.parse(responseText);
+      return NextResponse.json(data);
+    } catch (e) {
+      console.error("❌ Failed to parse n8n response as JSON:", responseText);
+      return NextResponse.json(
+        { error: "Invalid JSON response from AI Agent", details: responseText.substring(0, 500) },
+        { status: 502 }
+      );
+    }
 
   } catch (error: any) {
     console.error("❌ Server Error:", error);

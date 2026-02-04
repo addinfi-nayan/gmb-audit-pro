@@ -51,6 +51,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
   const [profileCount, setProfileCount] = useState(470);
   const [issueCount, setIssueCount] = useState(1890);
   const [mounted, setMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -90,7 +91,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
            <div className="flex items-center gap-3">
               <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
            </div>
-           <div className="flex items-center gap-4 md:gap-8">
+           <div className="flex items-center gap-4 md:gap-8 relative">
               <div className="hidden md:flex items-center gap-8 text-xs font-medium text-gray-400 uppercase tracking-widest">
                  <a href="#benefits" className="hover:text-cyan-400 transition cursor-pointer">Architecture</a>
                  <a href="#protocol" className="hover:text-cyan-400 transition cursor-pointer">How It Works</a>
@@ -103,8 +104,29 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                 <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-gray-200 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                 <span className="relative">Get Started</span>
               </button>
+
+              {/* Mobile Menu Toggle */}
+              <button 
+                className="md:hidden text-gray-300 hover:text-white focus:outline-none"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                {isMobileMenuOpen ? (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                )}
+              </button>
            </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+            <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out]">
+                 <a href="#benefits" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">Architecture</a>
+                 <a href="#protocol" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">How It Works</a>
+                 <a href="#faq" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">FAQs</a>
+            </div>
+        )}
       </nav>
 
       {/* --- HERO SECTION --- */}
@@ -569,7 +591,7 @@ function DashboardLogic() {
   const [downloading, setDownloading] = useState(false);
   const [report, setReport] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
+  
   // PAYMENT / COUPON STATE
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [couponCode, setCouponCode] = useState("");
@@ -620,7 +642,13 @@ function DashboardLogic() {
       const res = await axios.post("/api/n8n-proxy", {
         keyword: compQuery,
         myBusiness: myBusiness,
-        competitors: competitors
+        competitors: competitors,
+        userDetails: {
+            name: myBusiness?.title || myBusiness?.name || "",
+            phone: myBusiness?.phone || myBusiness?.formatted_phone_number || "",
+            website: myBusiness?.website || "",
+            email: myBusiness?.email || ""
+        }
       });
 
       let cleanJson = "";
@@ -808,8 +836,18 @@ function DashboardLogic() {
 
             <div className="flex flex-col md:flex-row justify-between items-center mt-12 mb-6 gap-4">
                 <h2 className="text-2xl font-bold text-white text-center md:text-left">Step 2: Add Competitors <span className="text-sm font-normal text-gray-500 ml-2 block md:inline">(Max 2)</span></h2>
-                <button onClick={handleAnalyze} disabled={loading || competitors.length === 0} className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-2 border border-white/10">
-                    {loading ? "Analyzing..." : `Audit vs ${competitors.length} Rivals 🚀`}
+                <button onClick={handleAnalyze} disabled={loading || competitors.length === 0} className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-3 text-sm">
+                    {loading ? (
+                        <>
+                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                            Processing...
+                        </>
+                    ) : (
+                        <>
+                            <span>Generate Audit Report</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </>
+                    )}
                 </button>
             </div>
 
@@ -841,6 +879,7 @@ function DashboardLogic() {
                 </div>
               ))}
             </div>
+
           </div>
         )}
 

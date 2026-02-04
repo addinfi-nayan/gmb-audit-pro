@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     }
 
     console.log("3. Sending request to n8n...");
-    const response = await axios.post(n8nUrl, body);
+    const response = await axios.post(n8nUrl, { ...body, location: "India" });
     
     console.log("4. Success! n8n replied.");
     return NextResponse.json(response.data);
