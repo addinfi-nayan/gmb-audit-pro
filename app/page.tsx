@@ -27,7 +27,7 @@ const FAQItem = ({ q, a }: { q: string, a: string }) => {
     );
 };
 
-const LandingPage = () => {
+const LandingPage = ({ onStart }: { onStart: () => void }) => {
   
   // --- FAST SCROLL ENGINE ---
   useEffect(() => {
@@ -97,7 +97,7 @@ const LandingPage = () => {
                  <a href="#faq" className="hover:text-cyan-400 transition cursor-pointer">FAQs</a>
               </div>
               <button 
-                onClick={() => signIn("google")} 
+                onClick={onStart} 
                 className="group relative px-4 py-2 md:px-6 md:py-2 bg-white text-black text-xs md:text-sm font-bold rounded-full overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
               >
                 <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-gray-200 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
@@ -129,7 +129,7 @@ const LandingPage = () => {
 
             <div className="flex justify-center mb-16 md:mb-24">
                 <button 
-                onClick={() => signIn("google")}
+                onClick={onStart}
                 className="w-full md:w-auto px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_40px_-10px_rgba(6,182,212,0.5)] flex items-center justify-center gap-3"
                 >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -177,7 +177,7 @@ const LandingPage = () => {
                         <span className="text-white font-mono">98%</span>
                     </div>
                     <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
-                        <div className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-[98%] rounded-full"></div>
+                        <div className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-[98%] rounded-full animate-[shimmer_2s_infinite]"></div>
                     </div>
                     
                     <div className="flex justify-between text-xs text-gray-400 mb-1 mt-3">
@@ -465,7 +465,7 @@ const LandingPage = () => {
              <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 md:mb-8">Ready to deploy?</h2>
              <p className="text-gray-400 mb-8 md:mb-10 text-sm md:text-base">Access the full suite of auditing tools. No credit card required for initial diagnostics.</p>
              <button 
-               onClick={() => signIn("google")}
+               onClick={onStart}
                className="w-full md:w-auto px-16 py-5 bg-white text-black rounded-xl font-bold text-lg hover:scale-105 transition shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)]"
             >
                Start Auditing
@@ -541,8 +541,9 @@ function useDebounce(value: string, delay: number) {
 // --- MAIN PAGE COMPONENT ---
 export default function Page() {
   const { data: session } = useSession();
-  if (!session) { return <LandingPage />; }
-  return <DashboardLogic />;
+  const [started, setStarted] = useState(false);
+  if (session || started) { return <DashboardLogic />; }
+  return <LandingPage onStart={() => setStarted(true)} />;
 }
 
 // --- DASHBOARD COMPONENT ---
@@ -751,7 +752,7 @@ function DashboardLogic() {
                     </button>
                 )}
                 {step > 1 && <button onClick={() => { window.location.reload(); }} className="text-xs md:text-sm text-gray-400 hover:text-red-400 font-medium transition">Reset</button>}
-                <button onClick={() => signOut()} className="text-xs md:text-sm text-gray-400 hover:text-white font-medium ml-2 transition">Sign Out</button>
+                <button onClick={() => window.location.href = "/"} className="text-xs md:text-sm text-gray-400 hover:text-white font-medium ml-2 transition">Home</button>
              </div>
           </div>
         </nav>
