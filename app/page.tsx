@@ -655,43 +655,46 @@ function DashboardLogic() {
     }, [debouncedCompQuery]);
 
     // --- ANALYZE ---
+
     const handleAnalyze = async () => {
         setLoading(true);
         setErrorMsg(null);
         setReport(null);
+
+        // FIX 1: Fallback Keyword
+        // If the search box is empty (because we cleared it), use the Business Name instead.
+        // This ensures n8n always gets a valid search term.
+        const finalKeyword = compQuery.trim() || myBusiness?.title || "Marketing Agency";
+
         try {
-            const res = await axios.post("/api/n8n-proxy", {
-                keyword: compQuery,
+            // FIX 2: DIRECT Connection (Bypassing Vercel Proxy)
+            // Replace this URL with your ACTUAL "Analyser" Webhook URL from n8n
+            const webhookUrl = "https://nnhore.app.n8n.cloud/webhook/analyze-gmb";
+
+            console.log("Sending Analysis Request:", { keyword: finalKeyword, myBusiness, competitors });
+
+            const res = await axios.post(webhookUrl, {
+                keyword: finalKeyword,  // <--- Now this will never be empty
                 myBusiness: myBusiness,
                 competitors: competitors,
-                userDetails: {
-                    name: myBusiness?.title || myBusiness?.name || "",
-                    phone: myBusiness?.phone || myBusiness?.formatted_phone_number || "",
-                    website: myBusiness?.website || "",
-                    email: myBusiness?.email || ""
-                }
+                action: "analyze"
             });
 
-            let cleanJson = "";
-            if (res.data) {
-                if (res.data.audit_score) { setReport(res.data); finalize(); return; }
-                if (Array.isArray(res.data) && res.data[0]?.text) cleanJson = res.data[0].text;
-                else if (res.data.text) cleanJson = res.data.text;
-                else if (res.data.output) cleanJson = res.data.output;
-                else if (typeof res.data === 'string') cleanJson = res.data;
-                else cleanJson = JSON.stringify(res.data);
+            const data = res.data;
+
+            // Safety Check
+            if (data.audit_score || data.matrix) {
+                setReport(data);
+                finalize();
+            } else {
+                console.error("Invalid AI Response:", data);
+                throw new Error("The AI returned empty data.");
             }
 
-            if (!cleanJson || cleanJson.trim() === "") throw new Error("Empty Response from Analysis Engine");
-
-            const sanitized = cleanJson.replace(/```json/g, "").replace(/```/g, "").trim();
-            setReport(JSON.parse(sanitized));
-            finalize();
-
-        } catch (e: any) {
+        } catch (e) {
             console.error("Analysis Failed", e);
-            const message = e.response?.data?.error || e.message || "Unknown Connection Error";
-            setErrorMsg(message);
+            // specific error message helps you debug
+            setErrorMsg("Connection Error: n8n might be down or timed out.");
             setLoading(false);
         }
     };
@@ -947,7 +950,7 @@ function DashboardLogic() {
 
                                 value={compQuery}
                                 onChange={e => setCompQuery(e.target.value)}
-                            />  
+                            />
                             {compSuggestions.length > 0 && (
                                 <div className="absolute top-full left-0 w-full bg-[#0B1120] border border-white/10 rounded-xl shadow-2xl mt-2 max-h-60 overflow-y-auto z-50">
                                     {compSuggestions.map((place, i) => {
