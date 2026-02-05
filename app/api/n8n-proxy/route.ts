@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 // CONFIG: Replace this with your actual n8n Webhook URL
 // Or better, put it in your .env file as N8N_AUDIT_WEBHOOK
 // ---------------------------------------------------------
-const N8N_WEBHOOK_URL = process.env.N8N_AUDIT_WEBHOOK || "https://nnhore31.app.n8n.cloud/webhook/analyze-gmb"; 
+const N8N_WEBHOOK_URL = process.env.N8N_AUDIT_WEBHOOK || "https://nnhore.app.n8n.cloud/webhook/analyze-gmb"; 
 
 export async function POST(req: Request) {
   try {
