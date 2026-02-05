@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import Script from "next/script";
 
 // ==========================================
 //  PART 1: THE CYBER-CORE LANDING PAGE
@@ -583,8 +582,6 @@ function DashboardLogic() {
   const [mySuggestions, setMySuggestions] = useState<any[]>([]);
   const [compSuggestions, setCompSuggestions] = useState<any[]>([]);
   
-  const [isSearchingMyBusiness, setIsSearchingMyBusiness] = useState(false);
-  const [isSearchingCompetitors, setIsSearchingCompetitors] = useState(false);
   const [myBusiness, setMyBusiness] = useState<any>(null);
   const [competitors, setCompetitors] = useState<any[]>([]);
   
@@ -593,8 +590,6 @@ function DashboardLogic() {
 
   const [downloading, setDownloading] = useState(false);
   const [report, setReport] = useState<any>(null);
-  const [mySearchError, setMySearchError] = useState<string | null>(null);
-  const [compSearchError, setCompSearchError] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   // PAYMENT / COUPON STATE
@@ -603,7 +598,6 @@ function DashboardLogic() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [couponRemaining, setCouponRemaining] = useState<number | null>(null);
 
   // --- LOADER EFFECT ---
   useEffect(() => {
@@ -615,14 +609,25 @@ function DashboardLogic() {
   }, [loading]);
 
   // --- SEARCH EFFECTS ---
+// --- SEARCH EFFECTS (UPDATED FOR SERPER.DEV) ---
   useEffect(() => {
     if (debouncedMyQuery.length < 3) return setMySuggestions([]);
     if (myBusiness) return; 
     const fetchMyBiz = async () => {
       try {
         const res = await axios.post("/api/n8n-search", { keyword: debouncedMyQuery });
-        if (Array.isArray(res.data)) setMySuggestions(res.data);
-        else if (res.data.local_results) setMySuggestions(res.data.local_results);
+        
+        // FIX 1: Check for 'places' (Serper format)
+        if (res.data.places) {
+           setMySuggestions(res.data.places);
+        } 
+        // Fallback for 'local_results' (SerpApi format)
+        else if (res.data.local_results) {
+           setMySuggestions(res.data.local_results);
+        }
+        else if (Array.isArray(res.data)) {
+           setMySuggestions(res.data);
+        }
       } catch (e) { console.error(e); }
     };
     fetchMyBiz();
@@ -633,8 +638,17 @@ function DashboardLogic() {
     const fetchComp = async () => {
       try {
         const res = await axios.post("/api/n8n-search", { keyword: debouncedCompQuery });
-        if (Array.isArray(res.data)) setCompSuggestions(res.data);
-        else if (res.data.local_results) setCompSuggestions(res.data.local_results);
+        
+        // FIX 1: Check for 'places' here too
+        if (res.data.places) {
+           setCompSuggestions(res.data.places);
+        } 
+        else if (res.data.local_results) {
+           setCompSuggestions(res.data.local_results);
+        }
+        else if (Array.isArray(res.data)) {
+           setCompSuggestions(res.data);
+        }
       } catch (e) { console.error(e); }
     };
     fetchComp();
@@ -684,62 +698,14 @@ function DashboardLogic() {
 
   const finalize = () => { setTimeout(() => { setStep(3); setLoading(false); }, 500); };
 
-  // --- FETCH COUPON STATUS ---
-  useEffect(() => {
-    if (showPaymentModal) {
-        axios.get('/api/coupon').then(res => {
-            setCouponRemaining(res.data.remaining);
-        }).catch(err => console.error(err));
-    }
-  }, [showPaymentModal]);
-
   // --- COUPON HANDLER ---
-  const handleUnlock = async () => {
-    if (!couponCode) return;
-    setCouponError("");
-    try {
-        const res = await axios.post('/api/coupon', { code: couponCode });
-        if (res.data.valid) {
-            setIsUnlocked(true);
-            setShowPaymentModal(false);
-            setTimeout(() => { generatePDF(); }, 500);
-        } else {
-            setCouponError(res.data.message || "Invalid coupon code or limit reached.");
-        }
-    } catch (err: any) {
-        setCouponError(err.response?.data?.message || "Error validating coupon");
-    }
-  };
-
-  // --- RAZORPAY PAYMENT HANDLER ---
-  const handlePayment = async () => {
-    try {
-        const { data: order } = await axios.post('/api/payment/order', { amount: 99 }); // Amount in INR
-        
-        const options = {
-            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-            amount: order.amount,
-            currency: order.currency,
-            name: "GMB Audit Pro",
-            description: "Unlock Full Audit Report",
-            order_id: order.id,
-            handler: async function (response: any) {
-                const verify = await axios.post('/api/payment/verify', response);
-                if (verify.data.success) {
-                    setIsUnlocked(true);
-                    setShowPaymentModal(false);
-                    generatePDF();
-                } else {
-                    alert("Payment verification failed");
-                }
-            },
-            theme: { color: "#0891b2" }
-        };
-        const rzp = new (window as any).Razorpay(options);
-        rzp.open();
-    } catch (error) {
-        console.error("Payment failed", error);
-        alert("Could not initiate payment. Please try again.");
+  const handleUnlock = () => {
+    if (couponCode.toLowerCase() === "first20") {
+      setIsUnlocked(true);
+      setShowPaymentModal(false);
+      setTimeout(() => { generatePDF(); }, 500);
+    } else {
+      setCouponError("Invalid coupon code or limit reached.");
     }
   };
 
@@ -815,7 +781,6 @@ function DashboardLogic() {
 
   return (
     <div className={`bg-[#030712] font-sans text-white flex flex-col justify-between ${step === 1 ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <div className="mx-auto w-full max-w-[95rem] bg-[#030712] shadow-none flex-grow relative flex flex-col">
         
         {/* HEADER */}
@@ -905,8 +870,8 @@ function DashboardLogic() {
                                    <div className="mt-1 bg-white/5 p-2 rounded-full group-hover:bg-cyan-500/20 group-hover:text-cyan-400 text-gray-400 transition"><MapPinIcon /></div>
                                    <div>
                                        <div className="font-bold text-lg text-gray-200 group-hover:text-cyan-400 transition-colors">{place.title}</div>
-                                       <div className="text-sm text-gray-500">{place.address}</div>
-                                       <div className="flex items-center gap-2 mt-1"><span className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded text-xs font-bold border border-yellow-500/20"><StarIcon /> {place.rating || "N/A"}</span><span className="text-xs text-gray-500 font-medium">({place.reviews || place.user_ratings_total || 0} reviews)</span></div>
+                                       <div className="text-sm text-gray-500">{place.address}</div>({place.reviews || place.user_ratings_total || place.ratingCount || 0} reviews)
+                                       <div className="flex items-center gap-2 mt-1"><span className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded text-xs font-bold border border-yellow-500/20"><StarIcon /> {place.rating || "N/A"}</span><span className="text-xs text-gray-500 font-medium">(</span></div>
                                    </div>
                                 </div>
                                 <span className="text-xs bg-cyan-500/10 border border-cyan-500/20 px-2 py-1 rounded group-hover:bg-cyan-500/20 text-cyan-400 font-bold mt-2">SELECT</span>
@@ -1341,25 +1306,9 @@ function DashboardLogic() {
                     
                     <div className="text-xs text-gray-500 mt-4">
                         Limited time: Use code <span className="font-mono bg-yellow-500/10 text-yellow-500 px-1 rounded border border-yellow-500/20">first20</span> for free access.
-                        {couponRemaining !== null && (
-                            <div className={`mt-2 font-bold ${couponRemaining > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                {couponRemaining > 0 ? `${couponRemaining} spots remaining!` : "Coupon limit reached!"}
-                            </div>
-                        )}
                     </div>
                  </div>
              </div>
-             <div className="relative flex py-4 items-center w-full">
-                <div className="flex-grow border-t border-white/10"></div>
-                <span className="flex-shrink-0 mx-4 text-gray-500 text-xs">OR</span>
-                <div className="flex-grow border-t border-white/10"></div>
-             </div>
-             <button 
-                onClick={handlePayment}
-                className="w-full bg-[#0B1120] border border-cyan-500/50 text-cyan-400 py-3 rounded-xl font-bold hover:bg-cyan-500/10 transition"
-             >
-                Pay ₹99 to Unlock
-             </button>
           </div>
         )}
         
