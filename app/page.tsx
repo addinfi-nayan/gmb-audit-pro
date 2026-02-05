@@ -654,47 +654,64 @@ function DashboardLogic() {
         fetchComp();
     }, [debouncedCompQuery]);
 
-    // --- ANALYZE ---
+    // Analyse
 
     const handleAnalyze = async () => {
         setLoading(true);
         setErrorMsg(null);
         setReport(null);
 
-        // FIX 1: Fallback Keyword
-        // If the search box is empty (because we cleared it), use the Business Name instead.
-        // This ensures n8n always gets a valid search term.
-        const finalKeyword = compQuery.trim() || myBusiness?.title || "Marketing Agency";
+        // 1. Smart Keyword Logic
+        const finalKeyword = compQuery.trim() ? compQuery : (myBusiness?.title || "Digital Marketing Agency");
+        console.log("Starting Analysis with Keyword:", finalKeyword);
 
         try {
-            // FIX 2: DIRECT Connection (Bypassing Vercel Proxy)
-            // Replace this URL with your ACTUAL "Analyser" Webhook URL from n8n
+            // 2. Direct Connection to n8n
             const webhookUrl = "https://nnhore.app.n8n.cloud/webhook/analyze-gmb";
 
-            console.log("Sending Analysis Request:", { keyword: finalKeyword, myBusiness, competitors });
-
             const res = await axios.post(webhookUrl, {
-                keyword: finalKeyword,  // <--- Now this will never be empty
+                keyword: finalKeyword,
                 myBusiness: myBusiness,
                 competitors: competitors,
                 action: "analyze"
             });
 
-            const data = res.data;
+            // --- NEW: THE CLEANING LOGIC ---
+            let rawData = res.data;
+            let finalReport = null;
 
-            // Safety Check
-            if (data.audit_score || data.matrix) {
-                setReport(data);
-                finalize();
-            } else {
-                console.error("Invalid AI Response:", data);
-                throw new Error("The AI returned empty data.");
+            // Scenario A: It came back as an Array (Common with n8n AI Agent)
+            if (Array.isArray(rawData) && rawData[0]?.text) {
+                rawData = rawData[0].text;
             }
 
-        } catch (e) {
-            console.error("Analysis Failed", e);
-            // specific error message helps you debug
-            setErrorMsg("Connection Error: n8n might be down or timed out.");
+            // Scenario B: It is a String (possibly with ```json markdown)
+            if (typeof rawData === "string") {
+                // Remove Markdown code blocks (```json and ```)
+                const cleanString = rawData.replace(/```json/g, "").replace(/```/g, "").trim();
+                try {
+                    finalReport = JSON.parse(cleanString);
+                } catch (e) {
+                    console.error("JSON Parse Error:", e);
+                    throw new Error("AI returned messy text instead of JSON.");
+                }
+            } else {
+                // Scenario C: It is already a perfect Object
+                finalReport = rawData;
+            }
+
+            // 3. Final Validation
+            if (finalReport && (finalReport.audit_score || finalReport.matrix)) {
+                setReport(finalReport);
+                finalize();
+            } else {
+                console.error("Invalid AI Structure:", finalReport);
+                throw new Error("The AI report is missing key data (audit_score).");
+            }
+
+        } catch (e: any) {
+            console.error("Analysis Error:", e);
+            setErrorMsg(e.message || "Connection Failed.");
             setLoading(false);
         }
     };
