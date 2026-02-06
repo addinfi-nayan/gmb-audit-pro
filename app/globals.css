@@ -12,3 +12,9 @@ body {
   color: rgb(var(--foreground-rgb));
   background: white;
 }  
+/* This targets devices with a screen width of 768px or less (Mobile & Tablets) */
+@media screen and (max-width: 768px) {
+    .terminal-dashboard {
+        display: none !important;
+    }
+}

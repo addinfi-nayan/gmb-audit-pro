@@ -161,7 +161,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                 </div>
 
                 {/* --- SCANNER VISUALIZATION --- */}
-                <div className="relative w-full max-w-5xl mx-auto h-[350px] md:h-[400px] border-y border-white/5 bg-[#0B1120]/30 backdrop-blur-sm overflow-hidden mb-20 md:mb-32">
+                <div className=" terminal-dashboard hidden md:block relative w-full max-w-5xl mx-auto h-[350px] md:h-[400px] border-y border-white/5 bg-[#0B1120]/30 backdrop-blur-sm overflow-hidden mb-20 md:mb-32">
                     <div className="absolute inset-0 flex items-center justify-center scale-75 md:scale-100">
                         {/* Radar Circles */}
                         <div className="w-[600px] h-[600px] border border-white/5 rounded-full absolute"></div>
@@ -562,9 +562,8 @@ function useDebounce(value: string, delay: number) {
 
 // --- MAIN PAGE COMPONENT ---
 export default function Page() {
-    const { data: session } = useSession();
     const [started, setStarted] = useState(false);
-    if (session || started) { return <DashboardLogic />; }
+    if (started) { return <DashboardLogic />; }
     return <LandingPage onStart={() => setStarted(true)} />;
 }
 
@@ -599,6 +598,10 @@ function DashboardLogic() {
     const [couponError, setCouponError] = useState("");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+    // --- NEW: LEAD CAPTURE STATE ---
+    const [showLeadModal, setShowLeadModal] = useState(false);
+    const [leadData, setLeadData] = useState({ email: "", phone: "" });
+
     // --- LOADER EFFECT ---
     useEffect(() => {
         if (!loading) { setLoadingMsgIndex(0); return; }
@@ -608,6 +611,44 @@ function DashboardLogic() {
         return () => clearInterval(interval);
     }, [loading]);
 
+    // --- GATEKEEPER LOGIC ---
+    const handleRestrictedAction = () => {
+        // If we already have their email, go straight to payment/coupon
+        if (leadData.email) {
+            setShowPaymentModal(true);
+        } else {
+            // Otherwise, ask for lead info first
+            setShowLeadModal(true);
+        }
+    };
+
+    const handleLeadSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        // 1. Prepare the data payload
+        const payload = {
+            email: leadData.email,
+            phone: leadData.phone,
+            business: myBusiness?.title || "Unknown Business",
+            date: new Date().toLocaleString()
+        };
+
+        try {
+            // 2. Send to n8n Webhook
+            // REPLACE THIS with your Production Webhook URL from n8n
+            await axios.post("https://nnhore.app.n8n.cloud/webhook/save-lead", payload);
+            
+            console.log("Lead saved to Sheets via n8n");
+
+        } catch (err) {
+            console.error("Error saving lead:", err);
+            // Optional: Proceed anyway so the user doesn't get stuck
+        }
+
+        // 3. Close Modal & Open Payment
+        setShowLeadModal(false);
+        setShowPaymentModal(true);
+    };
     // --- SEARCH EFFECTS ---
     // --- SEARCH EFFECTS (UPDATED FOR SERPER.DEV) ---
     useEffect(() => {
@@ -730,7 +771,11 @@ function DashboardLogic() {
     };
 
     const initiateDownload = () => {
-        if (isUnlocked) { generatePDF(); } else { setShowPaymentModal(true); }
+        if (isUnlocked) {
+            generatePDF();
+        } else {
+            handleRestrictedAction(); // <--- WAS: setShowPaymentModal(true)
+        }
     };
 
     // --- PDF GENERATION ---
@@ -808,7 +853,8 @@ function DashboardLogic() {
     const PaywallBlur = ({ children, isLocked }: { children: React.ReactNode, isLocked: boolean }) => {
         if (!isLocked) return <>{children}</>;
         return (
-            <div className="relative group cursor-pointer" onClick={() => setShowPaymentModal(true)}>
+
+            <div className="relative group cursor-pointer" onClick={handleRestrictedAction}>
                 <div className="blur-sm select-none opacity-50 pointer-events-none grayscale">{children}</div>
                 <div className="absolute inset-0 flex items-center justify-center z-10">
                     <div className="bg-black/60 p-3 rounded-full border border-cyan-500/50 text-cyan-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(6,182,212,0.5)]">
@@ -1333,6 +1379,55 @@ function DashboardLogic() {
                     </div>
                 )}
 
+                {/* --- LEAD CAPTURE MODAL --- */}
+                {showLeadModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-[fadeIn_0.2s_ease-out]">
+                        <div className="bg-[#0B1120] rounded-2xl shadow-2xl max-w-md w-full p-8 text-center border border-white/10 relative">
+                            <button
+                                onClick={() => setShowLeadModal(false)}
+                                className="absolute top-4 right-4 text-gray-500 hover:text-white transition"
+                            >✕</button>
+
+                            <div className="bg-blue-600/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
+                                <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            </div>
+
+                            <h2 className="text-2xl font-bold text-white mb-2">Save Your Progress</h2>
+                            <p className="text-gray-400 mb-6 text-sm">Enter your details to generate the secure download link and proceed to checkout.</p>
+
+                            <form onSubmit={handleLeadSubmit} className="space-y-4 text-left">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email Address</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        className="w-full bg-[#020617] border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none text-white transition"
+                                        placeholder="you@business.com"
+                                        value={leadData.email}
+                                        onChange={(e) => setLeadData({ ...leadData, email: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
+                                <input 
+                                    type="tel" 
+                                    required
+                                    className="w-full bg-[#020617] border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none text-white transition"
+                                    placeholder="+1 (555) 000-0000"
+                                    value={leadData.phone}
+                                    onChange={(e) => setLeadData({...leadData, phone: e.target.value})}
+                                />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition mt-2"
+                                >
+                                    Proceed to Unlock →
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                )}
                 {/* --- PAYMENT MODAL --- */}
                 {showPaymentModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
