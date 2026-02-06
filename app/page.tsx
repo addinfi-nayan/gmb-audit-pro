@@ -522,6 +522,7 @@ const METRIC_DEFINITIONS = [
     { label: "Keyword Sentiment", desc: "The specific sentiment score attached to high-value keywords like 'Service' or 'Price'." },
     { label: "NPS Score (AI)", desc: "Net Promoter Score (0-100) estimated by AI, indicating customer loyalty." },
     { label: "Post Frequency", desc: "How often the business posts Updates, Offers, or Events to their profile." },
+    { label: "Products/Services", desc: "Checks if the business uses the visual Product/Service catalog features to display offerings." },
     { label: "Engagement Rate", desc: "Estimated level of customer interaction (clicks, views) with your posts." },
     { label: "Total Photos", desc: "The total volume of images uploaded by the owner and customers combined." },
     { label: "Listing Age", desc: "The estimated number of years the business profile has been active on Google." },
@@ -532,11 +533,13 @@ const METRIC_DEFINITIONS = [
 
 // --- LOADING MESSAGES ---
 const LOADING_MESSAGES = [
-    "Initiating secure profile scan...",
-    "Identifying top local competitors...",
-    "Analyzing review sentiment & gaps...",
-    "Synthesizing strategic growth insights...",
-    "Almost there! Finalizing your report..."
+    "Grinding the data beans...",
+    "Preheating the audit ovens...",
+    "Mixing local keywords & seasoning...",
+    "Letting the competitor insights simmer...",
+    "Brewing your growth strategy...",
+    "Adding the final garnish...",
+    "Serving up your report hot & fresh!"
 ];
 
 // --- ICONS ---
@@ -607,7 +610,7 @@ function DashboardLogic() {
         if (!loading) { setLoadingMsgIndex(0); return; }
         const interval = setInterval(() => {
             setLoadingMsgIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
-        }, 5000);
+        }, 1000);
         return () => clearInterval(interval);
     }, [loading]);
 
@@ -895,94 +898,94 @@ function DashboardLogic() {
 
                 {/* HEADER */}
                 {/* HEADER / NAVBAR */}
-            <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
-                <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-                    
-                    {/* Logo (Clicking also goes home) */}
-                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.location.href = "/"}>
-                        <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
-                    </div>
+                <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
+                    <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
 
-                    {/* Desktop Actions */}
-                    <div className="hidden md:flex items-center gap-4">
-                        
-                        {/* Download Button (Visible only at Step 3) */}
-                        {step === 3 && !errorMsg && (
-                            <button
-                                onClick={initiateDownload}
-                                disabled={downloading}
-                                data-html2canvas-ignore="true"
-                                className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-xs md:text-sm hover:bg-green-700 transition flex items-center gap-2"
-                            >
-                                {downloading ? "Generating..." : "Download PDF 📥"}
-                            </button>
-                        )}
+                        {/* Logo (Clicking also goes home) */}
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.location.href = "/"}>
+                            <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
+                        </div>
 
-                        {/* Reset Button (Visible only if user has moved past Step 1) */}
-                        {step > 1 && (
-                            <button 
-                                onClick={handleReset} 
-                                className="text-xs md:text-sm text-gray-400 hover:text-red-400 font-medium transition"
-                            >
-                                Reset
-                            </button>
-                        )}
+                        {/* Desktop Actions */}
+                        <div className="hidden md:flex items-center gap-4">
 
-                        {/* Home Button (Always Visible) */}
-                        <button 
-                            onClick={() => window.location.href = "/"} 
-                            className="text-xs md:text-sm text-gray-400 hover:text-white font-medium ml-2 transition"
-                        >
-                            Home
-                        </button>
-                    </div>
-
-                    {/* Mobile Menu Toggle */}
-                    <div className="md:hidden flex items-center">
-                        <button
-                            className="text-gray-300 hover:text-white focus:outline-none"
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        >
-                            {isMobileMenuOpen ? (
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                            ) : (
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                            {/* Download Button (Visible only at Step 3) */}
+                            {step === 3 && !errorMsg && (
+                                <button
+                                    onClick={initiateDownload}
+                                    disabled={downloading}
+                                    data-html2canvas-ignore="true"
+                                    className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-xs md:text-sm hover:bg-green-700 transition flex items-center gap-2"
+                                >
+                                    {downloading ? "Generating..." : "Download PDF 📥"}
+                                </button>
                             )}
-                        </button>
-                    </div>
-                </div>
 
-                {/* Mobile Menu Dropdown */}
-                {isMobileMenuOpen && (
-                    <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col">
-                        {step === 3 && !errorMsg && (
+                            {/* Reset Button (Visible only if user has moved past Step 1) */}
+                            {step > 1 && (
+                                <button
+                                    onClick={handleReset}
+                                    className="text-xs md:text-sm text-gray-400 hover:text-red-400 font-medium transition"
+                                >
+                                    Reset
+                                </button>
+                            )}
+
+                            {/* Home Button (Always Visible) */}
                             <button
-                                onClick={() => { setIsMobileMenuOpen(false); initiateDownload(); }}
-                                disabled={downloading}
-                                className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold text-sm hover:bg-green-700 transition flex items-center justify-center gap-2 mb-4"
+                                onClick={() => window.location.href = "/"}
+                                className="text-xs md:text-sm text-gray-400 hover:text-white font-medium ml-2 transition"
                             >
-                                {downloading ? "Generating..." : "Download PDF 📥"}
+                                Home
                             </button>
-                        )}
-                        
-                        {step > 1 && (
+                        </div>
+
+                        {/* Mobile Menu Toggle */}
+                        <div className="md:hidden flex items-center">
                             <button
-                                onClick={() => { setIsMobileMenuOpen(false); handleReset(); }}
-                                className="w-full text-left text-sm text-gray-400 hover:text-red-400 font-medium transition py-3 border-b border-white/5"
+                                className="text-gray-300 hover:text-white focus:outline-none"
+                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             >
-                                Reset Audit
+                                {isMobileMenuOpen ? (
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                ) : (
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                                )}
                             </button>
-                        )}
-                        
-                        <button
-                            onClick={() => { setIsMobileMenuOpen(false); window.location.href = "/"; }}
-                            className="w-full text-left text-sm text-gray-400 hover:text-white font-medium transition py-3"
-                        >
-                            Home
-                        </button>
+                        </div>
                     </div>
-                )}
-            </nav>
+
+                    {/* Mobile Menu Dropdown */}
+                    {isMobileMenuOpen && (
+                        <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col">
+                            {step === 3 && !errorMsg && (
+                                <button
+                                    onClick={() => { setIsMobileMenuOpen(false); initiateDownload(); }}
+                                    disabled={downloading}
+                                    className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold text-sm hover:bg-green-700 transition flex items-center justify-center gap-2 mb-4"
+                                >
+                                    {downloading ? "Generating..." : "Download PDF 📥"}
+                                </button>
+                            )}
+
+                            {step > 1 && (
+                                <button
+                                    onClick={() => { setIsMobileMenuOpen(false); handleReset(); }}
+                                    className="w-full text-left text-sm text-gray-400 hover:text-red-400 font-medium transition py-3 border-b border-white/5"
+                                >
+                                    Reset Audit
+                                </button>
+                            )}
+
+                            <button
+                                onClick={() => { setIsMobileMenuOpen(false); window.location.href = "/"; }}
+                                className="w-full text-left text-sm text-gray-400 hover:text-white font-medium transition py-3"
+                            >
+                                Home
+                            </button>
+                        </div>
+                    )}
+                </nav>
 
                 {/* STEP 1: FIND ME */}
                 {step === 1 && (
@@ -1032,6 +1035,7 @@ function DashboardLogic() {
                             </div>
                             <button onClick={() => setStep(1)} className="px-4 py-2 text-sm font-medium text-gray-400 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition">Change</button>
                         </div>
+
 
                         <div className="flex flex-col md:flex-row justify-between items-center mt-12 mb-6 gap-4">
                             <h2 className="text-2xl font-bold text-white text-center md:text-left">Step 2: Add Competitors <span className="text-sm font-normal text-gray-500 ml-2 block md:inline">(Max 2)</span></h2>
@@ -1202,6 +1206,17 @@ function DashboardLogic() {
                                                     <tr><td className="py-6 px-4 font-bold bg-white/5">Post Freq</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.post_frequency}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.post_frequency}</td>)}</tr>
                                                     <tr><td className="py-6 px-4 font-bold bg-white/5">Engagement</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.post_engagement}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.post_engagement}</td>)}</tr>
                                                     <tr><td className="py-6 px-4 font-bold bg-white/5">Photos</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.total_photos}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.total_photos}</td>)}</tr>
+                                                    <tr>
+                                                        <td className="py-6 px-4 font-bold bg-white/5">Products</td>
+                                                        <td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">
+                                                            {report.matrix?.me?.products_services || "Missing ⚠️"}
+                                                        </td>
+                                                        {report.matrix?.competitors?.map((c: any, i: number) => (
+                                                            <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">
+                                                                {c.products_services || "N/A"}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
                                                     <tr><td className="py-6 px-4 font-bold bg-white/5">Age</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.listing_age}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.listing_age}</td>)}</tr>
                                                     <tr><td className="py-6 px-4 font-bold bg-white/5">Profile Strength</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.profile_strength}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.profile_strength}</td>)}</tr>
                                                     <tr><td className="py-6 px-4 font-bold bg-white/5">Risk</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.suspension_risk}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.suspension_risk}</td>)}</tr>
@@ -1406,22 +1421,75 @@ function DashboardLogic() {
                     </div>
                 )}
 
-                {/* --- LOADER --- */}
+                {/* --- GOURMET BREW LOADER --- */}
                 {loading && (
-                    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#030712]/90 backdrop-blur-sm transition-all duration-300">
-                        <div className="relative mb-6">
-                            <div className="w-20 h-20 border-4 border-blue-900 rounded-full"></div>
-                            <div className="w-20 h-20 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
-                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-cyan-500">
-                                <SearchIcon />
+                    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#030712]/95 backdrop-blur-xl transition-all duration-300 overflow-hidden">
+
+                        {/* Background Atmosphere */}
+                        <div className="absolute inset-0 bg-radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.1) 0%, transparent 70%) pointer-events-none"></div>
+
+                        {/* The Brewing Setup */}
+                        <div className="relative">
+
+                            {/* 1. Floating "Data Spices" (Falling particles) */}
+                            <div className="absolute -top-12 left-0 w-full h-full z-0">
+                                <div className="absolute top-0 left-1/4 w-1 h-1 bg-white/40 rounded-full animate-[fall_3s_linear_infinite]"></div>
+                                <div className="absolute top-[-10px] left-1/2 w-1.5 h-1.5 bg-amber-300/40 rounded-full animate-[fall_4s_linear_infinite_1s]"></div>
+                                <div className="absolute top-[-5px] left-3/4 w-1 h-1 bg-white/30 rounded-full animate-[fall_2.5s_linear_infinite_0.5s]"></div>
+                            </div>
+
+                            {/* 2. The Cup */}
+                            <div className="relative w-36 h-44 z-10">
+                                {/* Handle */}
+                                <div className="absolute top-8 -right-5 w-14 h-20 border-[6px] border-white/10 rounded-r-3xl pointer-events-none shadow-lg"></div>
+
+                                {/* Glass Body */}
+                                <div className="w-full h-full border-[3px] border-white/20 border-t-0 rounded-b-[3rem] relative overflow-hidden bg-white/5 backdrop-blur-md shadow-[0_0_40px_-10px_rgba(245,158,11,0.3)]">
+
+                                    {/* The Liquid (Coffee/Amber Gradient) */}
+                                    <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-[#451a03] via-[#92400e] to-[#f59e0b] opacity-95 animate-[fill-up_12s_ease-in-out_forwards] flex flex-col justify-start overflow-visible">
+                                        {/* Froth / Foam Layer */}
+                                        <div className="w-full h-3 bg-[#fcd34d] absolute top-0 blur-[1px] opacity-80 animate-[wave_2s_linear_infinite]"></div>
+
+                                        {/* Wavy Surface */}
+                                        <div className="w-[200%] h-6 bg-white/10 absolute -top-3 animate-[wave_2.5s_linear_infinite] rounded-[50%]"></div>
+
+                                        {/* Vigorously Boiling Bubbles */}
+                                        <div className="absolute bottom-0 left-1/4 w-2 h-2 bg-white/40 rounded-full animate-[bubble_1.5s_ease-in_infinite]"></div>
+                                        <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-white/20 rounded-full animate-[bubble_2s_ease-in_infinite_0.2s]"></div>
+                                        <div className="absolute bottom-0 left-3/4 w-2 h-2 bg-white/30 rounded-full animate-[bubble_1.8s_ease-in_infinite_0.5s]"></div>
+                                        <div className="absolute bottom-4 left-1/3 w-1 h-1 bg-amber-200/50 rounded-full animate-[bubble_2.2s_ease-in_infinite_1s]"></div>
+                                    </div>
+                                </div>
+
+                                {/* Reflection/Shine on Glass */}
+                                <div className="absolute top-4 left-3 w-2 h-32 bg-gradient-to-b from-white/20 to-transparent rounded-full blur-[1px]"></div>
+                            </div>
+
+                            {/* 3. Heating Element Glow (Bottom) */}
+                            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-24 h-4 bg-orange-500/50 blur-xl rounded-full animate-pulse"></div>
+
+                            {/* 4. Enhanced Steam (Top) */}
+                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex gap-3 justify-center z-0">
+                                <div className="w-2 h-10 bg-white/10 rounded-full blur-md animate-[steam_2.5s_ease-out_infinite]"></div>
+                                <div className="w-2 h-14 bg-white/20 rounded-full blur-md animate-[steam_3s_ease-out_infinite_0.5s]"></div>
+                                <div className="w-2 h-8 bg-white/10 rounded-full blur-md animate-[steam_2s_ease-out_infinite_1s]"></div>
                             </div>
                         </div>
 
-                        <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Generating Audit Report</h3>
+                        {/* Text & Status */}
+                        <div className="mt-12 text-center relative z-20 space-y-4">
+                            <h3 className="text-3xl font-black text-white tracking-tight">
+                                BREWING <span className="text-amber-500">INSIGHTS</span>
+                            </h3>
 
-                        <p key={loadingMsgIndex} className="text-gray-400 font-medium animate-[fadeIn_0.5s_ease-in-out]">
-                            {LOADING_MESSAGES[loadingMsgIndex]}
-                        </p>
+                            <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-full inline-block backdrop-blur-md">
+                                <p key={loadingMsgIndex} className="text-amber-200 font-mono text-xs tracking-widest uppercase animate-[fade-in-up_0.4s_ease-out]">
+                                    <span className="mr-2 animate-spin inline-block">⏳</span>
+                                    {LOADING_MESSAGES[loadingMsgIndex]}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 )}
 
