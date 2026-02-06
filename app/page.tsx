@@ -1292,176 +1292,423 @@ function DashboardLogic() {
                                     </div>
 
                                 </div>
-                            </div>1
+                            </div>
 
-                            {/* STRATEGIC CARDS */}
-                            <div className="grid md:grid-cols-2 gap-6">
-                                {/* GAPS CARD */}
-                                <div className="bg-[#0B1120] rounded-xl shadow-lg border-l-4 border-red-500 p-6 border border-white/5 relative overflow-hidden">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <span className="bg-red-500/10 text-red-500 p-0.5 rounded-lg border border-red-500/20"><ErrorIcon /></span>
-                                        <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Your Profile Gaps</h3>
-                                    </div>
-                                    <ul className="space-y-3">
-                                        {/* SHOW TOP 3 ONLY */}
-                                        {report.weaknesses?.slice(0, 3).map((item: string, i: number) => (
-                                            <li key={i} className="flex items-start gap-3 text-gray-300 text-lg"><span className="text-red-500 font-bold mt-0.5 flex-shrink-0">✕</span>{item}</li>
-                                        )) || <p className="text-gray-500 italic">No critical issues found.</p>}
-                                    </ul>
-                                    {/* PAYWALL BLUR FOR REMAINING */}
-                                    {!isUnlocked && report.weaknesses?.length > 3 && (
-                                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/90 to-transparent flex items-center justify-center pt-10 cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
-                                            <div className="bg-black/60 p-3 rounded-full border border-red-500/50 text-red-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(248,113,113,0.5)]">
-                                                <LockIcon />
-                                            </div>
+                            {/* STRATEGIC CARDS (GAPS & WINS) - MATCHING SCREENSHOT DESIGN */}
+                            <div className="grid lg:grid-cols-2 gap-8 mt-12">
+                                
+                                {/* 1. PROFILE GAPS CARD (Red/Alert Theme) */}
+                                <div className="bg-[#0B1120] rounded-2xl border border-red-500/20 overflow-hidden flex flex-col">
+                                    {/* Header */}
+                                    <div className="p-6 border-b border-red-500/10 bg-red-500/5 flex items-center gap-4">
+                                        <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/20 text-red-500 shadow-[0_0_15px_-3px_rgba(239,68,68,0.4)]">
+                                            <ErrorIcon />
                                         </div>
-                                    )}
-                                    {/* SHOW REST IF UNLOCKED */}
-                                    {isUnlocked && report.weaknesses?.slice(3).map((item: string, i: number) => (
-                                        <li key={i + 3} className="flex items-start gap-3 text-gray-300 text-lg mt-3"><span className="text-red-500 font-bold mt-0.5 flex-shrink-0">✕</span>{item}</li>
-                                    ))}
+                                        <h3 className="text-lg font-bold text-white tracking-wide uppercase">Your Profile Gaps</h3>
+                                    </div>
+                                    
+                                    {/* List Content */}
+                                    <div className="p-6 relative flex-grow">
+                                        <ul className="space-y-5">
+                                            {/* Top 3 Gaps (Always Visible) */}
+                                            {report.weaknesses?.slice(0, 3).map((item: string, i: number) => (
+                                                <li key={i} className="flex items-start gap-4 group">
+                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 text-xs font-bold group-hover:bg-red-500 group-hover:text-white transition-colors">✕</span>
+                                                    <span className="text-gray-300 text-sm leading-relaxed font-medium group-hover:text-gray-100 transition-colors">{item}</span>
+                                                </li>
+                                            )) || <p className="text-gray-500 italic px-2">No critical gaps detected.</p>}
+
+                                            {/* Locked Gaps (Blurred) */}
+                                            {!isUnlocked && report.weaknesses?.length > 3 && (
+                                                <div className="relative mt-2 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/95 z-10 flex flex-col items-center justify-center text-center -mx-6 -mb-6 pb-4">
+                                                        <div className="bg-[#0B1120] p-3 rounded-full border border-red-500/30 text-red-400 shadow-[0_0_20px_-5px_rgba(239,68,68,0.4)] group-hover/lock:scale-110 transition-transform mb-2">
+                                                            <LockIcon />
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest border-b border-red-500/30 pb-0.5">Unlock {report.weaknesses.length - 3} More Gaps</span>
+                                                    </div>
+                                                    {/* Visual Fake Content */}
+                                                    <div className="space-y-4 opacity-30 blur-[2px] pointer-events-none select-none grayscale">
+                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-red-500/20"></span><span className="h-4 bg-white/10 rounded w-3/4"></span></li>
+                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-red-500/20"></span><span className="h-4 bg-white/10 rounded w-2/3"></span></li>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Unlocked Remaining Gaps */}
+                                            {isUnlocked && report.weaknesses?.slice(3).map((item: string, i: number) => (
+                                                <li key={i + 3} className="flex items-start gap-4 group animate-[fadeIn_0.5s_ease-out]">
+                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 text-xs font-bold group-hover:bg-red-500 group-hover:text-white transition-colors">✕</span>
+                                                    <span className="text-gray-300 text-sm leading-relaxed font-medium group-hover:text-gray-100 transition-colors">{item}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 </div>
 
-                                {/* WINS CARD */}
-                                <div className="bg-[#0B1120] rounded-xl shadow-lg border-l-4 border-green-500 p-6 border border-white/5 relative overflow-hidden">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <span className="bg-green-500/10 text-green-500 p-2 rounded-lg border border-green-500/20"><TrophyIcon /></span>
-                                        <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide"> Profile Wins</h3>
-                                    </div>
-                                    <ul className="space-y-3">
-                                        {/* SHOW TOP 3 ONLY */}
-                                        {report.competitor_strengths?.slice(0, 3).map((item: string, i: number) => (
-                                            <li key={i} className="flex items-start gap-3 text-gray-300 text-lg"><span className="text-green-500 font-bold mt-0.5 flex-shrink-0">✓</span>{item}</li>
-                                        )) || <p className="text-gray-500 italic">Analyzing competitor data...</p>}
-                                    </ul>
-                                    {/* PAYWALL BLUR */}
-                                    {!isUnlocked && report.competitor_strengths?.length > 3 && (
-                                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/90 to-transparent flex items-center justify-center pt-10 cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
-                                            <div className="bg-black/60 p-3 rounded-full border border-green-500/50 text-green-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(34,197,94,0.5)]">
-                                                <LockIcon />
-                                            </div>
+                                {/* 2. PROFILE WINS CARD (Green/Success Theme) */}
+                                <div className="bg-[#0B1120] rounded-2xl border border-green-500/20 overflow-hidden flex flex-col">
+                                    {/* Header */}
+                                    <div className="p-6 border-b border-green-500/10 bg-green-500/5 flex items-center gap-4">
+                                        <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20 text-green-500 shadow-[0_0_15px_-3px_rgba(34,197,94,0.4)]">
+                                            <TrophyIcon />
                                         </div>
-                                    )}
-                                    {isUnlocked && report.competitor_strengths?.slice(3).map((item: string, i: number) => (
-                                        <li key={i + 3} className="flex items-start gap-3 text-gray-300 text-lg mt-3"><span className="text-green-500 font-bold mt-0.5 flex-shrink-0">✓</span>{item}</li>
-                                    ))}
+                                        <h3 className="text-lg font-bold text-white tracking-wide uppercase">Profile Wins</h3>
+                                    </div>
+
+                                    {/* List Content */}
+                                    <div className="p-6 relative flex-grow">
+                                        <ul className="space-y-5">
+                                            {/* Top 3 Wins (Always Visible) */}
+                                            {report.competitor_strengths?.slice(0, 3).map((item: string, i: number) => (
+                                                <li key={i} className="flex items-start gap-4 group">
+                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center border border-green-500/20 text-xs font-bold group-hover:bg-green-500 group-hover:text-white transition-colors">✓</span>
+                                                    <span className="text-gray-300 text-sm leading-relaxed font-medium group-hover:text-gray-100 transition-colors">{item}</span>
+                                                </li>
+                                            )) || <p className="text-gray-500 italic px-2">Analyzing competitive advantages...</p>}
+
+                                            {/* Locked Wins (Blurred) */}
+                                            {!isUnlocked && report.competitor_strengths?.length > 3 && (
+                                                <div className="relative mt-2 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/95 z-10 flex flex-col items-center justify-center text-center -mx-6 -mb-6 pb-4">
+                                                        <div className="bg-[#0B1120] p-3 rounded-full border border-green-500/30 text-green-400 shadow-[0_0_20px_-5px_rgba(34,197,94,0.4)] group-hover/lock:scale-110 transition-transform mb-2">
+                                                            <LockIcon />
+                                                        </div>
+                                                        <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest border-b border-green-500/30 pb-0.5">Unlock All Wins</span>
+                                                    </div>
+                                                    {/* Visual Fake Content */}
+                                                    <div className="space-y-4 opacity-30 blur-[2px] pointer-events-none select-none grayscale">
+                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-green-500/20"></span><span className="h-4 bg-white/10 rounded w-3/4"></span></li>
+                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-green-500/20"></span><span className="h-4 bg-white/10 rounded w-2/3"></span></li>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Unlocked Remaining Wins */}
+                                            {isUnlocked && report.competitor_strengths?.slice(3).map((item: string, i: number) => (
+                                                <li key={i + 3} className="flex items-start gap-4 group animate-[fadeIn_0.5s_ease-out]">
+                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center border border-green-500/20 text-xs font-bold group-hover:bg-green-500 group-hover:text-white transition-colors">✓</span>
+                                                    <span className="text-gray-300 text-sm leading-relaxed font-medium group-hover:text-gray-100 transition-colors">{item}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* GAP ANALYSIS */}
+                         {/* GAP ANALYSIS - REDESIGNED "PROTOCOL STACK" */}
                             {report.gap_analysis && (
-                                <div className="space-y-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-px bg-white/10 flex-1"></div>
-                                        <h2 className="text-xl font-bold text-gray-100 uppercase tracking-wide">Metric Gap Analysis & Fixes</h2>
-                                        <div className="h-px bg-white/10 flex-1"></div>
+                                <div className="space-y-8 mt-12">
+                                    
+                                    {/* Section Header */}
+                                    <div className="flex items-center justify-center gap-4 mb-8">
+                                        <div className="h-px w-16 bg-gradient-to-r from-transparent to-white/20"></div>
+                                        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                                            <span className="text-xs font-bold text-gray-300 tracking-[0.2em] uppercase">Optimization Protocols</span>
+                                        </div>
+                                        <div className="h-px w-16 bg-gradient-to-l from-transparent to-white/20"></div>
                                     </div>
+
                                     <div className="grid md:grid-cols-3 gap-6">
-                                        {/* REPUTATION */}
-                                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md relative overflow-hidden">
-                                            <h3 className="font-bold text-blue-400 mb-4 uppercase pb-2">Reputation Fixes</h3>
-                                            <ul className="space-y-4">
-                                                {isUnlocked ? report.gap_analysis.reputation?.map((fix: string, i: number) => (
-                                                    <li key={i} className="text-base text-gray-300 bg-blue-500/5 p-4 rounded-lg border border-blue-500/10"><span className="font-bold text-blue-400 block mb-1">Step {i + 1}:</span> {fix}</li>
-                                                )) : (
-                                                    <>
-                                                        <li className="text-base text-gray-300 bg-blue-500/5 p-4 rounded-lg border border-blue-500/10"><span className="font-bold text-blue-400 block mb-1">Step 1:</span> {report.gap_analysis.reputation?.[0]}</li>
-                                                        <PaywallBlur isLocked={true}><li className="text-base text-gray-300 bg-blue-500/5 p-4 rounded-lg border border-blue-500/10 blur-sm"><span className="font-bold text-blue-400 block mb-1">Step 2:</span> Hidden Strategy</li></PaywallBlur>
-                                                    </>
+                                        
+                                        {/* 1. REPUTATION MODULE */}
+                                        <div className="bg-[#0B1120] rounded-2xl border border-blue-500/20 overflow-hidden relative group hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.2)] transition-all duration-500">
+                                            {/* Header */}
+                                            <div className="h-1 bg-gradient-to-r from-blue-600 to-cyan-400"></div>
+                                            <div className="p-5 border-b border-white/5 bg-blue-900/5 flex justify-between items-center">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                                        <StarIcon />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-white text-sm tracking-wide">REPUTATION</h3>
+                                                        <p className="text-[10px] text-blue-400/70 font-mono uppercase">Priority: High</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-[10px] font-mono text-gray-600 border border-white/5 px-2 py-1 rounded">SYS_01</div>
+                                            </div>
+
+                                            {/* Content List */}
+                                            <div className="p-5 space-y-6 relative">
+                                                {/* Connecting Line */}
+                                                <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-blue-500/30 to-transparent"></div>
+
+                                                {/* STEP 1 (Always Visible) */}
+                                                <div className="relative flex gap-4">
+                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-blue-500 text-blue-500 text-[10px] font-bold flex items-center justify-center z-10 shadow-[0_0_10px_rgba(59,130,246,0.4)]">1</div>
+                                                    <div>
+                                                        <h4 className="text-blue-400 text-xs font-bold uppercase mb-1">Immediate Action</h4>
+                                                        <p className="text-gray-400 text-sm leading-relaxed">{report.gap_analysis.reputation?.[0]}</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* LOCKED / UNLOCKED STEPS */}
+                                                {isUnlocked ? (
+                                                    report.gap_analysis.reputation?.slice(1).map((fix: string, i: number) => (
+                                                        <div key={i} className="relative flex gap-4 animate-[fadeIn_0.5s_ease-out]">
+                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-blue-500/50 text-blue-400/80 text-[10px] font-bold flex items-center justify-center z-10">{i + 2}</div>
+                                                            <div>
+                                                                <h4 className="text-blue-400/80 text-xs font-bold uppercase mb-1">Follow-up Protocol</h4>
+                                                                <p className="text-gray-400 text-sm leading-relaxed">{fix}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    // LOCKED STATE
+                                                    <div className="relative mt-4 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/90 z-0"></div>
+                                                        <div className="relative z-10 flex flex-col items-center justify-center py-6 text-center space-y-3">
+                                                            <div className="w-10 h-10 rounded-full bg-black/60 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)] group-hover/lock:scale-110 transition-transform">
+                                                                <LockIcon />
+                                                            </div>
+                                                            <div className="text-xs font-medium text-gray-500 group-hover/lock:text-blue-400 transition-colors">
+                                                                2 Advanced Strategies Hidden <br/>
+                                                                <span className="font-bold underline decoration-blue-500/50 underline-offset-2">Tap to Unlock</span>
+                                                            </div>
+                                                        </div>
+                                                        {/* Fake Blurred Text for Effect */}
+                                                        <div className="absolute inset-0 blur-[4px] opacity-30 select-none pointer-events-none grayscale pt-6 pl-10">
+                                                            <p className="text-sm text-gray-500">Implement automated SMS review generation...</p>
+                                                            <p className="text-sm text-gray-500 mt-2">Filter negative feedback via gateway...</p>
+                                                        </div>
+                                                    </div>
                                                 )}
-                                            </ul>
+                                            </div>
                                         </div>
-                                        {/* ENGAGEMENT */}
-                                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md relative overflow-hidden">
-                                            <h3 className="font-bold text-purple-400 mb-4 uppercase pb-2">Engagement Fixes</h3>
-                                            <ul className="space-y-4">
-                                                {isUnlocked ? report.gap_analysis.engagement?.map((fix: string, i: number) => (
-                                                    <li key={i} className="text-base text-gray-300 bg-purple-500/5 p-4 rounded-lg border border-purple-500/10"><span className="font-bold text-purple-400 block mb-1">Step {i + 1}:</span> {fix}</li>
-                                                )) : (
-                                                    <>
-                                                        <li className="text-base text-gray-300 bg-purple-500/5 p-4 rounded-lg border border-purple-500/10"><span className="font-bold text-purple-400 block mb-1">Step 1:</span> {report.gap_analysis.engagement?.[0]}</li>
-                                                        <PaywallBlur isLocked={true}><li className="text-base text-gray-300 bg-purple-500/5 p-4 rounded-lg border border-purple-500/10 blur-sm"><span className="font-bold text-purple-400 block mb-1">Step 2:</span> Hidden Strategy</li></PaywallBlur>
-                                                    </>
+
+                                        {/* 2. ENGAGEMENT MODULE */}
+                                        <div className="bg-[#0B1120] rounded-2xl border border-purple-500/20 overflow-hidden relative group hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.2)] transition-all duration-500">
+                                            <div className="h-1 bg-gradient-to-r from-purple-600 to-pink-400"></div>
+                                            <div className="p-5 border-b border-white/5 bg-purple-900/5 flex justify-between items-center">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-white text-sm tracking-wide">ENGAGEMENT</h3>
+                                                        <p className="text-[10px] text-purple-400/70 font-mono uppercase">Priority: Medium</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-[10px] font-mono text-gray-600 border border-white/5 px-2 py-1 rounded">SYS_02</div>
+                                            </div>
+
+                                            <div className="p-5 space-y-6 relative">
+                                                <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-purple-500/30 to-transparent"></div>
+
+                                                {/* STEP 1 */}
+                                                <div className="relative flex gap-4">
+                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-purple-500 text-purple-500 text-[10px] font-bold flex items-center justify-center z-10 shadow-[0_0_10px_rgba(168,85,247,0.4)]">1</div>
+                                                    <div>
+                                                        <h4 className="text-purple-400 text-xs font-bold uppercase mb-1">Content Fix</h4>
+                                                        <p className="text-gray-400 text-sm leading-relaxed">{report.gap_analysis.engagement?.[0]}</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* LOCKED / UNLOCKED */}
+                                                {isUnlocked ? (
+                                                    report.gap_analysis.engagement?.slice(1).map((fix: string, i: number) => (
+                                                        <div key={i} className="relative flex gap-4 animate-[fadeIn_0.5s_ease-out]">
+                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-purple-500/50 text-purple-400/80 text-[10px] font-bold flex items-center justify-center z-10">{i + 2}</div>
+                                                            <div>
+                                                                <h4 className="text-purple-400/80 text-xs font-bold uppercase mb-1">Interaction Boost</h4>
+                                                                <p className="text-gray-400 text-sm leading-relaxed">{fix}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="relative mt-4 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/90 z-0"></div>
+                                                        <div className="relative z-10 flex flex-col items-center justify-center py-6 text-center space-y-3">
+                                                            <div className="w-10 h-10 rounded-full bg-black/60 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] group-hover/lock:scale-110 transition-transform">
+                                                                <LockIcon />
+                                                            </div>
+                                                            <div className="text-xs font-medium text-gray-500 group-hover/lock:text-purple-400 transition-colors">
+                                                                2 Content Scripts Hidden <br/>
+                                                                <span className="font-bold underline decoration-purple-500/50 underline-offset-2">Tap to Unlock</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="absolute inset-0 blur-[4px] opacity-30 select-none pointer-events-none grayscale pt-6 pl-10">
+                                                            <p className="text-sm text-gray-500">Post 3x weekly using high-contrast visuals...</p>
+                                                            <p className="text-sm text-gray-500 mt-2">Respond to Q&A within 2 hours...</p>
+                                                        </div>
+                                                    </div>
                                                 )}
-                                            </ul>
+                                            </div>
                                         </div>
-                                        {/* RELEVANCE */}
-                                        <div className="bg-[#0B1120] border border-white/10 rounded-xl p-6 shadow-md relative overflow-hidden">
-                                            <h3 className="font-bold text-green-400 mb-4 uppercase pb-2">Relevance Fixes</h3>
-                                            <ul className="space-y-4">
-                                                {isUnlocked ? report.gap_analysis.relevance?.map((fix: string, i: number) => (
-                                                    <li key={i} className="text-base text-gray-300 bg-green-500/5 p-4 rounded-lg border border-green-500/10"><span className="font-bold text-green-400 block mb-1">Step {i + 1}:</span> {fix}</li>
-                                                )) : (
-                                                    <>
-                                                        <li className="text-base text-gray-300 bg-green-500/5 p-4 rounded-lg border border-green-500/10"><span className="font-bold text-green-400 block mb-1">Step 1:</span> {report.gap_analysis.relevance?.[0]}</li>
-                                                        <PaywallBlur isLocked={true}><li className="text-base text-gray-300 bg-green-500/5 p-4 rounded-lg border border-green-500/10 blur-sm"><span className="font-bold text-green-400 block mb-1">Step 2:</span> Hidden Strategy</li></PaywallBlur>
-                                                    </>
+
+                                        {/* 3. RELEVANCE MODULE */}
+                                        <div className="bg-[#0B1120] rounded-2xl border border-green-500/20 overflow-hidden relative group hover:shadow-[0_0_30px_-10px_rgba(34,197,94,0.2)] transition-all duration-500">
+                                            <div className="h-1 bg-gradient-to-r from-green-600 to-emerald-400"></div>
+                                            <div className="p-5 border-b border-white/5 bg-green-900/5 flex justify-between items-center">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 rounded bg-green-500/10 text-green-400 border border-green-500/20">
+                                                        <MapPinIcon />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-white text-sm tracking-wide">RELEVANCE</h3>
+                                                        <p className="text-[10px] text-green-400/70 font-mono uppercase">Priority: Critical</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-[10px] font-mono text-gray-600 border border-white/5 px-2 py-1 rounded">SYS_03</div>
+                                            </div>
+
+                                            <div className="p-5 space-y-6 relative">
+                                                <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-green-500/30 to-transparent"></div>
+
+                                                {/* STEP 1 */}
+                                                <div className="relative flex gap-4">
+                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-green-500 text-green-500 text-[10px] font-bold flex items-center justify-center z-10 shadow-[0_0_10px_rgba(34,197,94,0.4)]">1</div>
+                                                    <div>
+                                                        <h4 className="text-green-400 text-xs font-bold uppercase mb-1">Keyword Injection</h4>
+                                                        <p className="text-gray-400 text-sm leading-relaxed">{report.gap_analysis.relevance?.[0]}</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* LOCKED / UNLOCKED */}
+                                                {isUnlocked ? (
+                                                    report.gap_analysis.relevance?.slice(1).map((fix: string, i: number) => (
+                                                        <div key={i} className="relative flex gap-4 animate-[fadeIn_0.5s_ease-out]">
+                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-green-500/50 text-green-400/80 text-[10px] font-bold flex items-center justify-center z-10">{i + 2}</div>
+                                                            <div>
+                                                                <h4 className="text-green-400/80 text-xs font-bold uppercase mb-1">Authority Signal</h4>
+                                                                <p className="text-gray-400 text-sm leading-relaxed">{fix}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="relative mt-4 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/90 z-0"></div>
+                                                        <div className="relative z-10 flex flex-col items-center justify-center py-6 text-center space-y-3">
+                                                            <div className="w-10 h-10 rounded-full bg-black/60 border border-green-500/30 flex items-center justify-center text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)] group-hover/lock:scale-110 transition-transform">
+                                                                <LockIcon />
+                                                            </div>
+                                                            <div className="text-xs font-medium text-gray-500 group-hover/lock:text-green-400 transition-colors">
+                                                                2 Geo-Grid Fixes Hidden <br/>
+                                                                <span className="font-bold underline decoration-green-500/50 underline-offset-2">Tap to Unlock</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="absolute inset-0 blur-[4px] opacity-30 select-none pointer-events-none grayscale pt-6 pl-10">
+                                                            <p className="text-sm text-gray-500">Update secondary categories to match buyer intent...</p>
+                                                            <p className="text-sm text-gray-500 mt-2">Embed geo-coordinates in photo metadata...</p>
+                                                        </div>
+                                                    </div>
                                                 )}
-                                            </ul>
+                                            </div>
                                         </div>
+
                                     </div>
                                 </div>
                             )}
-
-                            {/* 4-WEEK PLAN */}
+{/* 4-WEEK PLAN - "EXECUTION PHASE" REDESIGN */}
                             {report.four_week_plan && (
-                                <div className="space-y-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-px bg-white/10 flex-1"></div>
-                                        <div className="flex items-center gap-3">
-                                            <span className="bg-blue-900/30 text-blue-400 p-2 rounded-lg border border-blue-500/20"><ListIcon /></span>
-                                            <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">4-Week Growth Architecture</h3>
+                                <div className="mt-16 space-y-8">
+                                    
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between px-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                                                <ListIcon />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-bold text-white tracking-wide">EXECUTION ROADMAP</h3>
+                                                <p className="text-xs text-blue-400/60 font-mono uppercase tracking-widest mt-1">4-Phase Deployment Cycle</p>
+                                            </div>
                                         </div>
-                                        <div className="h-px bg-white/10 flex-1"></div>
+                                        {/* Duration Badge */}
+                                        <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+                                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                            <span className="text-xs font-mono text-gray-300">EST. DURATION: 30 DAYS</span>
+                                        </div>
                                     </div>
-                                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                                        {report.four_week_plan.map((week: any, i: number) => {
-                                            const isWeekLocked = !isUnlocked && i > 0; // Lock weeks 2,3,4
-                                            return (
-                                                <div key={i} className={`bg-[#0B1120] rounded-xl shadow-lg border border-white/10 p-6 relative overflow-hidden ${isWeekLocked ? 'opacity-70' : 'hover:border-cyan-500/30 transition'}`}>
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <h3 className="font-black text-2xl text-blue-400">{week.week}</h3>
-                                                        <span className="text-xs font-medium bg-blue-500/10 text-blue-400 px-2 py-1 rounded border border-blue-500/20">{week.time_est}</span>
-                                                    </div>
-                                                    <div className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 pb-2">{week.focus}</div>
 
-                                                    <ul className="space-y-3">
-                                                        {!isUnlocked && i === 0 ? (
-                                                            // Week 1: Show half tasks, blur rest
-                                                            <>
-                                                                {week.tasks?.slice(0, Math.ceil(week.tasks.length / 2)).map((task: string, k: number) => (
-                                                                    <li key={k} className="flex items-start gap-2 text-base text-gray-300"><span className="text-blue-500 font-bold mt-px">•</span><span className="leading-snug font-medium">{task}</span></li>
-                                                                ))}
-                                                                <div className="relative mt-4 cursor-pointer group flex justify-center" onClick={() => setShowPaymentModal(true)}>
-                                                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/80 to-transparent"></div>
-                                                                    <div className="relative z-10 bg-black/60 p-3 rounded-full border border-blue-500/50 text-blue-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                                        {report.four_week_plan.map((week: any, i: number) => {
+                                            const isWeekLocked = !isUnlocked && i > 0;
+                                            const isCurrent = !isUnlocked && i === 0;
+                                            
+                                            return (
+                                                <div key={i} className={`relative bg-[#0B1120] rounded-2xl border transition-all duration-500 group overflow-hidden ${
+                                                    isWeekLocked 
+                                                        ? 'border-white/5 opacity-60' 
+                                                        : isCurrent 
+                                                            ? 'border-blue-500/40 shadow-[0_0_40px_-10px_rgba(59,130,246,0.15)]' 
+                                                            : 'border-white/10 hover:border-blue-500/30'
+                                                }`}>
+                                                    
+                                                    {/* Background Number (Visual Depth) */}
+                                                    <div className="absolute -right-4 -top-4 text-[120px] font-black text-white/[0.02] select-none leading-none z-0">
+                                                        0{i + 1}
+                                                    </div>
+
+                                                    {/* Card Header */}
+                                                    <div className="relative z-10 p-6 border-b border-white/5 bg-gradient-to-b from-white/5 to-transparent">
+                                                        <div className="flex justify-between items-start mb-3">
+                                                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border ${
+                                                                isWeekLocked 
+                                                                    ? 'bg-gray-800 text-gray-500 border-gray-700' 
+                                                                    : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                                            }`}>
+                                                                {isWeekLocked ? 'LOCKED' : 'PHASE ' + (i + 1)}
+                                                            </span>
+                                                            <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1 bg-black/40 px-2 py-1 rounded">
+                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                {week.time_est}
+                                                            </span>
+                                                        </div>
+                                                        <h4 className="text-xl font-bold text-white mb-1">{week.week}</h4>
+                                                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide truncate opacity-80">{week.focus}</p>
+                                                    </div>
+
+                                                    {/* Card Body */}
+                                                    <div className="relative z-10 p-6 min-h-[280px]">
+                                                        <ul className="space-y-4">
+                                                            {!isUnlocked && i === 0 ? (
+                                                                // Week 1: Partial View (Teaser)
+                                                                <>
+                                                                    {week.tasks?.slice(0, Math.ceil(week.tasks.length / 2)).map((task: string, k: number) => (
+                                                                        <li key={k} className="flex items-start gap-3">
+                                                                            <div className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
+                                                                            <span className="text-sm text-gray-300 leading-snug">{task}</span>
+                                                                        </li>
+                                                                    ))}
+                                                                    {/* Unlock Trigger for Week 1 */}
+                                                                    <div className="absolute inset-x-0 bottom-0 pt-20 pb-6 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/95 to-transparent flex flex-col items-center justify-end cursor-pointer group/btn" onClick={() => setShowPaymentModal(true)}>
+                                                                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600/20 border border-blue-500/50 text-blue-400 text-xs font-bold uppercase tracking-wider group-hover/btn:bg-blue-600 group-hover/btn:text-white transition-all shadow-lg">
+                                                                            <LockIcon />
+                                                                            <span>Unlock Full Plan</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </>
+                                                            ) : isWeekLocked ? (
+                                                                // Weeks 2-4: Completely Blurred
+                                                                <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={() => setShowPaymentModal(true)}>
+                                                                    <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-gray-500 group-hover:text-blue-400 group-hover:border-blue-500/30 transition-all">
                                                                         <LockIcon />
                                                                     </div>
+                                                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest group-hover:text-blue-400">Awaiting Clearance</span>
                                                                 </div>
-                                                            </>
-                                                        ) : isWeekLocked ? (
-                                                            // Weeks 2-4: Completely Blurred
-                                                            <div className="h-40 flex items-center justify-center relative cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
-                                                                <div className="absolute inset-0 filter blur-md bg-white/5"></div>
-                                                                <div className="relative z-10 bg-black/60 p-3 rounded-full border border-white/20 text-gray-400 group-hover:text-white group-hover:scale-110 transition-all shadow-lg">
-                                                                    <LockIcon />
-                                                                </div>
-                                                            </div>
-                                                        ) : (
-                                                            // Unlocked: Show all
-                                                            week.tasks?.map((task: string, k: number) => (
-                                                                <li key={k} className="flex items-start gap-2 text-base text-gray-300"><span className="text-blue-500 font-bold mt-px">•</span><span className="leading-snug font-medium">{task}</span></li>
-                                                            ))
-                                                        )}
-                                                    </ul>
+                                                            ) : (
+                                                                // Unlocked View
+                                                                week.tasks?.map((task: string, k: number) => (
+                                                                    <li key={k} className="flex items-start gap-3 group/item">
+                                                                        <div className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-cyan-500/50 group-hover/item:bg-cyan-400 transition-colors"></div>
+                                                                        <span className="text-sm text-gray-300 leading-snug group-hover/item:text-white transition-colors">{task}</span>
+                                                                    </li>
+                                                                ))
+                                                            )}
+                                                        </ul>
+                                                    </div>
+
+                                                    {/* Bottom Accent Line (Active Only) */}
+                                                    <div className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ${isWeekLocked ? 'w-0' : 'w-full bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600'}`}></div>
                                                 </div>
                                             );
                                         })}
                                     </div>
                                 </div>
                             )}
-
-                            {/* GLOSSARY */}
+                            {/* GLOSSARY & DISCLAIMER */}
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4">
                                     <div className="h-px bg-white/10 flex-1"></div>
@@ -1471,6 +1718,8 @@ function DashboardLogic() {
                                     </div>
                                     <div className="h-px bg-white/10 flex-1"></div>
                                 </div>
+                                
+                                {/* Definitions Grid */}
                                 <div className="bg-[#0B1120] p-8 rounded-2xl shadow-lg border border-white/10">
                                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6 text-sm">
                                         {METRIC_DEFINITIONS.map((def, i) => (
@@ -1480,6 +1729,13 @@ function DashboardLogic() {
                                             </div>
                                         ))}
                                     </div>
+                                </div>
+
+                                {/* LEGAL DISCLAIMER */}
+                                <div className="mt-8 p-4 rounded-xl border border-white/5 bg-white/[0.02] text-center">
+                                    <p className="text-[10px] text-gray-500 leading-relaxed max-w-4xl mx-auto">
+                                        <span className="font-bold text-gray-400 uppercase">Disclaimer:</span> All analysis, insights, and recommendations provided in this report are generated by artificial intelligence. These suggestions are for informational purposes only. Implementation of any strategies is at the sole discretion and risk of the user. We are not liable for any negative outcomes, including but not limited to profile suspension, blacklisting, ranking drops, or loss of data that may occur from applying these recommendations.
+                                    </p>
                                 </div>
                             </div>
 
