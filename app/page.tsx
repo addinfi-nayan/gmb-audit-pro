@@ -622,9 +622,33 @@ function DashboardLogic() {
         }
     };
 
+    // --- UPDATED RESET HANDLER ---
+    const handleReset = () => {
+        // 1. Reset UI Step
+        setStep(1);
+
+        // 2. Clear Search & Report Data
+        setMyBusiness(null);
+        setCompetitors([]);
+        setReport(null);
+        setErrorMsg(null);
+        setMyQuery("");
+        setCompQuery("");
+        setMySuggestions([]);
+        setCompSuggestions([]);
+
+        // 3. Clear User & Gate Data (This wipes the email/phone)
+        setLeadData({ email: "", phone: "" });
+        setIsUnlocked(false);
+
+        // 4. Close any open modals just in case
+        setShowLeadModal(false);
+        setShowPaymentModal(false);
+    };
+
     const handleLeadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // 1. Prepare the data payload
         const payload = {
             email: leadData.email,
@@ -637,7 +661,7 @@ function DashboardLogic() {
             // 2. Send to n8n Webhook
             // REPLACE THIS with your Production Webhook URL from n8n
             await axios.post("https://nnhore.app.n8n.cloud/webhook/save-lead", payload);
-            
+
             console.log("Lead saved to Sheets via n8n");
 
         } catch (err) {
@@ -870,73 +894,95 @@ function DashboardLogic() {
             <div className="mx-auto w-full max-w-[95rem] bg-[#030712] shadow-none flex-grow relative flex flex-col">
 
                 {/* HEADER */}
-                <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
-                    <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
-                        </div>
-
-                        {/* Desktop Actions */}
-                        <div className="hidden md:flex items-center gap-4">
-                            {step === 3 && !errorMsg && (
-                                <button
-                                    onClick={initiateDownload}
-                                    disabled={downloading}
-                                    data-html2canvas-ignore="true"
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-xs md:text-sm hover:bg-green-700 transition flex items-center gap-2"
-                                >
-                                    {downloading ? "Generating..." : "Download PDF 📥"}
-                                </button>
-                            )}
-                            {step > 1 && <button onClick={() => { window.location.reload(); }} className="text-xs md:text-sm text-gray-400 hover:text-red-400 font-medium transition">Reset</button>}
-                            <button onClick={() => window.location.href = "/"} className="text-xs md:text-sm text-gray-400 hover:text-white font-medium ml-2 transition">Home</button>
-                        </div>
-
-                        {/* Mobile Menu Toggle */}
-                        <div className="md:hidden flex items-center">
-                            <button
-                                className="text-gray-300 hover:text-white focus:outline-none"
-                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            >
-                                {isMobileMenuOpen ? (
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                ) : (
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                                )}
-                            </button>
-                        </div>
+                {/* HEADER / NAVBAR */}
+            <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
+                <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
+                    
+                    {/* Logo (Clicking also goes home) */}
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.location.href = "/"}>
+                        <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
                     </div>
 
-                    {/* Mobile Menu Dropdown */}
-                    {isMobileMenuOpen && (
-                        <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col">
-                            {step === 3 && !errorMsg && (
-                                <button
-                                    onClick={() => { setIsMobileMenuOpen(false); initiateDownload(); }}
-                                    disabled={downloading}
-                                    data-html2canvas-ignore="true"
-                                    className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold text-sm hover:bg-green-700 transition flex items-center justify-center gap-2 mb-4"
-                                >
-                                    {downloading ? "Generating..." : "Download PDF 📥"}
-                                </button>
-                            )}
-                            {step > 1 && (
-                                <button
-                                    onClick={() => { setIsMobileMenuOpen(false); window.location.reload(); }}
-                                    className="w-full text-left text-sm text-gray-400 hover:text-red-400 font-medium transition py-3 border-b border-white/5"
-                                >
-                                    Reset Audit
-                                </button>
-                            )}
+                    {/* Desktop Actions */}
+                    <div className="hidden md:flex items-center gap-4">
+                        
+                        {/* Download Button (Visible only at Step 3) */}
+                        {step === 3 && !errorMsg && (
                             <button
-                                onClick={() => { setIsMobileMenuOpen(false); window.location.href = "/"; }}
-                                className="w-full text-left text-sm text-gray-400 hover:text-white font-medium transition py-3"
+                                onClick={initiateDownload}
+                                disabled={downloading}
+                                data-html2canvas-ignore="true"
+                                className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-xs md:text-sm hover:bg-green-700 transition flex items-center gap-2"
                             >
-                                Home
+                                {downloading ? "Generating..." : "Download PDF 📥"}
                             </button>
-                        </div>
-                    )}
-                </nav>
+                        )}
+
+                        {/* Reset Button (Visible only if user has moved past Step 1) */}
+                        {step > 1 && (
+                            <button 
+                                onClick={handleReset} 
+                                className="text-xs md:text-sm text-gray-400 hover:text-red-400 font-medium transition"
+                            >
+                                Reset
+                            </button>
+                        )}
+
+                        {/* Home Button (Always Visible) */}
+                        <button 
+                            onClick={() => window.location.href = "/"} 
+                            className="text-xs md:text-sm text-gray-400 hover:text-white font-medium ml-2 transition"
+                        >
+                            Home
+                        </button>
+                    </div>
+
+                    {/* Mobile Menu Toggle */}
+                    <div className="md:hidden flex items-center">
+                        <button
+                            className="text-gray-300 hover:text-white focus:outline-none"
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        >
+                            {isMobileMenuOpen ? (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            ) : (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                            )}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Mobile Menu Dropdown */}
+                {isMobileMenuOpen && (
+                    <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col">
+                        {step === 3 && !errorMsg && (
+                            <button
+                                onClick={() => { setIsMobileMenuOpen(false); initiateDownload(); }}
+                                disabled={downloading}
+                                className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold text-sm hover:bg-green-700 transition flex items-center justify-center gap-2 mb-4"
+                            >
+                                {downloading ? "Generating..." : "Download PDF 📥"}
+                            </button>
+                        )}
+                        
+                        {step > 1 && (
+                            <button
+                                onClick={() => { setIsMobileMenuOpen(false); handleReset(); }}
+                                className="w-full text-left text-sm text-gray-400 hover:text-red-400 font-medium transition py-3 border-b border-white/5"
+                            >
+                                Reset Audit
+                            </button>
+                        )}
+                        
+                        <button
+                            onClick={() => { setIsMobileMenuOpen(false); window.location.href = "/"; }}
+                            className="w-full text-left text-sm text-gray-400 hover:text-white font-medium transition py-3"
+                        >
+                            Home
+                        </button>
+                    </div>
+                )}
+            </nav>
 
                 {/* STEP 1: FIND ME */}
                 {step === 1 && (
@@ -1408,15 +1454,15 @@ function DashboardLogic() {
                                     />
                                 </div>
                                 <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
-                                <input 
-                                    type="tel" 
-                                    required
-                                    className="w-full bg-[#020617] border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none text-white transition"
-                                    placeholder="+1 (555) 000-0000"
-                                    value={leadData.phone}
-                                    onChange={(e) => setLeadData({...leadData, phone: e.target.value})}
-                                />
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
+                                    <input
+                                        type="tel"
+                                        required
+                                        className="w-full bg-[#020617] border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none text-white transition"
+                                        placeholder="+1 (555) 000-0000"
+                                        value={leadData.phone}
+                                        onChange={(e) => setLeadData({ ...leadData, phone: e.target.value })}
+                                    />
                                 </div>
                                 <button
                                     type="submit"
