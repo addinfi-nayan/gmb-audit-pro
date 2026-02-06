@@ -573,7 +573,7 @@ export default function Page() {
 // --- DASHBOARD COMPONENT ---
 function DashboardLogic() {
     const reportRef = useRef<HTMLDivElement>(null);
-
+    const [isSubmitting, setIsSubmitting] = useState(false);
     // STATE
     const [step, setStep] = useState(1);
     const [myQuery, setMyQuery] = useState("");
@@ -651,8 +651,8 @@ function DashboardLogic() {
 
     const handleLeadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true); // 1. Start Loader
 
-        // 1. Prepare the data payload
         const payload = {
             email: leadData.email,
             phone: leadData.phone,
@@ -661,20 +661,19 @@ function DashboardLogic() {
         };
 
         try {
-            // 2. Send to n8n Webhook
-            // REPLACE THIS with your Production Webhook URL from n8n
+            // Send data (happens in background during the delay)
             await axios.post("https://nnhore.app.n8n.cloud/webhook/save-lead", payload);
-
-            console.log("Lead saved to Sheets via n8n");
-
+            console.log("Lead saved");
         } catch (err) {
             console.error("Error saving lead:", err);
-            // Optional: Proceed anyway so the user doesn't get stuck
         }
 
-        // 3. Close Modal & Open Payment
-        setShowLeadModal(false);
-        setShowPaymentModal(true);
+        // 2. Wait 1 Second before transitioning
+        setTimeout(() => {
+            setIsSubmitting(false);    // Stop Loader
+            setShowLeadModal(false);   // Close Lead Form
+            setShowPaymentModal(true); // Open Payment/Lock Modal
+        }, 300);
     };
     // --- SEARCH EFFECTS ---
     // --- SEARCH EFFECTS (UPDATED FOR SERPER.DEV) ---
@@ -1152,81 +1151,148 @@ function DashboardLogic() {
 
                         <div className="max-w-[95rem] mx-auto space-y-20">
 
-                            {/* MATRIX TABLE */}
-                            <div className="bg-[#0B1120] rounded-2xl shadow-xl border border-white/10 overflow-hidden">
-                                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                                    <div className="flex items-center gap-3">
-                                        <span className="bg-blue-900/30 text-blue-400 p-2 rounded-lg border border-blue-500/20"><ChartIcon /></span>
-                                        <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Detailed Market Data</h3>
+                            {/* ========================================================== */}
+                            {/* "NEXUS COMMAND" MASTER DASHBOARD (Complete & Optimized)   */}
+                            {/* ========================================================== */}
+                            <div className="space-y-6 font-sans text-gray-300">
+
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                                    {/* LEFT COLUMN: THE REACTOR & INTELLIGENCE (4 Cols) */}
+                                    {/* LEFT COLUMN: REACTOR & INTELLIGENCE */}
+                                <div className="lg:col-span-4 flex flex-col gap-6">
+                                    
+                                    {/* 1. AUDIT REACTOR (ALWAYS VISIBLE) */}
+                                    <div className="bg-[#0B1120] border border-cyan-500/30 rounded-3xl p-8 relative overflow-hidden shadow-[0_0_50px_-15px_rgba(6,182,212,0.3)] flex flex-col items-center text-center group">
+                                        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/10 to-transparent opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                                        <h3 className="text-cyan-400 font-bold tracking-[0.3em] text-[10px] uppercase mb-6 z-10">System Integrity Score</h3>
+                                        <div className="relative z-10 mb-6">
+                                            <div className="w-40 h-40 rounded-full border-4 border-cyan-900/50 flex items-center justify-center relative">
+                                                <div className="absolute inset-0 rounded-full border-4 border-cyan-500 border-t-transparent border-l-transparent animate-spin-slow opacity-80"></div>
+                                                <div className="w-32 h-32 rounded-full bg-cyan-900/20 backdrop-blur-md flex flex-col items-center justify-center shadow-inner border border-white/10 relative overflow-hidden">
+                                                    {report.audit_score && report.audit_score > 0 ? (
+                                                        <span className="text-6xl font-black text-white tracking-tighter drop-shadow-[0_0_15px_rgba(6,182,212,0.5)] z-20">{report.audit_score}</span>
+                                                    ) : (
+                                                        <div className="relative z-10 animate-pulse"><svg className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></div>
+                                                    )}
+                                                    <div className="mt-1 relative z-10"><span className="text-[10px] font-bold text-cyan-200 uppercase tracking-widest bg-cyan-900/40 px-2 py-0.5 rounded-full border border-cyan-500/20">Health</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="z-10 flex flex-col gap-2 w-full">
+                                            <div className="flex justify-between items-center text-xs px-4 py-2 bg-white/5 rounded-lg border border-white/5"><span className="text-gray-400 uppercase font-bold text-[10px]">Audit Gap</span><span className={`font-mono font-bold ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-green-400"}`}>{report.matrix?.me?.audit_gap || "N/A"}</span></div>
+                                            <div className="flex justify-between items-center text-xs px-4 py-2 bg-white/5 rounded-lg border border-white/5"><span className="text-gray-400 uppercase font-bold text-[10px]">Market Status</span><span className={`font-bold text-[10px] uppercase ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-green-400"}`}>{report.matrix?.me?.audit_gap?.includes("-") ? "CRITICAL LAG" : "MARKET LEADER"}</span></div>
+                                        </div>
+                                    </div>
+
+                                    {/* 2. TRUST MATRIX (LOCKED) */}
+                                    <div className="relative">
+                                        {!isUnlocked && (
+                                            <div onClick={() => setShowLeadModal(true)} className="absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-md bg-[#0B1120]/80 rounded-3xl border border-white/10 cursor-pointer group">
+                                                <div className="bg-[#0B1120] p-3 rounded-full border border-cyan-500/30 mb-2 group-hover:scale-110 transition-transform"><LockIcon /></div>
+                                                <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Trust Matrix Locked</span>
+                                            </div>
+                                        )}
+                                        <div className={`bg-[#0B1120] border border-white/10 rounded-3xl p-6 relative overflow-hidden flex-1 min-h-[200px] ${!isUnlocked ? 'blur-sm opacity-50 grayscale select-none' : ''}`}>
+                                            <h3 className="text-gray-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-4 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Trust Matrix</h3>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <div className="flex justify-between text-[10px] uppercase mb-1"><span className="text-white font-bold">Positive Sentiment</span><span className="text-emerald-400">{report.matrix?.me?.sentiment?.match(/\d+/)?.[0] || 0}%</span></div>
+                                                    <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden flex"><div className="bg-emerald-500 h-full" style={{ width: `${report.matrix?.me?.sentiment?.match(/\d+/)?.[0] || 0}%` }}></div><div className="w-1 h-full bg-white relative z-10" style={{ left: `-${100 - (parseInt(report.matrix?.competitors?.[0]?.sentiment?.match(/\d+/)?.[0]) || 50)}%` }}></div></div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5"><span className="text-gray-400 text-[9px] uppercase font-bold block mb-1">NPS Score</span><div className="flex items-center gap-2"><span className="text-white font-bold font-mono text-lg">{report.matrix?.me?.nps}</span><span className="text-[9px] text-gray-600">vs {report.matrix?.competitors?.[0]?.nps}</span></div></div>
+                                                    <div className="bg-white/5 rounded-xl p-3 border border-white/5"><span className="text-gray-400 text-[9px] uppercase font-bold block mb-1">Keyword Heat</span><div className="flex items-center gap-2"><span className="text-cyan-400 font-bold font-mono text-lg">{report.matrix?.me?.keyword_sentiment || "8.5"}</span><span className="text-[9px] text-gray-600">/ 10</span></div></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="w-full overflow-x-auto">
-                                    <table className="w-full table-fixed min-w-[800px]">
-                                        <thead>
-                                            <tr className="bg-[#0B1120] text-left text-gray-400 text-sm uppercase tracking-wider">
-                                                <th className="p-4 font-medium border-b border-white/10 w-[20%]">Metric</th>
-                                                <th className="p-4 text-cyan-400 font-bold text-lg border-b border-white/10 border-l-4 border-l-cyan-500 w-[26%] bg-cyan-900/10 align-top">YOU</th>
-                                                {report.matrix?.competitors?.map((c: any, i: number) => <th key={i} className="p-4 font-bold text-gray-200 border-b border-white/10 border-l border-white/5 w-[27%] align-top break-words">{c.name}</th>)}
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-white/5 text-gray-300 text-base">
-                                            {/* FIRST 7 ROWS (ALWAYS VISIBLE) */}
-                                            <tr><td className="py-6 px-4 font-bold bg-white/5">Category</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.category}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.category}</td>)}</tr>
-                                            <tr><td className="py-6 px-4 font-bold bg-white/5">Reviews</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.rating}⭐ ({report.matrix?.me?.reviews})</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.rating}⭐ ({c.reviews})</td>)}</tr>
-                                            <tr><td className="py-6 px-4 font-bold bg-white/5">Review Velocity</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.review_velocity}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.review_velocity}</td>)}</tr>
-                                            <tr><td className="py-6 px-4 font-bold bg-white/5">Review Response</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.review_response}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.review_response}</td>)}</tr>
-                                            <tr><td className="py-6 px-4 font-bold bg-white/5">Review Growth</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.review_growth}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.review_growth}</td>)}</tr>
-                                            <tr><td className="py-6 px-4 font-bold bg-white/5">Rating Trend</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.rating_trend}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.rating_trend}</td>)}</tr>
-                                            <tr><td className="py-6 px-4 font-bold bg-white/5">Sentiment</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.sentiment}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.sentiment}</td>)}</tr>
 
-                                            {/* LOCKED ROWS (HIDDEN BEHIND BLUR IF NOT UNLOCKED) */}
-                                            {!isUnlocked ? (
-                                                <tr>
-                                                    <td colSpan={2 + (report.matrix?.competitors?.length || 0)} className="p-0 relative h-64">
-                                                        <div className="absolute inset-0 overflow-hidden">
-                                                            <table className="w-full table-fixed h-full opacity-30 pointer-events-none select-none filter blur-sm">
-                                                                <tbody className="divide-y divide-white/5">
-                                                                    <tr><td className="py-6 px-4 font-bold">NPS Score</td><td className="py-6 px-4">82</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4">76</td>)}</tr>
-                                                                    <tr><td className="py-6 px-4 font-bold">Post Freq</td><td className="py-6 px-4">Weekly</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4">Monthly</td>)}</tr>
-                                                                    <tr><td className="py-6 px-4 font-bold">Engagement</td><td className="py-6 px-4">High</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4">Low</td>)}</tr>
-                                                                    <tr><td className="py-6 px-4 font-bold">Photos</td><td className="py-6 px-4">120</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4">45</td>)}</tr>
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-[#0B1120] to-transparent z-10 cursor-pointer group" onClick={() => setShowPaymentModal(true)}>
-                                                            <div className="bg-black/60 p-3 rounded-full border border-cyan-500/50 text-cyan-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-                                                                <LockIcon />
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ) : (
-                                                <>
-                                                    <tr><td className="py-6 px-4 font-bold bg-white/5">NPS Score</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.nps}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.nps}</td>)}</tr>
-                                                    <tr><td className="py-6 px-4 font-bold bg-white/5">Post Freq</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.post_frequency}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.post_frequency}</td>)}</tr>
-                                                    <tr><td className="py-6 px-4 font-bold bg-white/5">Engagement</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.post_engagement}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.post_engagement}</td>)}</tr>
-                                                    <tr><td className="py-6 px-4 font-bold bg-white/5">Photos</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.total_photos}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.total_photos}</td>)}</tr>
-                                                    <tr>
-                                                        <td className="py-6 px-4 font-bold bg-white/5">Products</td>
-                                                        <td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">
-                                                            {report.matrix?.me?.products_services || "Missing ⚠️"}
-                                                        </td>
-                                                        {report.matrix?.competitors?.map((c: any, i: number) => (
-                                                            <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">
-                                                                {c.products_services || "N/A"}
-                                                            </td>
-                                                        ))}
-                                                    </tr>
-                                                    <tr><td className="py-6 px-4 font-bold bg-white/5">Age</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.listing_age}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.listing_age}</td>)}</tr>
-                                                    <tr><td className="py-6 px-4 font-bold bg-white/5">Profile Strength</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.profile_strength}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.profile_strength}</td>)}</tr>
-                                                    <tr><td className="py-6 px-4 font-bold bg-white/5">Risk</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.suspension_risk}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.suspension_risk}</td>)}</tr>
-                                                    <tr><td className="py-6 px-4 font-bold bg-white/5">Audit Gap</td><td className="py-6 px-4 bg-cyan-900/10 border-l-4 border-cyan-500 font-medium break-words align-top">{report.matrix?.me?.audit_gap}</td>{report.matrix?.competitors?.map((c: any, i: number) => <td key={i} className="py-6 px-4 border-l border-white/5 break-words align-top">{c.audit_gap}</td>)}</tr>
-                                                </>
+                                   {/* RIGHT: MASTER LEDGER (HALF LOCKED) */}
+                                <div className="lg:col-span-8 bg-[#0B1120] border border-white/10 rounded-3xl overflow-hidden flex flex-col h-full relative">
+                                    <div className="px-8 py-6 border-b border-white/10 flex justify-between items-end bg-gradient-to-r from-cyan-900/10 to-purple-900/10">
+                                        <div><h3 className="text-white font-bold uppercase tracking-widest text-sm mb-1">Strategic Comparison</h3><p className="text-[10px] text-gray-500 font-mono">LIVE FEED • YOU (CYAN) VS COMPETITOR (PURPLE)</p></div>
+                                        <div className="flex gap-4"><div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-cyan-500"></div><span className="text-[10px] font-bold text-cyan-400 uppercase">You</span></div><div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-purple-500 opacity-50"></div><span className="text-[10px] font-bold text-purple-400 uppercase">Them</span></div></div>
+                                    </div>
+                                    
+                                    <div className="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar relative">
+                                        
+                                        {/* --- UNLOCKED ROWS (TOP HALF) --- */}
+                                        <div className="space-y-6">
+                                            {/* Rating */}
+                                            <div className="group"><div className="flex justify-between items-end mb-2"><span className="text-cyan-400 font-bold text-xl">{report.matrix?.me?.rating}★</span><div className="flex flex-col items-center"><span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Reputation Score</span><span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase ${report.matrix?.me?.rating_trend?.includes("Rising") ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>{report.matrix?.me?.rating_trend || "Stable"}</span></div><span className="text-purple-400 font-bold text-xl">{report.matrix?.competitors?.[0]?.rating}★</span></div><div className="w-full h-4 bg-gray-800 rounded-full relative overflow-hidden flex"><div className="w-1/2 flex justify-end"><div className="h-full bg-cyan-500 rounded-l-full" style={{ width: `${(report.matrix?.me?.rating / 5) * 100}%` }}></div></div><div className="w-1/2 flex justify-start"><div className="h-full bg-purple-500 rounded-r-full opacity-60" style={{ width: `${(report.matrix?.competitors?.[0]?.rating / 5) * 100}%` }}></div></div></div></div>
+                                            {/* Reviews */}
+                                            <div className="group"><div className="flex justify-between items-end mb-2"><span className="text-white font-mono font-bold text-lg">{report.matrix?.me?.reviews}</span><span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Review Volume</span><span className="text-gray-400 font-mono font-bold text-lg">{report.matrix?.competitors?.[0]?.reviews}</span></div><div className="w-full h-2 bg-gray-800 rounded-full flex overflow-hidden"><div className="bg-cyan-500 h-full" style={{ width: `${Math.min(((parseInt(report.matrix?.me?.reviews)||0) / ((parseInt(report.matrix?.me?.reviews)||1) + (parseInt(report.matrix?.competitors?.[0]?.reviews)||1))) * 100, 100)}%` }}></div><div className="bg-purple-900 h-full flex-1 opacity-50"></div></div></div>
+                                            {/* Velocity */}
+                                            <div className="group"><div className="flex justify-between items-end mb-2"><span className="text-white font-bold">{report.matrix?.me?.review_velocity}</span><span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Review Velocity</span><span className="text-gray-400 font-bold">{report.matrix?.competitors?.[0]?.review_velocity}</span></div><div className="grid grid-cols-2 gap-1 h-1.5"><div className="bg-gray-800 rounded-l-full flex justify-end overflow-hidden"><div className="h-full bg-cyan-500" style={{ width: report.matrix?.me?.review_velocity === 'Daily' ? '100%' : '30%' }}></div></div><div className="bg-gray-800 rounded-r-full overflow-hidden"><div className="h-full bg-purple-500 opacity-60" style={{ width: report.matrix?.competitors?.[0]?.review_velocity === 'Daily' ? '100%' : '30%' }}></div></div></div></div>
+                                            {/* Response */}
+                                            <div className="group"><div className="flex justify-between items-end mb-2"><span className="text-white font-bold">{report.matrix?.me?.review_response}</span><span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Response Speed</span><span className="text-gray-400 font-bold">{report.matrix?.competitors?.[0]?.review_response}</span></div><div className="w-full h-1.5 bg-gray-800 rounded-full flex overflow-hidden"><div className="bg-cyan-500 h-full" style={{ width: '60%' }}></div></div></div>
+                                        </div>
+
+                                        {/* --- LOCKED ROWS (BOTTOM HALF) --- */}
+                                        <div className="relative pt-6 space-y-6">
+                                            
+                                            {/* LOCK OVERLAY FOR BOTTOM HALF */}
+                                            {!isUnlocked && (
+                                                <div onClick={() => setShowLeadModal(true)} className="absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-md bg-[#0B1120]/60 -mx-6 -mb-6 cursor-pointer group border-t border-white/10">
+                                                    <div className="bg-[#0B1120] p-4 rounded-full border border-cyan-500/30 shadow-[0_0_30px_-5px_rgba(6,182,212,0.4)] mb-3 group-hover:scale-110 transition-transform">
+                                                        <LockIcon />
+                                                    </div>
+                                                    <h4 className="text-white font-bold uppercase tracking-widest text-sm">Detailed Metrics Locked</h4>
+                                                    <p className="text-xs text-cyan-400 mt-2 font-bold group-hover:underline">Click to Reveal 5+ More Metrics</p>
+                                                </div>
                                             )}
-                                        </tbody>
-                                    </table>
+
+                                            {/* Content to be blurred */}
+                                            <div className={!isUnlocked ? 'blur-sm opacity-40 select-none grayscale' : ''}>
+                                                <div className="group"><div className="flex justify-between items-end mb-2"><span className="text-white font-bold">{report.matrix?.me?.post_frequency}</span><span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Content Engine</span><span className="text-gray-400 font-bold">{report.matrix?.competitors?.[0]?.post_frequency}</span></div><div className="flex gap-2"><div className="flex-1 flex gap-1 justify-end">{[...Array(5)].map((_,i) => (<div key={i} className={`w-full h-1.5 rounded-sm ${i < (report.matrix?.me?.post_frequency === 'Daily' ? 5 : 2) ? 'bg-cyan-500' : 'bg-gray-800'}`}></div>))}</div><div className="flex-1 flex gap-1">{[...Array(5)].map((_,i) => (<div key={i} className={`w-full h-1.5 rounded-sm ${i < (report.matrix?.competitors?.[0]?.post_frequency === 'Daily' ? 5 : 2) ? 'bg-purple-500 opacity-60' : 'bg-gray-800'}`}></div>))}</div></div></div>
+                                                <div className="flex items-center justify-between py-2 border-t border-white/5 mt-6"><div className="text-left w-1/3"><span className={`px-3 py-1 rounded text-[10px] font-bold uppercase border ${report.matrix?.me?.products_services?.includes("Missing") ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'}`}>{report.matrix?.me?.products_services?.includes("Missing") ? "MISSING" : "OPTIMIZED"}</span></div><span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Products</span><div className="text-right w-1/3"><span className={`px-3 py-1 rounded text-[10px] font-bold uppercase border ${report.matrix?.competitors?.[0]?.products_services?.includes("Missing") ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-purple-500/10 border-purple-500/30 text-purple-400'}`}>{report.matrix?.competitors?.[0]?.products_services?.includes("Missing") ? "MISSING" : "OPTIMIZED"}</span></div></div>
+                                                <div className="flex justify-between items-center px-4 py-2 bg-white/5 rounded-lg border border-white/5 mt-6"><span className="text-[10px] text-gray-500 uppercase font-bold">Profile Authority</span><div className="flex items-center gap-3 text-xs"><span className="text-cyan-400 font-bold">{report.matrix?.me?.listing_age}</span><span className="text-gray-600">vs</span><span className="text-purple-400 font-bold">{report.matrix?.competitors?.[0]?.listing_age}</span></div></div>
+                                            </div>
+                                        </div>
+
+                                    </div>
                                 </div>
-                            </div>
+                                
+                                </div>
+
+                                {/* BOTTOM ROW: GROWTH & RISK MODULES */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                                    {/* MODULE 1: GROWTH PROJECTION */}
+                                    <div className="bg-[#0B1120] border border-white/10 rounded-3xl p-6 relative overflow-hidden flex items-center justify-between group hover:border-blue-500/30 transition">
+                                        <div>
+                                            <h4 className="text-blue-400 font-bold text-[10px] uppercase tracking-widest mb-1">Growth Projection</h4>
+                                            <div className="text-3xl font-mono font-bold text-white mb-1">+{report.matrix?.me?.review_growth}</div>
+                                            <div className="text-[10px] text-gray-500">New Reviews (30 Days)</div>
+                                        </div>
+                                        <div className="h-16 w-32 relative">
+                                            <div className="absolute bottom-0 left-0 w-full h-px bg-white/10"></div>
+                                            <div className="absolute bottom-0 left-0 w-2 h-[20%] bg-blue-900/50 rounded-t"></div>
+                                            <div className="absolute bottom-0 left-4 w-2 h-[40%] bg-blue-800/50 rounded-t"></div>
+                                            <div className="absolute bottom-0 left-8 w-2 h-[30%] bg-blue-700/50 rounded-t"></div>
+                                            <div className="absolute bottom-0 left-12 w-2 h-[60%] bg-blue-600/50 rounded-t"></div>
+                                            <div className="absolute bottom-0 left-16 w-2 h-[80%] bg-blue-500 rounded-t shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                                        </div>
+                                    </div>
+
+                                    {/* MODULE 2: SUSPENSION RISK */}
+                                    <div className={`bg-[#0B1120] border rounded-3xl p-6 relative overflow-hidden flex items-center justify-between ${report.matrix?.me?.suspension_risk?.includes("Low") ? "border-green-500/20" : "border-red-500/20"}`}>
+                                        <div>
+                                            <h4 className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mb-1">Compliance Shield</h4>
+                                            <div className={`text-2xl font-bold mb-1 ${report.matrix?.me?.suspension_risk?.includes("Low") ? "text-green-400" : "text-red-400"}`}>
+                                                {report.matrix?.me?.suspension_risk}
+                                            </div>
+                                            <div className="text-[10px] text-gray-500">Name Policy Check</div>
+                                        </div>
+                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${report.matrix?.me?.suspension_risk?.includes("Low") ? "border-green-500/30 text-green-500 bg-green-900/10" : "border-red-500/30 text-red-500 bg-red-900/10"}`}>
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>1
 
                             {/* STRATEGIC CARDS */}
                             <div className="grid md:grid-cols-2 gap-6">
@@ -1532,11 +1598,23 @@ function DashboardLogic() {
                                         onChange={(e) => setLeadData({ ...leadData, phone: e.target.value })}
                                     />
                                 </div>
+                                {/* UPDATED SUBMIT BUTTON WITH LOADER */}
                                 <button
                                     type="submit"
-                                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition mt-2"
+                                    disabled={isSubmitting}
+                                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition mt-2 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
-                                    Proceed to Unlock →
+                                    {isSubmitting ? (
+                                        <>
+                                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span>Saving...</span>
+                                        </>
+                                    ) : (
+                                        "Proceed to Unlock →"
+                                    )}
                                 </button>
                             </form>
                         </div>
