@@ -610,7 +610,7 @@ function DashboardLogic() {
         if (!loading) { setLoadingMsgIndex(0); return; }
         const interval = setInterval(() => {
             setLoadingMsgIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
-        }, 1000);
+        }, 3000);
         return () => clearInterval(interval);
     }, [loading]);
 
