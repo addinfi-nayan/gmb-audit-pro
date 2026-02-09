@@ -977,6 +977,8 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
                         {/* Desktop Actions */}
                         <div className="hidden md:flex items-center gap-4">
+                            {/* Theme toggle (dashboard desktop) */}
+                            <ThemeToggle />
 
                             {/* Download Button (Visible only at Step 3) */}
                             {step === 3 && !errorMsg && (
