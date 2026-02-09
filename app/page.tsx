@@ -739,13 +739,7 @@ interface DashboardProps {
     onHome: () => void;
 }
 // --- DASHBOARD COMPONENT ---
-const comparisonEntities = useMemo(() => 
-    buildComparisonEntities(report), 
-[report]);
 
-const comparisonMetrics = useMemo(() => 
-    COMPARISON_METRICS, 
-[]);
 
 function DashboardLogic({ onHome }: DashboardProps) {
     const { data: session } = useSession();
@@ -781,6 +775,13 @@ function DashboardLogic({ onHome }: DashboardProps) {
     // --- NEW: LEAD CAPTURE STATE ---
     const [showLeadModal, setShowLeadModal] = useState(false);
     const [leadData, setLeadData] = useState({ email: "", phone: "" });
+    const comparisonEntities = useMemo(() => 
+    buildComparisonEntities(report), 
+[report]);
+
+const comparisonMetrics = useMemo(() => 
+    COMPARISON_METRICS, 
+[]);
 
     // --- LOADER EFFECT ---
     useEffect(() => {
