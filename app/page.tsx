@@ -1167,6 +1167,25 @@ function DashboardLogic({ onHome }: DashboardProps) {
                             ))}
                         </div>
 
+                        <div
+                            className={`flex justify-center pt-4 transition-opacity ${
+                                competitors.length > 0 ? "opacity-100" : "opacity-0 pointer-events-none"
+                            }`}
+                        >
+                            <button onClick={handleAnalyze} disabled={loading || competitors.length === 0} className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-3 text-sm">
+                                {loading ? (
+                                    <>
+                                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Generate Audit Report</span>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                    </>
+                                )}
+                            </button>
+                        </div>
                         {competitors.length > 0 && (
                             <div className="flex justify-center pt-4">
                                 <button onClick={handleAnalyze} disabled={loading} className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-3 text-sm">
