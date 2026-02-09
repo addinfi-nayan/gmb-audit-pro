@@ -2084,7 +2084,7 @@ const comparisonMetrics = useMemo(() =>
                                 </p>
                             </div>
                             <div className="mx-auto h-2 w-64 rounded-full bg-white/10 border border-white/10 overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 animate-[progress-fill_45s_linear_forwards]" />
+                                <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 animate-[progress-fill_60s_linear_forwards]" />
                             </div>
                         </div>
                     </div>
