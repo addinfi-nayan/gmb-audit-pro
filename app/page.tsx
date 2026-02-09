@@ -739,6 +739,14 @@ interface DashboardProps {
     onHome: () => void;
 }
 // --- DASHBOARD COMPONENT ---
+const comparisonEntities = useMemo(() => 
+    buildComparisonEntities(report), 
+[report]);
+
+const comparisonMetrics = useMemo(() => 
+    COMPARISON_METRICS, 
+[]);
+
 function DashboardLogic({ onHome }: DashboardProps) {
     const { data: session } = useSession();
     const reportRef = useRef<HTMLDivElement>(null);
