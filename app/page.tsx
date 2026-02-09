@@ -1330,47 +1330,50 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
                                     {/* RIGHT: MASTER LEDGER (HALF LOCKED) */}
                                     <div className="lg:col-span-8 bg-[#0B1120] border border-white/10 rounded-3xl overflow-hidden flex flex-col h-full relative">
-                                        <div className="px-8 py-6 border-b border-white/10 flex justify-between items-end bg-gradient-to-r from-cyan-900/10 to-purple-900/10">
-                                            <div><h3 className="text-white font-bold uppercase tracking-widest text-sm mb-1">Strategic Comparison</h3><p className="text-[10px] text-gray-500 font-mono">LIVE FEED • YOU (CYAN) VS COMPETITOR (PURPLE)</p></div>
-                                            <div className="flex gap-4"><div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-cyan-500"></div><span className="text-[10px] font-bold text-cyan-400 uppercase">You</span></div><div className="flex items-center gap-2"><div className="w-3 h-3 rounded bg-purple-500 opacity-50"></div><span className="text-[10px] font-bold text-purple-400 uppercase">Them</span></div></div>
+                                        <div className="px-8 py-6 border-b border-white/10 flex flex-col gap-3 bg-gradient-to-r from-cyan-900/10 to-purple-900/10">
+                                            <div>
+                                                <h3 className="text-white font-bold uppercase tracking-widest text-sm mb-1">Strategic Comparison</h3>
+                                                <p className="text-[10px] text-gray-500 font-mono">LIVE FEED • YOU VS UP TO 2 COMPETITORS</p>
+                                            </div>
+                                            <div className="flex flex-wrap gap-4">
+                                                {comparisonEntities.map((entity) => (
+                                                    <div key={entity.key} className="flex items-center gap-2">
+                                                        <div className={`w-3 h-3 rounded ${entity.barClass}`}></div>
+                                                        <span className={`text-[10px] font-bold uppercase ${entity.textClass}`}>{entity.label}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
 
                                         <div className="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar relative">
+                                            {comparisonMetrics.map((metric) => {
+                                                const values = comparisonEntities.map((entity) => metric.getValue(entity.data));
+                                                const maxValue = metric.max ?? Math.max(1, ...values);
 
-                                            {/* --- UNLOCKED ROWS (TOP HALF) --- */}
-                                            <div className="space-y-6">
-                                                {/* Rating */}
-                                                <div className="group"><div className="flex justify-between items-end mb-2"><span className="text-cyan-400 font-bold text-xl">{report.matrix?.me?.rating}★</span><div className="flex flex-col items-center"><span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Reputation Score</span><span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase ${report.matrix?.me?.rating_trend?.includes("Rising") ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}>{report.matrix?.me?.rating_trend || "Stable"}</span></div><span className="text-purple-400 font-bold text-xl">{report.matrix?.competitors?.[0]?.rating}★</span></div><div className="w-full h-4 bg-gray-800 rounded-full relative overflow-hidden flex"><div className="w-1/2 flex justify-end"><div className="h-full bg-cyan-500 rounded-l-full" style={{ width: `${(report.matrix?.me?.rating / 5) * 100}%` }}></div></div><div className="w-1/2 flex justify-start"><div className="h-full bg-purple-500 rounded-r-full opacity-60" style={{ width: `${(report.matrix?.competitors?.[0]?.rating / 5) * 100}%` }}></div></div></div></div>
-                                                {/* Reviews */}
-                                                <div className="group"><div className="flex justify-between items-end mb-2"><span className="text-white font-mono font-bold text-lg">{report.matrix?.me?.reviews}</span><span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Review Volume</span><span className="text-gray-400 font-mono font-bold text-lg">{report.matrix?.competitors?.[0]?.reviews}</span></div><div className="w-full h-2 bg-gray-800 rounded-full flex overflow-hidden"><div className="bg-cyan-500 h-full" style={{ width: `${Math.min(((parseInt(report.matrix?.me?.reviews) || 0) / ((parseInt(report.matrix?.me?.reviews) || 1) + (parseInt(report.matrix?.competitors?.[0]?.reviews) || 1))) * 100, 100)}%` }}></div><div className="bg-purple-900 h-full flex-1 opacity-50"></div></div></div>
-                                                {/* Velocity */}
-                                                <div className="group"><div className="flex justify-between items-end mb-2"><span className="text-white font-bold">{report.matrix?.me?.review_velocity}</span><span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Review Velocity</span><span className="text-gray-400 font-bold">{report.matrix?.competitors?.[0]?.review_velocity}</span></div><div className="grid grid-cols-2 gap-1 h-1.5"><div className="bg-gray-800 rounded-l-full flex justify-end overflow-hidden"><div className="h-full bg-cyan-500" style={{ width: report.matrix?.me?.review_velocity === 'Daily' ? '100%' : '30%' }}></div></div><div className="bg-gray-800 rounded-r-full overflow-hidden"><div className="h-full bg-purple-500 opacity-60" style={{ width: report.matrix?.competitors?.[0]?.review_velocity === 'Daily' ? '100%' : '30%' }}></div></div></div></div>
-                                                {/* Response */}
-                                                <div className="group"><div className="flex justify-between items-end mb-2"><span className="text-white font-bold">{report.matrix?.me?.review_response}</span><span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Response Speed</span><span className="text-gray-400 font-bold">{report.matrix?.competitors?.[0]?.review_response}</span></div><div className="w-full h-1.5 bg-gray-800 rounded-full flex overflow-hidden"><div className="bg-cyan-500 h-full" style={{ width: '60%' }}></div></div></div>
-                                            </div>
+                                                return (
+                                                    <div key={metric.key} className="space-y-3">
+                                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">{metric.label}</div>
+                                                        <div className="space-y-4">
+                                                            {comparisonEntities.map((entity, index) => {
+                                                                const value = values[index];
+                                                                const width = maxValue ? Math.min((value / maxValue) * 100, 100) : 0;
 
-                                            {/* --- LOCKED ROWS (BOTTOM HALF) --- */}
-                                            <div className="relative pt-6 space-y-6">
-
-                                                {/* LOCK OVERLAY FOR BOTTOM HALF */}
-                                                {!isUnlocked && (
-                                                    <div onClick={() => setShowLeadModal(true)} className="absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-md bg-[#0B1120]/60 -mx-6 -mb-6 cursor-pointer group border-t border-white/10">
-                                                        <div className="bg-[#0B1120] p-4 rounded-full border border-cyan-500/30 shadow-[0_0_30px_-5px_rgba(6,182,212,0.4)] mb-3 group-hover:scale-110 transition-transform">
-                                                            <LockIcon />
+                                                                return (
+                                                                    <div key={`${metric.key}-${entity.key}`} className="space-y-1">
+                                                                        <div className="flex items-center justify-between text-xs">
+                                                                            <span className={`font-bold ${entity.textClass}`}>{entity.label}</span>
+                                                                            <span className="text-gray-400">{metric.display(entity.data)}</span>
+                                                                        </div>
+                                                                        <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                                                                            <div className={`h-full ${entity.barClass}`} style={{ width: `${width}%` }}></div>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
                                                         </div>
-                                                        <h4 className="text-white font-bold uppercase tracking-widest text-sm">Detailed Metrics Locked</h4>
-                                                        <p className="text-xs text-cyan-400 mt-2 font-bold group-hover:underline">Click to Reveal 5+ More Metrics</p>
                                                     </div>
-                                                )}
-
-                                                {/* Content to be blurred */}
-                                                <div className={!isUnlocked ? 'blur-sm opacity-40 select-none grayscale' : ''}>
-                                                    <div className="group"><div className="flex justify-between items-end mb-2"><span className="text-white font-bold">{report.matrix?.me?.post_frequency}</span><span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Content Engine</span><span className="text-gray-400 font-bold">{report.matrix?.competitors?.[0]?.post_frequency}</span></div><div className="flex gap-2"><div className="flex-1 flex gap-1 justify-end">{[...Array(5)].map((_, i) => (<div key={i} className={`w-full h-1.5 rounded-sm ${i < (report.matrix?.me?.post_frequency === 'Daily' ? 5 : 2) ? 'bg-cyan-500' : 'bg-gray-800'}`}></div>))}</div><div className="flex-1 flex gap-1">{[...Array(5)].map((_, i) => (<div key={i} className={`w-full h-1.5 rounded-sm ${i < (report.matrix?.competitors?.[0]?.post_frequency === 'Daily' ? 5 : 2) ? 'bg-purple-500 opacity-60' : 'bg-gray-800'}`}></div>))}</div></div></div>
-                                                    <div className="flex items-center justify-between py-2 border-t border-white/5 mt-6"><div className="text-left w-1/3"><span className={`px-3 py-1 rounded text-[10px] font-bold uppercase border ${report.matrix?.me?.products_services?.includes("Missing") ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'}`}>{report.matrix?.me?.products_services?.includes("Missing") ? "MISSING" : "OPTIMIZED"}</span></div><span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Products</span><div className="text-right w-1/3"><span className={`px-3 py-1 rounded text-[10px] font-bold uppercase border ${report.matrix?.competitors?.[0]?.products_services?.includes("Missing") ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-purple-500/10 border-purple-500/30 text-purple-400'}`}>{report.matrix?.competitors?.[0]?.products_services?.includes("Missing") ? "MISSING" : "OPTIMIZED"}</span></div></div>
-                                                    <div className="flex justify-between items-center px-4 py-2 bg-white/5 rounded-lg border border-white/5 mt-6"><span className="text-[10px] text-gray-500 uppercase font-bold">Profile Authority</span><div className="flex items-center gap-3 text-xs"><span className="text-cyan-400 font-bold">{report.matrix?.me?.listing_age}</span><span className="text-gray-600">vs</span><span className="text-purple-400 font-bold">{report.matrix?.competitors?.[0]?.listing_age}</span></div></div>
-                                                </div>
-                                            </div>
-
+                                                );
+                                            })}
                                         </div>
                                     </div>
 
@@ -1431,6 +1434,21 @@ function DashboardLogic({ onHome }: DashboardProps) {
                             )}
 
                             {/* STRATEGIC CARDS (GAPS & WINS) - MATCHING SCREENSHOT DESIGN */}
+                            <div className="grid lg:grid-cols-2 gap-8 mt-10">
+                                <div className="flex items-center gap-3 text-red-400 uppercase tracking-[0.2em] text-xs font-bold">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                    </span>
+                                    <span>Gaps</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-green-400 uppercase tracking-[0.2em] text-xs font-bold">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-green-500/30 bg-green-500/10">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                    </span>
+                                    <span>Wins</span>
+                                </div>
+                            </div>
+
                             <div className="grid lg:grid-cols-2 gap-8 mt-12">
 
                                 {/* 1. PROFILE GAPS CARD (Red/Alert Theme) */}
