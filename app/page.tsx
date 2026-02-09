@@ -139,10 +139,6 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                 {/* Mobile Menu Dropdown */}
                 {isMobileMenuOpen && (
                     <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col items-center text-center">
-                        {/* Theme toggle (mobile) */}
-                        <div className="pb-4 border-b border-white/10">
-                            <ThemeToggle />
-                        </div>
                         <a
                             href="#benefits"
                             onClick={() => setIsMobileMenuOpen(false)}
@@ -172,6 +168,11 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                                 Sign Out
                             </button>
                         )}
+
+                        {/* Theme toggle (mobile) */}
+                        <div className="pt-4 border-t border-white/10">
+                            <ThemeToggle />
+                        </div>
                     </div>
                 )}
             </nav>
@@ -1002,6 +1003,9 @@ function DashboardLogic({ onHome }: DashboardProps) {
                             )}
 
                             <div className="flex items-center gap-4">
+                                {/* Theme toggle (dashboard desktop) */}
+                                <ThemeToggle />
+
                                 {/* STATE A: Find My Business (Steps 1 & 2) */}
                                 {step < 3 && (
                                     <>
@@ -1045,10 +1049,6 @@ function DashboardLogic({ onHome }: DashboardProps) {
                     {/* Mobile Menu Dropdown */}
                     {isMobileMenuOpen && (
                         <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col items-center text-center">
-                            {/* Theme toggle (dashboard mobile) */}
-                            <div className="pb-4 border-b border-white/10">
-                                <ThemeToggle />
-                            </div>
                             {step === 3 && !errorMsg && (
                                 <button
                                     onClick={() => { setIsMobileMenuOpen(false); initiateDownload(); }}
@@ -1088,6 +1088,11 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                     Sign Out
                                 </button>
                             )}
+
+                            {/* Theme toggle (dashboard mobile) */}
+                            <div className="pt-4 border-t border-white/10">
+                                <ThemeToggle />
+                            </div>
                         </div>
                     )}
                 </nav>
@@ -1194,8 +1199,27 @@ function DashboardLogic({ onHome }: DashboardProps) {
                             ))}
                         </div>
 
-                        <div className="flex justify-center pt-4">
-                            {competitors.length > 0 ? (
+                        <div
+                            className={`flex justify-center pt-4 transition-opacity ${
+                                competitors.length > 0 ? "opacity-100" : "opacity-0 pointer-events-none"
+                            }`}
+                        >
+                            <button onClick={handleAnalyze} disabled={loading || competitors.length === 0} className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-3 text-sm">
+                                {loading ? (
+                                    <>
+                                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                        Processing...
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>Generate Audit Report</span>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                        {competitors.length > 0 && (
+                            <div className="flex justify-center pt-4">
                                 <button onClick={handleAnalyze} disabled={loading} className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-3 text-sm">
                                     {loading ? (
                                         <>
@@ -1209,10 +1233,8 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                         </>
                                     )}
                                 </button>
-                            ) : (
-                                <div className="h-12 w-full md:w-[240px]" aria-hidden />
-                            )}
-                        </div>
+                            </div>
+                        )}
 
                     </div>
                 )}
@@ -1923,7 +1945,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                 </p>
                             </div>
                             <div className="mx-auto h-2 w-64 rounded-full bg-white/10 border border-white/10 overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 animate-[progress-fill_50s_linear_forwards]" />
+                                <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 animate-[progress-fill_45s_linear_forwards]" />
                             </div>
                         </div>
                     </div>
