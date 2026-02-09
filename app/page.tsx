@@ -97,6 +97,11 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                         <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
                     </div>
                     <div className="flex items-center gap-4 md:gap-8 relative">
+                        {/* Theme toggle (desktop) */}
+                        <div className="hidden md:block">
+                            <ThemeToggle />
+                        </div>
+
                         <div className="hidden md:flex items-center gap-8 text-xs font-medium text-gray-400 uppercase tracking-widest">
                             <a href="#benefits" className="hover:text-cyan-400 transition cursor-pointer">Architecture</a>
                             <a href="#protocol" className="hover:text-cyan-400 transition cursor-pointer">How It Works</a>
@@ -108,11 +113,14 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                         >
                             {session ? "Get Audit" : "Get Started"}
                         </button>
-
-                        {/* Theme toggle (desktop) */}
-                        <div className="hidden md:block">
-                            <ThemeToggle />
-                        </div>
+                        {session && (
+                            <button
+                                onClick={() => signOut()}
+                                className="hidden md:inline-flex px-4 py-2 border border-white/10 rounded-full text-sm font-semibold text-gray-300 hover:text-white hover:border-white/30 transition"
+                            >
+                                Sign Out
+                            </button>
+                        )}
 
                         {/* Mobile Menu Toggle */}
                         <button
@@ -130,7 +138,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
 
                 {/* Mobile Menu Dropdown */}
                 {isMobileMenuOpen && (
-                    <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out]">
+                    <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col items-center text-center">
                         <a
                             href="#benefits"
                             onClick={() => setIsMobileMenuOpen(false)}
@@ -152,6 +160,14 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                         >
                             FAQs
                         </a>
+                        {session && (
+                            <button
+                                onClick={() => { setIsMobileMenuOpen(false); signOut(); }}
+                                className="w-full text-sm font-semibold text-gray-300 hover:text-white transition py-3 border-t border-white/10"
+                            >
+                                Sign Out
+                            </button>
+                        )}
 
                         {/* Theme toggle (mobile) */}
                         <div className="pt-4 border-t border-white/10">
@@ -984,6 +1000,9 @@ function DashboardLogic({ onHome }: DashboardProps) {
                             )}
 
                             <div className="flex items-center gap-4">
+                                {/* Theme toggle (dashboard desktop) */}
+                                <ThemeToggle />
+
                                 {/* STATE A: Find My Business (Steps 1 & 2) */}
                                 {step < 3 && (
                                     <>
@@ -1001,9 +1020,11 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                         </button>
                                     </>
                                 )}
-
-                                {/* Theme toggle (dashboard desktop) */}
-                                <ThemeToggle />
+                                {session && (
+                                    <button onClick={() => signOut()} className="text-xs font-bold text-gray-400 uppercase hover:text-white transition">
+                                        Sign Out
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -1024,7 +1045,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
                     {/* Mobile Menu Dropdown */}
                     {isMobileMenuOpen && (
-                        <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col">
+                        <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col items-center text-center">
                             {step === 3 && !errorMsg && (
                                 <button
                                     onClick={() => { setIsMobileMenuOpen(false); initiateDownload(); }}
@@ -1041,7 +1062,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                         setIsMobileMenuOpen(false);
                                         handleReset();
                                     }}
-                                    className="w-full text-left text-sm text-gray-400 hover:text-red-400 font-medium transition py-3 border-b border-white/5"
+                                    className="w-full text-center text-sm text-gray-400 hover:text-red-400 font-medium transition py-3 border-b border-white/5"
                                 >
                                     Reset Audit
                                 </button>
@@ -1052,10 +1073,18 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                     setIsMobileMenuOpen(false);
                                     window.location.href = "/";
                                 }}
-                                className="w-full text-left text-sm text-gray-400 hover:text-white font-medium transition py-3"
+                                className="w-full text-center text-sm text-gray-400 hover:text-white font-medium transition py-3"
                             >
                                 Home
                             </button>
+                            {session && (
+                                <button
+                                    onClick={() => { setIsMobileMenuOpen(false); signOut(); }}
+                                    className="w-full text-center text-sm text-gray-400 hover:text-white font-medium transition py-3"
+                                >
+                                    Sign Out
+                                </button>
+                            )}
 
                             {/* Theme toggle (dashboard mobile) */}
                             <div className="pt-4 border-t border-white/10">
