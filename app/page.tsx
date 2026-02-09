@@ -641,6 +641,7 @@ interface DashboardProps {
 }
 // --- DASHBOARD COMPONENT ---
 function DashboardLogic({ onHome }: DashboardProps) {
+    const { data: session } = useSession();
     const reportRef = useRef<HTMLDivElement>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     // STATE
