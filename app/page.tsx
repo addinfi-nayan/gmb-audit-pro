@@ -737,103 +737,6 @@ function DashboardLogic({ onHome }: DashboardProps) {
         })()
         : [];
 
-    const comparisonCompetitors = report?.matrix?.competitors?.slice(0, 2) ?? [];
-    const comparisonEntities = [
-        {
-            key: "me",
-            label: "You",
-            data: report?.matrix?.me,
-            textClass: "text-cyan-400",
-            barClass: "bg-cyan-500",
-        },
-        ...comparisonCompetitors.map((competitor: any, index: number) => ({
-            key: `competitor-${index}`,
-            label: competitor?.title || `Competitor ${index + 1}`,
-            data: competitor,
-            textClass: index === 0 ? "text-purple-400" : "text-indigo-400",
-            barClass: index === 0 ? "bg-purple-500" : "bg-indigo-500",
-        })),
-    ];
-
-    const parseNumber = (value: string | number | undefined) => {
-        if (typeof value === "number") return value;
-        if (!value) return 0;
-        const match = String(value).match(/[\d.]+/);
-        return match ? Number(match[0]) : 0;
-    };
-
-    const velocityScore = (value: string | undefined) => {
-        if (!value) return 0;
-        const normalized = value.toLowerCase();
-        if (normalized.includes("daily")) return 100;
-        if (normalized.includes("weekly")) return 70;
-        if (normalized.includes("monthly")) return 40;
-        return 20;
-    };
-
-    const frequencyScore = (value: string | undefined) => {
-        if (!value) return 0;
-        const normalized = value.toLowerCase();
-        if (normalized.includes("daily")) return 100;
-        if (normalized.includes("weekly")) return 70;
-        if (normalized.includes("monthly")) return 40;
-        if (normalized.includes("rare")) return 20;
-        return 30;
-    };
-
-    const responseScore = (value: string | undefined) => {
-        const hours = parseNumber(value);
-        if (!hours) return 0;
-        return Math.max(10, 120 - hours);
-    };
-
-    const comparisonMetrics = [
-        {
-            key: "rating",
-            label: "Reputation Score",
-            getValue: (entry: any) => parseNumber(entry?.rating),
-            display: (entry: any) => (entry?.rating ? `${entry.rating}★` : "N/A"),
-            max: 5,
-        },
-        {
-            key: "reviews",
-            label: "Review Volume",
-            getValue: (entry: any) => parseNumber(entry?.reviews),
-            display: (entry: any) => entry?.reviews || "N/A",
-        },
-        {
-            key: "review_velocity",
-            label: "Review Velocity",
-            getValue: (entry: any) => velocityScore(entry?.review_velocity),
-            display: (entry: any) => entry?.review_velocity || "N/A",
-        },
-        {
-            key: "review_response",
-            label: "Response Speed",
-            getValue: (entry: any) => responseScore(entry?.review_response),
-            display: (entry: any) => entry?.review_response || "N/A",
-        },
-        {
-            key: "post_frequency",
-            label: "Content Engine",
-            getValue: (entry: any) => frequencyScore(entry?.post_frequency),
-            display: (entry: any) => entry?.post_frequency || "N/A",
-        },
-        {
-            key: "products_services",
-            label: "Products",
-            getValue: (entry: any) => (entry?.products_services?.includes("Missing") ? 0 : 1),
-            display: (entry: any) => entry?.products_services || "N/A",
-            max: 1,
-        },
-        {
-            key: "listing_age",
-            label: "Profile Authority",
-            getValue: (entry: any) => parseNumber(entry?.listing_age),
-            display: (entry: any) => entry?.listing_age || "N/A",
-        },
-    ];
-
     const handleLeadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true); // 1. Start Loader
@@ -1361,12 +1264,6 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                 <div className="flex items-baseline gap-2">
                                     <div className="text-9xl font-black tracking-tighter text-white">{report.audit_score}<span className="text-5xl text-gray-500">/100</span></div>
                                     <span className="text-xs font-medium text-gray-400 opacity-90 -mt-2">- Powered by Addinfi</span>
-                                </div>
-                                <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-semibold text-gray-400">
-                                    <div className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1">0-25 Poor</div>
-                                    <div className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1">26-50 Average</div>
-                                    <div className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1">51-75 Good</div>
-                                    <div className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1">76-100 Excellent</div>
                                 </div>
                             </div>
                         </div>
