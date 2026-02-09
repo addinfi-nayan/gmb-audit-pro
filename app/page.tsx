@@ -836,12 +836,6 @@ function DashboardLogic({ onHome }: DashboardProps) {
         })()
         : [];
 
-    const comparisonEntities = useMemo(() => {
-        return buildComparisonEntities(report);
-    }, [report]);
-
-    const comparisonMetrics = useMemo(() => COMPARISON_METRICS, []);
-
     const handleLeadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true); // 1. Start Loader
@@ -1369,12 +1363,6 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                 <div className="flex items-baseline gap-2">
                                     <div className="text-9xl font-black tracking-tighter text-white">{report.audit_score}<span className="text-5xl text-gray-500">/100</span></div>
                                     <span className="text-xs font-medium text-gray-400 opacity-90 -mt-2">- Powered by Addinfi</span>
-                                </div>
-                                <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-semibold text-gray-400">
-                                    <div className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1">0-25 Poor</div>
-                                    <div className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1">26-50 Average</div>
-                                    <div className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1">51-75 Good</div>
-                                    <div className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1">76-100 Excellent</div>
                                 </div>
                             </div>
                         </div>
