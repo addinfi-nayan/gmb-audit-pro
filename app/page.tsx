@@ -611,6 +611,105 @@ function useDebounce(value: string, delay: number) {
     return debouncedValue;
 }
 
+const parseNumber = (value: string | number | undefined) => {
+    if (typeof value === "number") return value;
+    if (!value) return 0;
+    const match = String(value).match(/[\d.]+/);
+    return match ? Number(match[0]) : 0;
+};
+
+const velocityScore = (value: string | undefined) => {
+    if (!value) return 0;
+    const normalized = value.toLowerCase();
+    if (normalized.includes("daily")) return 100;
+    if (normalized.includes("weekly")) return 70;
+    if (normalized.includes("monthly")) return 40;
+    return 20;
+};
+
+const frequencyScore = (value: string | undefined) => {
+    if (!value) return 0;
+    const normalized = value.toLowerCase();
+    if (normalized.includes("daily")) return 100;
+    if (normalized.includes("weekly")) return 70;
+    if (normalized.includes("monthly")) return 40;
+    if (normalized.includes("rare")) return 20;
+    return 30;
+};
+
+const responseScore = (value: string | undefined) => {
+    const hours = parseNumber(value);
+    if (!hours) return 0;
+    return Math.max(10, 120 - hours);
+};
+
+const COMPARISON_METRICS = [
+    {
+        key: "rating",
+        label: "Reputation Score",
+        getValue: (entry: any) => parseNumber(entry?.rating),
+        display: (entry: any) => (entry?.rating ? `${entry.rating}★` : "N/A"),
+        max: 5,
+    },
+    {
+        key: "reviews",
+        label: "Review Volume",
+        getValue: (entry: any) => parseNumber(entry?.reviews),
+        display: (entry: any) => entry?.reviews || "N/A",
+    },
+    {
+        key: "review_velocity",
+        label: "Review Velocity",
+        getValue: (entry: any) => velocityScore(entry?.review_velocity),
+        display: (entry: any) => entry?.review_velocity || "N/A",
+    },
+    {
+        key: "review_response",
+        label: "Response Speed",
+        getValue: (entry: any) => responseScore(entry?.review_response),
+        display: (entry: any) => entry?.review_response || "N/A",
+    },
+    {
+        key: "post_frequency",
+        label: "Content Engine",
+        getValue: (entry: any) => frequencyScore(entry?.post_frequency),
+        display: (entry: any) => entry?.post_frequency || "N/A",
+    },
+    {
+        key: "products_services",
+        label: "Products",
+        getValue: (entry: any) => (entry?.products_services?.includes("Missing") ? 0 : 1),
+        display: (entry: any) => entry?.products_services || "N/A",
+        max: 1,
+    },
+    {
+        key: "listing_age",
+        label: "Profile Authority",
+        getValue: (entry: any) => parseNumber(entry?.listing_age),
+        display: (entry: any) => entry?.listing_age || "N/A",
+    },
+];
+
+const buildComparisonEntities = (report: any) => {
+    const comparisonCompetitors = report?.matrix?.competitors?.slice(0, 2) ?? [];
+    return [
+        {
+            key: "me",
+            label: "You",
+            data: report?.matrix?.me,
+            textClass: "text-cyan-400",
+            barClass: "bg-cyan-500",
+        },
+        ...comparisonCompetitors.map((competitor: any, index: number) => ({
+            key: `competitor-${index}`,
+            label: competitor?.title || `Competitor ${index + 1}`,
+            data: competitor,
+            textClass: index === 0 ? "text-purple-400" : "text-indigo-400",
+            barClass: index === 0 ? "bg-purple-500" : "bg-indigo-500",
+        })),
+    ];
+};
+
 // --- MAIN PAGE COMPONENT ---
 export default function Page() {
     const { data: session, status } = useSession();
