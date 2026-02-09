@@ -1698,7 +1698,9 @@ const comparisonMetrics = useMemo(() =>
 
                                                 {/* STEP 1 (Always Visible) */}
                                                 <div className="relative flex gap-4">
-                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-blue-500 text-blue-500 text-[10px] font-bold flex items-center justify-center z-10 shadow-[0_0_10px_rgba(59,130,246,0.4)]">1</div>
+                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-blue-500 text-blue-500 flex items-center justify-center z-10 shadow-[0_0_10px_rgba(59,130,246,0.4)] group-hover:scale-110 transition-transform">
+                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                                    </div>
                                                     <div>
                                                         <h4 className="text-blue-400 text-xs font-bold uppercase mb-1">Immediate Action</h4>
                                                         <p className="text-gray-400 text-sm leading-relaxed">{report.gap_analysis.reputation?.[0]}</p>
@@ -1709,7 +1711,9 @@ const comparisonMetrics = useMemo(() =>
                                                 {isUnlocked ? (
                                                     report.gap_analysis.reputation?.slice(1).map((fix: string, i: number) => (
                                                         <div key={i} className="relative flex gap-4 animate-[fadeIn_0.5s_ease-out]">
-                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-blue-500/50 text-blue-400/80 text-[10px] font-bold flex items-center justify-center z-10">{i + 2}</div>
+                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-blue-500/50 text-blue-400/80 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
+                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                                                            </div>
                                                             <div>
                                                                 <h4 className="text-blue-400/80 text-xs font-bold uppercase mb-1">Follow-up Protocol</h4>
                                                                 <p className="text-gray-400 text-sm leading-relaxed">{fix}</p>
@@ -1760,7 +1764,9 @@ const comparisonMetrics = useMemo(() =>
 
                                                 {/* STEP 1 */}
                                                 <div className="relative flex gap-4">
-                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-purple-500 text-purple-500 text-[10px] font-bold flex items-center justify-center z-10 shadow-[0_0_10px_rgba(168,85,247,0.4)]">1</div>
+                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-purple-500 text-purple-500 flex items-center justify-center z-10 shadow-[0_0_10px_rgba(168,85,247,0.4)] group-hover:scale-110 transition-transform">
+                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                    </div>
                                                     <div>
                                                         <h4 className="text-purple-400 text-xs font-bold uppercase mb-1">Content Fix</h4>
                                                         <p className="text-gray-400 text-sm leading-relaxed">{report.gap_analysis.engagement?.[0]}</p>
@@ -1771,7 +1777,9 @@ const comparisonMetrics = useMemo(() =>
                                                 {isUnlocked ? (
                                                     report.gap_analysis.engagement?.slice(1).map((fix: string, i: number) => (
                                                         <div key={i} className="relative flex gap-4 animate-[fadeIn_0.5s_ease-out]">
-                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-purple-500/50 text-purple-400/80 text-[10px] font-bold flex items-center justify-center z-10">{i + 2}</div>
+                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-purple-500/50 text-purple-400/80 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
+                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h7l-1.5-4.5L20 13H13l1.5 4.5L3 10z" /></svg>
+                                                            </div>
                                                             <div>
                                                                 <h4 className="text-purple-400/80 text-xs font-bold uppercase mb-1">Interaction Boost</h4>
                                                                 <p className="text-gray-400 text-sm leading-relaxed">{fix}</p>
@@ -1820,7 +1828,9 @@ const comparisonMetrics = useMemo(() =>
 
                                                 {/* STEP 1 */}
                                                 <div className="relative flex gap-4">
-                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-green-500 text-green-500 text-[10px] font-bold flex items-center justify-center z-10 shadow-[0_0_10px_rgba(34,197,94,0.4)]">1</div>
+                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-green-500 text-green-500 flex items-center justify-center z-10 shadow-[0_0_10px_rgba(34,197,94,0.4)] group-hover:scale-110 transition-transform">
+                                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3zm0 0v6m-6 0h12" /></svg>
+                                                    </div>
                                                     <div>
                                                         <h4 className="text-green-400 text-xs font-bold uppercase mb-1">Keyword Injection</h4>
                                                         <p className="text-gray-400 text-sm leading-relaxed">{report.gap_analysis.relevance?.[0]}</p>
@@ -1831,7 +1841,9 @@ const comparisonMetrics = useMemo(() =>
                                                 {isUnlocked ? (
                                                     report.gap_analysis.relevance?.slice(1).map((fix: string, i: number) => (
                                                         <div key={i} className="relative flex gap-4 animate-[fadeIn_0.5s_ease-out]">
-                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-green-500/50 text-green-400/80 text-[10px] font-bold flex items-center justify-center z-10">{i + 2}</div>
+                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-green-500/50 text-green-400/80 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
+                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12l5 5L20 7" /></svg>
+                                                            </div>
                                                             <div>
                                                                 <h4 className="text-green-400/80 text-xs font-bold uppercase mb-1">Authority Signal</h4>
                                                                 <p className="text-gray-400 text-sm leading-relaxed">{fix}</p>
