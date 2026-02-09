@@ -739,6 +739,8 @@ interface DashboardProps {
     onHome: () => void;
 }
 // --- DASHBOARD COMPONENT ---
+
+
 function DashboardLogic({ onHome }: DashboardProps) {
     const { data: session } = useSession();
     const reportRef = useRef<HTMLDivElement>(null);
@@ -773,6 +775,13 @@ function DashboardLogic({ onHome }: DashboardProps) {
     // --- NEW: LEAD CAPTURE STATE ---
     const [showLeadModal, setShowLeadModal] = useState(false);
     const [leadData, setLeadData] = useState({ email: "", phone: "" });
+    const comparisonEntities = useMemo(() => 
+    buildComparisonEntities(report), 
+[report]);
+
+const comparisonMetrics = useMemo(() => 
+    COMPARISON_METRICS, 
+[]);
 
     // --- LOADER EFFECT ---
     useEffect(() => {
@@ -835,12 +844,6 @@ function DashboardLogic({ onHome }: DashboardProps) {
                 .filter(Boolean);
         })()
         : [];
-
-    const comparisonEntities = useMemo(() => {
-        return buildComparisonEntities(report);
-    }, [report]);
-
-    const comparisonMetrics = useMemo(() => COMPARISON_METRICS, []);
 
     const handleLeadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1370,12 +1373,6 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                     <div className="text-9xl font-black tracking-tighter text-white">{report.audit_score}<span className="text-5xl text-gray-500">/100</span></div>
                                     <span className="text-xs font-medium text-gray-400 opacity-90 -mt-2">- Powered by Addinfi</span>
                                 </div>
-                                <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-semibold text-gray-400">
-                                    <div className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1">0-25 Poor</div>
-                                    <div className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1">26-50 Average</div>
-                                    <div className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1">51-75 Good</div>
-                                    <div className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1">76-100 Excellent</div>
-                                </div>
                             </div>
                         </div>
 
@@ -1464,18 +1461,20 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                 return (
                                                     <div key={metric.key} className="space-y-3">
                                                         <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">{metric.label}</div>
-                                                        <div className="flex flex-wrap items-end gap-6 rounded-xl border border-white/5 bg-white/[0.02] p-4">
+                                                        <div className="space-y-4">
                                                             {comparisonEntities.map((entity, index) => {
                                                                 const value = values[index];
-                                                                const height = maxValue ? Math.min((value / maxValue) * 100, 100) : 0;
+                                                                const width = maxValue ? Math.min((value / maxValue) * 100, 100) : 0;
 
                                                                 return (
-                                                                    <div key={`${metric.key}-${entity.key}`} className="flex flex-col items-center gap-2 min-w-[90px]">
-                                                                        <div className="text-[10px] font-bold uppercase tracking-wide text-gray-500">{entity.label}</div>
-                                                                        <div className="flex items-end h-28 w-10 rounded-full bg-gray-800/70 overflow-hidden">
-                                                                            <div className={`w-full ${entity.barClass}`} style={{ height: `${height}%` }}></div>
+                                                                    <div key={`${metric.key}-${entity.key}`} className="space-y-1">
+                                                                        <div className="flex items-center justify-between text-xs">
+                                                                            <span className={`font-bold ${entity.textClass}`}>{entity.label}</span>
+                                                                            <span className="text-gray-400">{metric.display(entity.data)}</span>
                                                                         </div>
-                                                                        <div className="text-xs text-gray-300">{metric.display(entity.data)}</div>
+                                                                        <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                                                                            <div className={`h-full ${entity.barClass}`} style={{ width: `${width}%` }}></div>
+                                                                        </div>
                                                                     </div>
                                                                 );
                                                             })}
@@ -1543,6 +1542,21 @@ function DashboardLogic({ onHome }: DashboardProps) {
                             )}
 
                             {/* STRATEGIC CARDS (GAPS & WINS) - MATCHING SCREENSHOT DESIGN */}
+                            <div className="grid lg:grid-cols-2 gap-8 mt-10">
+                                <div className="flex items-center gap-3 text-red-400 uppercase tracking-[0.2em] text-xs font-bold">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                    </span>
+                                    <span>Gaps</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-green-400 uppercase tracking-[0.2em] text-xs font-bold">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-green-500/30 bg-green-500/10">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                    </span>
+                                    <span>Wins</span>
+                                </div>
+                            </div>
+
                             <div className="grid lg:grid-cols-2 gap-8 mt-12">
 
                                 {/* 1. PROFILE GAPS CARD (Red/Alert Theme) */}
