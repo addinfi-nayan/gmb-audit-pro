@@ -719,6 +719,24 @@ function DashboardLogic({ onHome }: DashboardProps) {
         setShowPaymentModal(false);
     };
 
+    const executiveSummaryPoints = report?.executive_summary
+        ? (() => {
+            const byLine = report.executive_summary
+                .split(/\n+/)
+                .map((line: string) => line.trim())
+                .filter(Boolean);
+
+            if (byLine.length > 1) {
+                return byLine;
+            }
+
+            return report.executive_summary
+                .split(/(?<=[.!?])\s+(?=[A-Z])/)
+                .map((line: string) => line.trim())
+                .filter(Boolean);
+        })()
+        : [];
+
     const handleLeadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true); // 1. Start Loader
@@ -1003,9 +1021,6 @@ function DashboardLogic({ onHome }: DashboardProps) {
                             )}
 
                             <div className="flex items-center gap-4">
-                                {/* Theme toggle (dashboard desktop) */}
-                                <ThemeToggle />
-
                                 {/* STATE A: Find My Business (Steps 1 & 2) */}
                                 {step < 3 && (
                                     <>
@@ -1253,19 +1268,6 @@ function DashboardLogic({ onHome }: DashboardProps) {
                             </div>
                         </div>
 
-                        {/* EXECUTIVE SUMMARY */}
-                        {report.executive_summary && (
-                            <div className="max-w-5xl mx-auto -mt-24 mb-20 relative z-20">
-                                <div className="bg-[#0B1120] p-8 rounded-xl shadow-2xl border-t-4 border-blue-600 border-x border-b border-white/5">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <span className="bg-blue-900/30 text-blue-400 p-2 rounded-lg border border-blue-500/20"><SearchIcon /></span>
-                                        <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Executive Summary</h3>
-                                    </div>
-                                    <p className="text-gray-300 leading-8 text-lg font-medium text-justify whitespace-pre-line">{report.executive_summary}</p>
-                                </div>
-                            </div>
-                        )}
-
                         <div className="max-w-[95rem] mx-auto space-y-20">
 
                             {/* ========================================================== */}
@@ -1410,6 +1412,23 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
                                 </div>
                             </div>
+
+                            {/* EXECUTIVE SUMMARY */}
+                            {report.executive_summary && (
+                                <div className="max-w-5xl mx-auto">
+                                    <div className="bg-[#0B1120] p-8 rounded-xl shadow-2xl border-t-4 border-blue-600 border-x border-b border-white/5">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <span className="bg-blue-900/30 text-blue-400 p-2 rounded-lg border border-blue-500/20"><SearchIcon /></span>
+                                            <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Executive Summary</h3>
+                                        </div>
+                                        <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-7 text-base font-medium">
+                                            {executiveSummaryPoints.map((point: string, index: number) => (
+                                                <li key={index}>{point}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* STRATEGIC CARDS (GAPS & WINS) - MATCHING SCREENSHOT DESIGN */}
                             <div className="grid lg:grid-cols-2 gap-8 mt-12">
