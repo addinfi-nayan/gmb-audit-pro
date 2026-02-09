@@ -73,3 +73,8 @@ body[data-theme="light"] {
   50% { opacity: 0.5; }
   100% { transform: translateY(-20px) scaleY(1.5); opacity: 0; }
 }
+
+@keyframes progress-fill {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
