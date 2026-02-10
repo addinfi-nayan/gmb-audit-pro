@@ -1655,7 +1655,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                                                     <circle cx="40" cy="40" r="32" fill="none" stroke={strokeColor} strokeWidth="6" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={dashoffset} className="transition-all duration-1000" />
                                                                                 </svg>
                                                                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                                                    <span className={`text-[10px] font-bold ${entity.textClass}`}>{Math.round(pct)}%</span>
+                                                                                    <span className={`text-[10px] font-bold ${entity.textClass}`}>{metric.display(entity.data).split('/')[0]}</span>
                                                                                 </div>
                                                                             </div>
                                                                             <span className={`text-[9px] font-bold mt-1 ${entity.textClass} truncate max-w-[70px] text-center`}>{metric.display(entity.data)}</span>
@@ -1731,8 +1731,8 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                             </div>
                                                             <div className={`space-y-4 relative z-10 ${!isUnlocked ? 'blur-sm opacity-40 grayscale select-none pointer-events-none' : ''}`}>
                                                                 {comparisonEntities.map((entity) => {
-                                                                    const score = metric.getValue(entity.data);
-                                                                    const activeDots = Math.round((score / 100) * 7);
+                                                                    const displayVal = metric.display(entity.data).toLowerCase();
+                                                                    const activeDots = displayVal.includes('bi-weekly') || displayVal.includes('2-3x') ? 2 : 1;
                                                                     const colorMap: Record<string, string> = { 'bg-cyan-500': 'bg-cyan-400', 'bg-purple-500': 'bg-purple-400', 'bg-indigo-500': 'bg-indigo-400' };
                                                                     const dotColor = colorMap[entity.barClass] || 'bg-gray-400';
                                                                     return (
@@ -1753,7 +1753,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                             </div>
                                                             {/* Lock Overlay */}
                                                             {!isUnlocked && (
-                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={() => setShowPaymentModal(true)}>
+                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={handleRestrictedAction}>
                                                                     <div className="absolute inset-0 bg-gradient-to-t from-[#060D1B] via-[#060D1B]/80 to-transparent"></div>
                                                                     <div className="relative z-10 flex flex-col items-center gap-2">
                                                                         <div className="w-10 h-10 rounded-full bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 group-hover/lock:scale-110 transition-transform shadow-[0_0_15px_rgba(236,72,153,0.3)]">
@@ -1804,7 +1804,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                             </div>
                                                             {/* Lock Overlay */}
                                                             {!isUnlocked && (
-                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={() => setShowPaymentModal(true)}>
+                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={handleRestrictedAction}>
                                                                     <div className="absolute inset-0 bg-gradient-to-t from-[#060D1B] via-[#060D1B]/80 to-transparent"></div>
                                                                     <div className="relative z-10 flex flex-col items-center gap-2">
                                                                         <div className="w-10 h-10 rounded-full bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-violet-400 group-hover/lock:scale-110 transition-transform shadow-[0_0_15px_rgba(139,92,246,0.3)]">
@@ -1862,7 +1862,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                             </div>
                                                             {/* Lock Overlay */}
                                                             {!isUnlocked && (
-                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={() => setShowPaymentModal(true)}>
+                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={handleRestrictedAction}>
                                                                     <div className="absolute inset-0 bg-gradient-to-t from-[#060D1B] via-[#060D1B]/80 to-transparent"></div>
                                                                     <div className="relative z-10 flex flex-col items-center gap-2">
                                                                         <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover/lock:scale-110 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.3)]">
@@ -2258,24 +2258,34 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                             ];
                                             const color = weekColors[i] || weekColors[0];
 
-                                            // SVG Illustration data for between weeks
+                                            // SVG Illustration data for all 4 weeks
                                             const illustrations = [
-                                                // After Week 1: Strategy → Planning illustration  
                                                 {
-                                                    title: "Foundation Complete", subtitle: "Building momentum...", icon: (
+                                                    title: "Phase 1: Foundation",
+                                                    subtitle: "Strategic Audit",
+                                                    icon: (
                                                         <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad1)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M22 38V26l10-6 10 6v12l-10 6-10-6z" stroke="url(#grad1)" strokeWidth="1.5" fill="rgba(59,130,246,0.1)" /><path d="M32 20v24M22 26l10 6 10-6" stroke="url(#grad1)" strokeWidth="1.5" strokeLinecap="round" /><circle cx="32" cy="16" r="3" fill="url(#grad1)" className="animate-pulse" /><defs><linearGradient id="grad1" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#3b82f6" /><stop offset="1" stopColor="#22d3ee" /></linearGradient></defs></svg>
                                                     )
                                                 },
-                                                // After Week 2: Growth → Scaling illustration
                                                 {
-                                                    title: "Strategies Deployed", subtitle: "Amplifying reach...", icon: (
-                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad2)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M20 44l8-12 8 6 8-18" stroke="url(#grad2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><circle cx="44" cy="20" r="4" fill="url(#grad2)" className="animate-pulse" /><path d="M40 20h4v4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><rect x="18" y="46" width="4" height="6" rx="1" fill="rgba(168,85,247,0.3)" /><rect x="24" y="42" width="4" height="10" rx="1" fill="rgba(168,85,247,0.5)" /><rect x="30" y="38" width="4" height="14" rx="1" fill="rgba(168,85,247,0.7)" /><defs><linearGradient id="grad2" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#a855f7" /><stop offset="1" stopColor="#ec4899" /></linearGradient></defs></svg>
+                                                    title: "Phase 2: Growth",
+                                                    subtitle: "Content Engine",
+                                                    icon: (
+                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad2)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M20 44l8-12 8 6 8-18" stroke="url(#grad2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><circle cx="44" cy="20" r="4" fill="url(#grad2)" className="animate-pulse" /><rect x="18" y="46" width="4" height="6" rx="1" fill="rgba(168,85,247,0.3)" /><rect x="24" y="42" width="4" height="10" rx="1" fill="rgba(168,85,247,0.5)" /><rect x="30" y="38" width="4" height="14" rx="1" fill="rgba(168,85,247,0.7)" /><defs><linearGradient id="grad2" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#a855f7" /><stop offset="1" stopColor="#ec4899" /></linearGradient></defs></svg>
                                                     )
                                                 },
-                                                // After Week 3: Results → Dominance illustration
                                                 {
-                                                    title: "Growth Activated", subtitle: "Final optimization...", icon: (
-                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad3)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M32 14v8M26 18l6-4 6 4" stroke="url(#grad3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M24 28h16v16c0 2-2 4-4 4h-8c-2 0-4-2-4-4V28z" stroke="url(#grad3)" strokeWidth="1.5" fill="rgba(16,185,129,0.1)" /><path d="M28 28v-4a4 4 0 018 0v4" stroke="url(#grad3)" strokeWidth="1.5" /><circle cx="32" cy="36" r="3" fill="url(#grad3)" className="animate-pulse" /><path d="M32 36v4" stroke="url(#grad3)" strokeWidth="1.5" strokeLinecap="round" /><defs><linearGradient id="grad3" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#10b981" /><stop offset="1" stopColor="#14b8a6" /></linearGradient></defs></svg>
+                                                    title: "Phase 3: Authority",
+                                                    subtitle: "Social Trust",
+                                                    icon: (
+                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad3)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M32 14v8M26 18l6-4 6 4" stroke="url(#grad3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M24 28h16v16c0 2-2 4-4 4h-8c-2 0-4-2-4-4V28z" stroke="url(#grad3)" strokeWidth="1.5" fill="rgba(16,185,129,0.1)" /><circle cx="32" cy="36" r="3" fill="url(#grad3)" className="animate-pulse" /><defs><linearGradient id="grad3" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#10b981" /><stop offset="1" stopColor="#14b8a6" /></linearGradient></defs></svg>
+                                                    )
+                                                },
+                                                {
+                                                    title: "Phase 4: Scaling",
+                                                    subtitle: "Dominance",
+                                                    icon: (
+                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad4)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M16 48h32M32 48V16M32 16l-8 8M32 16l8 8" stroke="url(#grad4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><circle cx="32" cy="40" r="4" fill="url(#grad4)" className="animate-pulse" /><defs><linearGradient id="grad4" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#f59e0b" /><stop offset="1" stopColor="#fbbf24" /></linearGradient></defs></svg>
                                                     )
                                                 },
                                             ];
@@ -2321,14 +2331,14 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                                                             <span className="text-sm text-gray-300 leading-snug">{task}</span>
                                                                                         </li>
                                                                                     ))}
-                                                                                    <div className="absolute inset-x-0 bottom-0 pt-20 pb-6 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/95 to-transparent flex flex-col items-center justify-end cursor-pointer group/btn" onClick={() => setShowPaymentModal(true)}>
+                                                                                    <div className="absolute inset-x-0 bottom-0 pt-20 pb-6 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/95 to-transparent flex flex-col items-center justify-end cursor-pointer group/btn" onClick={handleRestrictedAction}>
                                                                                         <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600/20 border border-blue-500/50 text-blue-400 text-xs font-bold uppercase tracking-wider group-hover/btn:bg-blue-600 group-hover/btn:text-white transition-all shadow-lg">
                                                                                             <LockIcon /><span>Unlock Full Plan</span>
                                                                                         </div>
                                                                                     </div>
                                                                                 </>
                                                                             ) : isWeekLocked ? (
-                                                                                <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={() => setShowPaymentModal(true)}>
+                                                                                <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={handleRestrictedAction}>
                                                                                     <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-gray-500 group-hover:text-blue-400 group-hover:border-blue-500/30 transition-all"><LockIcon /></div>
                                                                                     <span className="text-xs font-bold text-gray-500 uppercase tracking-widest group-hover:text-blue-400">Awaiting Clearance</span>
                                                                                 </div>
@@ -2345,24 +2355,32 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                                     <div className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ${isWeekLocked ? 'w-0' : `w-full bg-gradient-to-r ${color.accent}`}`}></div>
                                                                 </div>
                                                                 {/* Empty side for alternating layout */}
-                                                                <div className="hidden md:flex items-center justify-center">
-                                                                    <div className="text-center space-y-3 opacity-60">
-                                                                        <div className="w-20 h-20 mx-auto rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center">
-                                                                            <span className={`text-4xl font-black ${color.text} opacity-30`}>0{i + 1}</span>
+                                                                <div className="hidden md:flex items-center justify-center p-6">
+                                                                    <div className="text-center space-y-4">
+                                                                        <div className="relative flex items-center justify-center">
+                                                                            <div className="absolute inset-0 blur-2xl opacity-20 scale-150">{illustrations[i]?.icon}</div>
+                                                                            <div className="relative z-10 w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm overflow-hidden group">
+                                                                                <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity flex items-center justify-center">{illustrations[i]?.icon}</div>
+                                                                                <span className={`text-5xl font-black ${color.text} relative z-10 drop-shadow-lg`}>0{i + 1}</span>
+                                                                            </div>
                                                                         </div>
-                                                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest">{week.focus}</p>
+                                                                        <p className="text-[11px] text-white font-bold uppercase tracking-[0.2em] max-w-[200px] leading-relaxed drop-shadow-sm">{week.focus}</p>
                                                                     </div>
                                                                 </div>
                                                             </>
                                                         ) : (
                                                             <>
                                                                 {/* Empty side for alternating layout */}
-                                                                <div className="hidden md:flex items-center justify-center">
-                                                                    <div className="text-center space-y-3 opacity-60">
-                                                                        <div className="w-20 h-20 mx-auto rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center">
-                                                                            <span className={`text-4xl font-black ${color.text} opacity-30`}>0{i + 1}</span>
+                                                                <div className="hidden md:flex items-center justify-center p-6">
+                                                                    <div className="text-center space-y-4">
+                                                                        <div className="relative flex items-center justify-center">
+                                                                            <div className="absolute inset-0 blur-2xl opacity-20 scale-150">{illustrations[i]?.icon}</div>
+                                                                            <div className="relative z-10 w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm overflow-hidden group">
+                                                                                <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity flex items-center justify-center">{illustrations[i]?.icon}</div>
+                                                                                <span className={`text-5xl font-black ${color.text} relative z-10 drop-shadow-lg`}>0{i + 1}</span>
+                                                                            </div>
                                                                         </div>
-                                                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest">{week.focus}</p>
+                                                                        <p className="text-[11px] text-white font-bold uppercase tracking-[0.2em] max-w-[200px] leading-relaxed drop-shadow-sm">{week.focus}</p>
                                                                     </div>
                                                                 </div>
                                                                 <div className={`relative bg-[#0B1120] rounded-2xl border transition-all duration-500 group overflow-hidden ${isWeekLocked
@@ -2387,7 +2405,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                                     <div className="relative z-10 p-6 min-h-[220px]">
                                                                         <ul className="space-y-4">
                                                                             {isWeekLocked ? (
-                                                                                <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={() => setShowPaymentModal(true)}>
+                                                                                <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={handleRestrictedAction}>
                                                                                     <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-gray-500 group-hover:text-blue-400 group-hover:border-blue-500/30 transition-all"><LockIcon /></div>
                                                                                     <span className="text-xs font-bold text-gray-500 uppercase tracking-widest group-hover:text-blue-400">Awaiting Clearance</span>
                                                                                 </div>
@@ -2556,11 +2574,9 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                 className="absolute top-4 right-4 text-gray-500 hover:text-white transition"
                             >✕</button>
 
-                            <div className="bg-blue-600/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
-                                <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                            </div>
 
-                            <h2 className="text-2xl font-bold text-white mb-2">Save Your Progress</h2>
+
+                            <h2 className="text-2xl font-bold text-white mb-2">Almost There</h2>
                             <p className="text-gray-400 mb-6 text-sm">Enter your details to generate the secure download link and proceed to checkout.</p>
 
                             <form onSubmit={handleLeadSubmit} className="space-y-4 text-left">
@@ -2570,7 +2586,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                         type="email"
                                         required
                                         className="w-full bg-[#020617] border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none text-white transition"
-                                        placeholder="you@business.com"
+                                        placeholder="you@example.com"
                                         value={leadData.email}
                                         onChange={(e) => setLeadData({ ...leadData, email: e.target.value })}
                                     />
@@ -2581,7 +2597,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                         type="tel"
                                         required
                                         className="w-full bg-[#020617] border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none text-white transition"
-                                        placeholder="+1 (555) 000-0000"
+                                        placeholder="+91 00000 00000"
                                         value={leadData.phone}
                                         onChange={(e) => setLeadData({ ...leadData, phone: e.target.value })}
                                     />
