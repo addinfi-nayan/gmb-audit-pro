@@ -702,7 +702,7 @@ const buildComparisonEntities = (report: any) => {
         },
         ...comparisonCompetitors.map((competitor: any, index: number) => ({
             key: `competitor-${index}`,
-            label: competitor?.title || `Competitor ${index + 1}`,
+            label: competitor?.title || competitor?.name || competitor?.business_name || `Competitor ${index + 1}`,
             data: competitor,
             textClass: index === 0 ? "text-purple-400" : "text-indigo-400",
             barClass: index === 0 ? "bg-purple-500" : "bg-indigo-500",
@@ -771,26 +771,43 @@ function DashboardLogic({ onHome }: DashboardProps) {
     const [isUnlocked, setIsUnlocked] = useState(false);
     const [couponError, setCouponError] = useState("");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [reportReady, setReportReady] = useState(false);
 
     // --- NEW: LEAD CAPTURE STATE ---
     const [showLeadModal, setShowLeadModal] = useState(false);
     const [leadData, setLeadData] = useState({ email: "", phone: "" });
-    const comparisonEntities = useMemo(() => 
-    buildComparisonEntities(report), 
-[report]);
+    const comparisonEntities = useMemo(() =>
+        buildComparisonEntities(report),
+        [report]);
 
-const comparisonMetrics = useMemo(() => 
-    COMPARISON_METRICS, 
-[]);
+    const comparisonMetrics = useMemo(() =>
+        COMPARISON_METRICS,
+        []);
 
     // --- LOADER EFFECT ---
     useEffect(() => {
         if (!loading) { setLoadingMsgIndex(0); return; }
         const interval = setInterval(() => {
-            setLoadingMsgIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
-        }, 3000);
+            setLoadingMsgIndex((prev) => {
+                // Stop cycling at the last message if API hasn't responded yet
+                if (prev >= LOADING_MESSAGES.length - 1) return prev;
+                return prev + 1;
+            });
+        }, 6000);
         return () => clearInterval(interval);
     }, [loading]);
+
+    // --- TRANSITION EFFECT: only show report when loader is done AND API has responded ---
+    useEffect(() => {
+        if (reportReady && loadingMsgIndex >= LOADING_MESSAGES.length - 1) {
+            // Show the last message for 1.5s before transitioning
+            const timer = setTimeout(() => {
+                finalize();
+                setReportReady(false);
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [reportReady, loadingMsgIndex]);
 
     // --- GATEKEEPER LOGIC ---
     const handleRestrictedAction = () => {
@@ -817,6 +834,7 @@ const comparisonMetrics = useMemo(() =>
         setCompQuery("");
         setMySuggestions([]);
         setCompSuggestions([]);
+        setReportReady(false);
 
         // 3. Clear User & Gate Data (This wipes the email/phone)
         setLeadData({ email: "", phone: "" });
@@ -966,7 +984,8 @@ const comparisonMetrics = useMemo(() =>
             // 3. Final Validation
             if (finalReport && (finalReport.audit_score || finalReport.matrix)) {
                 setReport(finalReport);
-                finalize();
+                // Don't finalize immediately — let the loader animation complete first
+                setReportReady(true);
             } else {
                 console.error("Invalid AI Structure:", finalReport);
                 throw new Error("The AI report is missing key data (audit_score).");
@@ -1322,7 +1341,7 @@ const comparisonMetrics = useMemo(() =>
                             ))}
                         </div>
 
-                        
+
                         {competitors.length > 0 && (
                             <div className="flex justify-center pt-4">
                                 <button onClick={handleAnalyze} disabled={loading} className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-3 text-sm">
@@ -1365,14 +1384,89 @@ const comparisonMetrics = useMemo(() =>
                     // WRAPPER REF FOR PDF CAPTURE (UPDATED STYLES FOR PDF MODE)
                     <div ref={reportRef} id="report-content" className="bg-[#030712] pt-24 md:pt-32 px-4 md:px-12 pb-40 min-h-screen text-white">
 
-                        <div className="bg-[#0B1120] border border-white/10 pt-16 pb-24 text-center rounded-xl shadow-2xl mb-12 relative overflow-hidden">
+                        <div className="bg-[#0B1120] border border-white/10 py-12 px-8 md:px-16 rounded-xl shadow-2xl mb-12 relative overflow-hidden">
                             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
-                            <div className="relative z-10 flex flex-col items-center">
-                                <div className="text-sm font-bold tracking-[0.3em] text-cyan-400 uppercase mb-4">Overall Performance</div>
-                                <div className="flex items-baseline gap-2">
-                                    <div className="text-9xl font-black tracking-tighter text-white">{report.audit_score}<span className="text-5xl text-gray-500">/100</span></div>
-                                    <span className="text-xs font-medium text-gray-400 opacity-90 -mt-2">- Powered by Addinfi</span>
+                            <div className="relative z-10 flex flex-col md:flex-row items-center gap-10 md:gap-16">
+
+                                {/* LEFT — GMB Logo */}
+                                <div className="flex flex-col items-center gap-4 md:min-w-[220px] shrink-0">
+                                    <div className="w-28 h-28 relative">
+                                        {/* Google Business Profile Pin Icon */}
+                                        <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-[0_0_25px_rgba(66,133,244,0.4)]">
+                                            {/* Pin body */}
+                                            <defs>
+                                                <linearGradient id="pinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stopColor="#4285F4" />
+                                                    <stop offset="50%" stopColor="#34A853" />
+                                                    <stop offset="100%" stopColor="#4285F4" />
+                                                </linearGradient>
+                                            </defs>
+                                            <path d="M100 10 C55 10 20 45 20 90 C20 145 100 190 100 190 C100 190 180 145 180 90 C180 45 145 10 100 10Z" fill="url(#pinGrad)" opacity="0.15" stroke="url(#pinGrad)" strokeWidth="2" />
+                                            <circle cx="100" cy="85" r="35" fill="none" stroke="#4285F4" strokeWidth="3" opacity="0.6" />
+                                            {/* Google "G" */}
+                                            <text x="100" y="98" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="50" fill="#4285F4">G</text>
+                                            {/* Store icon */}
+                                            <rect x="75" y="130" width="50" height="30" rx="4" fill="#34A853" opacity="0.3" />
+                                            <path d="M80 130 L80 120 L120 120 L120 130" fill="none" stroke="#34A853" strokeWidth="2" opacity="0.5" />
+                                            <rect x="93" y="140" width="14" height="20" rx="2" fill="#34A853" opacity="0.4" />
+                                        </svg>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-lg font-black text-white tracking-tight">Google Business</div>
+                                        <div className="text-xs font-bold text-blue-400 tracking-[0.15em] uppercase">Profile Audit</div>
+                                    </div>
                                 </div>
+
+                                {/* Divider */}
+                                <div className="hidden md:block w-px h-48 bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+
+                                {/* RIGHT — Score + Rating Bar */}
+                                <div className="flex-1 flex flex-col items-center text-center">
+                                    <div className="text-sm font-bold tracking-[0.3em] text-cyan-400 uppercase mb-4">Overall Performance</div>
+                                    <div className="flex items-baseline gap-2">
+                                        <div className="text-8xl md:text-9xl font-black tracking-tighter text-white">{report.audit_score}<span className="text-4xl md:text-5xl text-gray-500">/100</span></div>
+                                        <span className="text-xs font-medium text-gray-400 opacity-90 -mt-2">- Powered by Addinfi</span>
+                                    </div>
+
+                                    {/* Rating Scale Bar */}
+                                    <div className="mt-8 w-full max-w-xl px-4">
+                                        <div className="relative">
+                                            {/* Score Position Indicator */}
+                                            <div className="absolute -top-5 transition-all duration-500" style={{ left: `${Math.min(Math.max(report.audit_score || 0, 0), 100)}%`, transform: 'translateX(-50%)' }}>
+                                                <div className="flex flex-col items-center">
+                                                    <svg className="w-3 h-3 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 12 12"><path d="M6 9L1 3h10L6 9z" /></svg>
+                                                </div>
+                                            </div>
+                                            {/* Gradient Bar */}
+                                            <div className="flex h-2.5 rounded-full overflow-hidden border border-white/10">
+                                                <div className="w-1/4 bg-gradient-to-r from-red-600 to-red-400"></div>
+                                                <div className="w-1/4 bg-gradient-to-r from-orange-500 to-amber-400"></div>
+                                                <div className="w-1/4 bg-gradient-to-r from-yellow-400 to-lime-400"></div>
+                                                <div className="w-1/4 bg-gradient-to-r from-emerald-400 to-green-500"></div>
+                                            </div>
+                                            {/* Labels */}
+                                            <div className="flex mt-2.5">
+                                                <div className="w-1/4 text-center">
+                                                    <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">Poor</span>
+                                                    <span className="block text-[8px] text-white font-mono mt-0.5">0 – 25</span>
+                                                </div>
+                                                <div className="w-1/4 text-center">
+                                                    <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">Average</span>
+                                                    <span className="block text-[8px] text-white font-mono mt-0.5">26 – 50</span>
+                                                </div>
+                                                <div className="w-1/4 text-center">
+                                                    <span className="text-[10px] font-bold text-yellow-400 uppercase tracking-wider">Good</span>
+                                                    <span className="block text-[8px] text-white font-mono mt-0.5">51 – 75</span>
+                                                </div>
+                                                <div className="w-1/4 text-center">
+                                                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Excellent</span>
+                                                    <span className="block text-[8px] text-white font-mono mt-0.5">76 – 100</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
@@ -1436,92 +1530,373 @@ const comparisonMetrics = useMemo(() =>
                                         </div>
                                     </div>
 
-                                    {/* RIGHT: MASTER LEDGER (HALF LOCKED) */}
+                                    {/* RIGHT: STRATEGIC COMPARISON — ENHANCED MULTI-VIZ */}
                                     <div className="lg:col-span-8 bg-[#0B1120] border border-white/10 rounded-3xl overflow-hidden flex flex-col h-full relative">
-                                        <div className="px-8 py-6 border-b border-white/10 flex flex-col gap-3 bg-gradient-to-r from-cyan-900/10 to-purple-900/10">
-                                            <div>
-                                                <h3 className="text-white font-bold uppercase tracking-widest text-sm mb-1">Strategic Comparison</h3>
-                                                <p className="text-[10px] text-gray-500 font-mono">LIVE FEED • YOU VS UP TO 2 COMPETITORS</p>
-                                            </div>
-                                            <div className="flex flex-wrap gap-4">
-                                                {comparisonEntities.map((entity) => (
-                                                    <div key={entity.key} className="flex items-center gap-2">
-                                                        <div className={`w-3 h-3 rounded ${entity.barClass}`}></div>
-                                                        <span className={`text-[10px] font-bold uppercase ${entity.textClass}`}>{entity.label}</span>
+                                        {/* Header */}
+                                        <div className="px-8 py-6 border-b border-white/10 bg-gradient-to-r from-cyan-900/10 via-purple-900/5 to-indigo-900/10">
+                                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                                <div>
+                                                    <div className="flex items-center gap-3 mb-1">
+                                                        <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                                                        <h3 className="text-white font-bold uppercase tracking-widest text-sm">Strategic Comparison</h3>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar relative">
-                                            {comparisonMetrics.map((metric) => {
-                                                const values = comparisonEntities.map((entity) => metric.getValue(entity.data));
-                                                const maxValue = metric.max ?? Math.max(1, ...values);
-
-                                                return (
-                                                    <div key={metric.key} className="space-y-3">
-                                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">{metric.label}</div>
-                                                        <div className="space-y-4">
-                                                            {comparisonEntities.map((entity, index) => {
-                                                                const value = values[index];
-                                                                const width = maxValue ? Math.min((value / maxValue) * 100, 100) : 0;
-
-                                                                return (
-                                                                    <div key={`${metric.key}-${entity.key}`} className="space-y-1">
-                                                                        <div className="flex items-center justify-between text-xs">
-                                                                            <span className={`font-bold ${entity.textClass}`}>{entity.label}</span>
-                                                                            <span className="text-gray-400">{metric.display(entity.data)}</span>
-                                                                        </div>
-                                                                        <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
-                                                                            <div className={`h-full ${entity.barClass}`} style={{ width: `${width}%` }}></div>
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            })}
+                                                    <p className="text-[10px] text-gray-500 font-mono ml-5">LIVE METRICS • MULTI-DIMENSIONAL ANALYSIS</p>
+                                                </div>
+                                                <div className="flex flex-wrap gap-3">
+                                                    {comparisonEntities.map((entity) => (
+                                                        <div key={entity.key} className="flex items-center gap-2 bg-white/5 border border-white/5 px-3 py-1.5 rounded-full">
+                                                            <div className={`w-2.5 h-2.5 rounded-full ${entity.barClass} shadow-lg`}></div>
+                                                            <span className={`text-[10px] font-bold uppercase tracking-wider ${entity.textClass}`}>{entity.label}</span>
                                                         </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                {/* BOTTOM ROW: GROWTH & RISK MODULES */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                                    {/* MODULE 1: GROWTH PROJECTION */}
-                                    <div className="bg-[#0B1120] border border-white/10 rounded-3xl p-6 relative overflow-hidden flex items-center justify-between group hover:border-blue-500/30 transition">
-                                        <div>
-                                            <h4 className="text-blue-400 font-bold text-[10px] uppercase tracking-widest mb-1">Growth Projection</h4>
-                                            <div className="text-3xl font-mono font-bold text-white mb-1">+{report.matrix?.me?.review_growth}</div>
-                                            <div className="text-[10px] text-gray-500">New Reviews (30 Days)</div>
-                                        </div>
-                                        <div className="h-16 w-32 relative">
-                                            <div className="absolute bottom-0 left-0 w-full h-px bg-white/10"></div>
-                                            <div className="absolute bottom-0 left-0 w-2 h-[20%] bg-blue-900/50 rounded-t"></div>
-                                            <div className="absolute bottom-0 left-4 w-2 h-[40%] bg-blue-800/50 rounded-t"></div>
-                                            <div className="absolute bottom-0 left-8 w-2 h-[30%] bg-blue-700/50 rounded-t"></div>
-                                            <div className="absolute bottom-0 left-12 w-2 h-[60%] bg-blue-600/50 rounded-t"></div>
-                                            <div className="absolute bottom-0 left-16 w-2 h-[80%] bg-blue-500 rounded-t shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
-                                        </div>
-                                    </div>
-
-                                    {/* MODULE 2: SUSPENSION RISK */}
-                                    <div className={`bg-[#0B1120] border rounded-3xl p-6 relative overflow-hidden flex items-center justify-between ${report.matrix?.me?.suspension_risk?.includes("Low") ? "border-green-500/20" : "border-red-500/20"}`}>
-                                        <div>
-                                            <h4 className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mb-1">Compliance Shield</h4>
-                                            <div className={`text-2xl font-bold mb-1 ${report.matrix?.me?.suspension_risk?.includes("Low") ? "text-green-400" : "text-red-400"}`}>
-                                                {report.matrix?.me?.suspension_risk}
+                                                    ))}
+                                                </div>
                                             </div>
-                                            <div className="text-[10px] text-gray-500">Name Policy Check</div>
                                         </div>
-                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${report.matrix?.me?.suspension_risk?.includes("Low") ? "border-green-500/30 text-green-500 bg-green-900/10" : "border-red-500/30 text-red-500 bg-red-900/10"}`}>
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+
+                                        {/* Enhanced Multi-Visualization Grid */}
+                                        <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                                                {/* ══════════ 1. REPUTATION SCORE — Star Rating Display ══════════ */}
+                                                {(() => {
+                                                    const metric = comparisonMetrics.find(m => m.key === "rating");
+                                                    if (!metric) return null;
+                                                    return (
+                                                        <div className="bg-[#060D1B] border border-yellow-500/10 rounded-2xl p-5 hover:border-yellow-500/30 transition-all duration-300 group relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
+                                                                <div className="p-2 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
+                                                                    <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Reputation Score</h4>
+                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">Google Star Rating</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-4 relative z-10">
+                                                                {comparisonEntities.map((entity) => {
+                                                                    const rating = parseNumber(entity.data?.rating);
+                                                                    const fullStars = Math.floor(rating);
+                                                                    const hasHalf = rating % 1 >= 0.3;
+                                                                    return (
+                                                                        <div key={`rating-${entity.key}`} className="flex items-center gap-3">
+                                                                            <span className={`text-[10px] font-bold w-20 truncate ${entity.textClass}`}>{entity.label}</span>
+                                                                            <div className="flex items-center gap-0.5">
+                                                                                {[1, 2, 3, 4, 5].map(i => (
+                                                                                    <svg key={i} className={`w-5 h-5 ${i <= fullStars ? 'text-yellow-400' : (i === fullStars + 1 && hasHalf ? 'text-yellow-400/50' : 'text-gray-700')}`} fill="currentColor" viewBox="0 0 20 20">
+                                                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                                                    </svg>
+                                                                                ))}
+                                                                            </div>
+                                                                            <span className="text-white font-mono font-bold text-sm ml-auto">{metric.display(entity.data)}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                                {/* ══════════ 2. REVIEW VOLUME — Vertical Bar Chart ══════════ */}
+                                                {(() => {
+                                                    const metric = comparisonMetrics.find(m => m.key === "reviews");
+                                                    if (!metric) return null;
+                                                    const values = comparisonEntities.map(e => metric.getValue(e.data));
+                                                    const maxVal = Math.max(1, ...values);
+                                                    return (
+                                                        <div className="bg-[#060D1B] border border-blue-500/10 rounded-2xl p-5 hover:border-blue-500/30 transition-all duration-300 group relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
+                                                                <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                                                                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Review Volume</h4>
+                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">Total Google Reviews</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-end justify-around gap-4 h-32 relative z-10 px-2">
+                                                                {comparisonEntities.map((entity, idx) => {
+                                                                    const val = values[idx];
+                                                                    const pct = maxVal ? Math.max(10, (val / maxVal) * 100) : 10;
+                                                                    const gradients: Record<string, string> = { 'bg-cyan-500': 'from-cyan-600 to-cyan-400', 'bg-purple-500': 'from-purple-600 to-purple-400', 'bg-indigo-500': 'from-indigo-600 to-indigo-400' };
+                                                                    return (
+                                                                        <div key={`vol-${entity.key}`} className="flex flex-col items-center flex-1">
+                                                                            <span className={`text-xs font-bold mb-2 ${entity.textClass}`}>{metric.display(entity.data)}</span>
+                                                                            <div className="w-full max-w-[50px] h-24 bg-white/5 rounded-xl overflow-hidden flex flex-col justify-end border border-white/5">
+                                                                                <div className={`w-full bg-gradient-to-t ${gradients[entity.barClass] || 'from-gray-600 to-gray-400'} rounded-xl transition-all duration-1000 relative overflow-hidden`} style={{ height: `${pct}%` }}>
+                                                                                    <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/15 to-transparent"></div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <span className="text-[8px] text-gray-500 mt-1.5 font-medium truncate max-w-[60px] text-center">{entity.label}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                                {/* ══════════ 3. REVIEW VELOCITY — Radial Gauge ══════════ */}
+                                                {(() => {
+                                                    const metric = comparisonMetrics.find(m => m.key === "review_velocity");
+                                                    if (!metric) return null;
+                                                    return (
+                                                        <div className="bg-[#060D1B] border border-emerald-500/10 rounded-2xl p-5 hover:border-emerald-500/30 transition-all duration-300 group relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
+                                                                <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                                                                    <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Review Velocity</h4>
+                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">New Reviews Frequency</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center justify-around gap-2 relative z-10">
+                                                                {comparisonEntities.map((entity) => {
+                                                                    const score = metric.getValue(entity.data);
+                                                                    const pct = Math.min(score, 100);
+                                                                    const circumference = 2 * Math.PI * 32;
+                                                                    const dashoffset = circumference - (pct / 100) * circumference;
+                                                                    const colorMap: Record<string, string> = { 'bg-cyan-500': '#22d3ee', 'bg-purple-500': '#a855f7', 'bg-indigo-500': '#818cf8' };
+                                                                    const strokeColor = colorMap[entity.barClass] || '#6b7280';
+                                                                    return (
+                                                                        <div key={`vel-${entity.key}`} className="flex flex-col items-center">
+                                                                            <div className="relative w-20 h-20">
+                                                                                <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
+                                                                                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" />
+                                                                                    <circle cx="40" cy="40" r="32" fill="none" stroke={strokeColor} strokeWidth="6" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={dashoffset} className="transition-all duration-1000" />
+                                                                                </svg>
+                                                                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                                                    <span className={`text-[10px] font-bold ${entity.textClass}`}>{Math.round(pct)}%</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <span className={`text-[9px] font-bold mt-1 ${entity.textClass} truncate max-w-[70px] text-center`}>{metric.display(entity.data)}</span>
+                                                                            <span className="text-[8px] text-gray-500 font-medium">{entity.label}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                                {/* ══════════ 4. RESPONSE SPEED — Horizontal Timer Bars ══════════ */}
+                                                {(() => {
+                                                    const metric = comparisonMetrics.find(m => m.key === "review_response");
+                                                    if (!metric) return null;
+                                                    const values = comparisonEntities.map(e => metric.getValue(e.data));
+                                                    const maxVal = Math.max(1, ...values);
+                                                    return (
+                                                        <div className="bg-[#060D1B] border border-orange-500/10 rounded-2xl p-5 hover:border-orange-500/30 transition-all duration-300 group relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
+                                                                <div className="p-2 bg-orange-500/10 rounded-xl border border-orange-500/20">
+                                                                    <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Response Speed</h4>
+                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">Owner Reply Time</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-4 relative z-10">
+                                                                {comparisonEntities.map((entity, idx) => {
+                                                                    const val = values[idx];
+                                                                    const pct = maxVal ? Math.min((val / maxVal) * 100, 100) : 0;
+                                                                    const colorMap: Record<string, string> = { 'bg-cyan-500': 'from-cyan-500 to-cyan-300', 'bg-purple-500': 'from-purple-500 to-purple-300', 'bg-indigo-500': 'from-indigo-500 to-indigo-300' };
+                                                                    return (
+                                                                        <div key={`resp-${entity.key}`}>
+                                                                            <div className="flex items-center justify-between mb-1.5">
+                                                                                <span className={`text-[10px] font-bold ${entity.textClass}`}>{entity.label}</span>
+                                                                                <div className="flex items-center gap-1.5">
+                                                                                    <svg className="w-3 h-3 text-orange-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                                    <span className="text-[10px] text-gray-400 font-mono">{metric.display(entity.data)}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                                                                <div className={`h-full bg-gradient-to-r ${colorMap[entity.barClass] || 'from-gray-500 to-gray-300'} rounded-full transition-all duration-1000 relative`} style={{ width: `${pct}%` }}>
+                                                                                    <div className="absolute right-0 top-0 w-1.5 h-full bg-white/40 rounded-full"></div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                                {/* ══════════ 5. CONTENT ENGINE — Activity Heatmap Dots ══════════ */}
+                                                {(() => {
+                                                    const metric = comparisonMetrics.find(m => m.key === "post_frequency");
+                                                    if (!metric) return null;
+                                                    return (
+                                                        <div className="bg-[#060D1B] border border-pink-500/10 rounded-2xl p-5 hover:border-pink-500/30 transition-all duration-300 group relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
+                                                                <div className="p-2 bg-pink-500/10 rounded-xl border border-pink-500/20">
+                                                                    <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Content Engine</h4>
+                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">GMB Post Frequency</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className={`space-y-4 relative z-10 ${!isUnlocked ? 'blur-sm opacity-40 grayscale select-none pointer-events-none' : ''}`}>
+                                                                {comparisonEntities.map((entity) => {
+                                                                    const score = metric.getValue(entity.data);
+                                                                    const activeDots = Math.round((score / 100) * 7);
+                                                                    const colorMap: Record<string, string> = { 'bg-cyan-500': 'bg-cyan-400', 'bg-purple-500': 'bg-purple-400', 'bg-indigo-500': 'bg-indigo-400' };
+                                                                    const dotColor = colorMap[entity.barClass] || 'bg-gray-400';
+                                                                    return (
+                                                                        <div key={`content-${entity.key}`} className="flex items-center gap-3">
+                                                                            <span className={`text-[10px] font-bold w-20 truncate ${entity.textClass}`}>{entity.label}</span>
+                                                                            <div className="flex gap-1.5 flex-1">
+                                                                                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
+                                                                                    <div key={i} className="flex flex-col items-center gap-1">
+                                                                                        <div className={`w-4 h-4 rounded-md transition-all ${i < activeDots ? `${dotColor} shadow-lg shadow-current/20` : 'bg-white/5 border border-white/5'}`}></div>
+                                                                                        <span className="text-[7px] text-gray-600">{day}</span>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                            <span className="text-[9px] text-gray-400 font-mono w-16 text-right truncate">{metric.display(entity.data)}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                            {/* Lock Overlay */}
+                                                            {!isUnlocked && (
+                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={() => setShowPaymentModal(true)}>
+                                                                    <div className="absolute inset-0 bg-gradient-to-t from-[#060D1B] via-[#060D1B]/80 to-transparent"></div>
+                                                                    <div className="relative z-10 flex flex-col items-center gap-2">
+                                                                        <div className="w-10 h-10 rounded-full bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 group-hover/lock:scale-110 transition-transform shadow-[0_0_15px_rgba(236,72,153,0.3)]">
+                                                                            <LockIcon />
+                                                                        </div>
+                                                                        <span className="text-[10px] font-bold text-pink-400 uppercase tracking-widest group-hover/lock:underline">Unlock Details</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                                {/* ══════════ 6. PRODUCTS — Status Badge Cards ══════════ */}
+                                                {(() => {
+                                                    const metric = comparisonMetrics.find(m => m.key === "products_services");
+                                                    if (!metric) return null;
+                                                    return (
+                                                        <div className="bg-[#060D1B] border border-violet-500/10 rounded-2xl p-5 hover:border-violet-500/30 transition-all duration-300 group relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
+                                                                <div className="p-2 bg-violet-500/10 rounded-xl border border-violet-500/20">
+                                                                    <svg className="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Products & Services</h4>
+                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">GMB Product Listings</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className={`space-y-3 relative z-10 ${!isUnlocked ? 'blur-sm opacity-40 grayscale select-none pointer-events-none' : ''}`}>
+                                                                {comparisonEntities.map((entity) => {
+                                                                    const val = metric.getValue(entity.data);
+                                                                    const isOptimized = val > 0;
+                                                                    return (
+                                                                        <div key={`prod-${entity.key}`} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${isOptimized ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isOptimized ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                                                {isOptimized ? (
+                                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
+                                                                                ) : (
+                                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                                                )}
+                                                                            </div>
+                                                                            <span className={`text-[10px] font-bold ${entity.textClass} flex-1`}>{entity.label}</span>
+                                                                            <span className={`text-[9px] font-mono font-bold px-2 py-1 rounded-md ${isOptimized ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>{metric.display(entity.data)}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                            {/* Lock Overlay */}
+                                                            {!isUnlocked && (
+                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={() => setShowPaymentModal(true)}>
+                                                                    <div className="absolute inset-0 bg-gradient-to-t from-[#060D1B] via-[#060D1B]/80 to-transparent"></div>
+                                                                    <div className="relative z-10 flex flex-col items-center gap-2">
+                                                                        <div className="w-10 h-10 rounded-full bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-violet-400 group-hover/lock:scale-110 transition-transform shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+                                                                            <LockIcon />
+                                                                        </div>
+                                                                        <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest group-hover/lock:underline">Unlock Details</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                                {/* ══════════ 7. PROFILE AUTHORITY — Timeline / Age Comparison ══════════ */}
+                                                {(() => {
+                                                    const metric = comparisonMetrics.find(m => m.key === "listing_age");
+                                                    if (!metric) return null;
+                                                    const values = comparisonEntities.map(e => metric.getValue(e.data));
+                                                    const maxVal = Math.max(1, ...values);
+                                                    return (
+                                                        <div className="md:col-span-2 bg-[#060D1B] border border-amber-500/10 rounded-2xl p-5 hover:border-amber-500/30 transition-all duration-300 group relative overflow-hidden">
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
+                                                                <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                                                                    <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Profile Authority</h4>
+                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">GMB Listing Age & Domain Trust</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className={`space-y-4 relative z-10 ${!isUnlocked ? 'blur-sm opacity-40 grayscale select-none pointer-events-none' : ''}`}>
+                                                                {comparisonEntities.map((entity, idx) => {
+                                                                    const val = values[idx];
+                                                                    const pct = maxVal ? Math.min((val / maxVal) * 100, 100) : 0;
+                                                                    const colorMap: Record<string, string> = { 'bg-cyan-500': 'from-amber-600 via-cyan-500 to-cyan-400', 'bg-purple-500': 'from-amber-600 via-purple-500 to-purple-400', 'bg-indigo-500': 'from-amber-600 via-indigo-500 to-indigo-400' };
+                                                                    return (
+                                                                        <div key={`auth-${entity.key}`}>
+                                                                            <div className="flex items-center justify-between mb-1.5">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className={`text-[10px] font-bold ${entity.textClass}`}>{entity.label}</span>
+                                                                                    <svg className="w-3 h-3 text-amber-400/50" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                                                                </div>
+                                                                                <span className="text-[10px] text-gray-400 font-mono">{metric.display(entity.data)}</span>
+                                                                            </div>
+                                                                            <div className="w-full h-4 bg-white/5 rounded-full overflow-hidden border border-white/5 relative">
+                                                                                <div className={`h-full bg-gradient-to-r ${colorMap[entity.barClass] || 'from-gray-600 to-gray-400'} rounded-full transition-all duration-1000 relative`} style={{ width: `${pct}%` }}>
+                                                                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                                                                                    <div className="absolute right-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow-lg"></div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                            {/* Lock Overlay */}
+                                                            {!isUnlocked && (
+                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={() => setShowPaymentModal(true)}>
+                                                                    <div className="absolute inset-0 bg-gradient-to-t from-[#060D1B] via-[#060D1B]/80 to-transparent"></div>
+                                                                    <div className="relative z-10 flex flex-col items-center gap-2">
+                                                                        <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover/lock:scale-110 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                                                                            <LockIcon />
+                                                                        </div>
+                                                                        <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest group-hover/lock:underline">Unlock Details</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                            </div>
                                         </div>
                                     </div>
 
                                 </div>
+
+
                             </div>
 
                             {/* EXECUTIVE SUMMARY */}
@@ -1881,84 +2256,192 @@ const comparisonMetrics = useMemo(() =>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                                    {/* VERTICAL TIMELINE LAYOUT WITH ILLUSTRATIONS */}
+                                    <div className="space-y-0 relative">
+                                        {/* Central Timeline Line */}
+                                        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-blue-500/30 via-cyan-500/20 to-purple-500/30 hidden md:block"></div>
+
                                         {report.four_week_plan.map((week: any, i: number) => {
                                             const isWeekLocked = !isUnlocked && i > 0;
                                             const isCurrent = !isUnlocked && i === 0;
+                                            const weekColors = [
+                                                { border: 'border-blue-500/40', glow: 'shadow-[0_0_40px_-10px_rgba(59,130,246,0.15)]', accent: 'from-blue-600 to-cyan-400', tag: 'bg-blue-500/10 text-blue-400 border-blue-500/20', dot: 'bg-blue-500', text: 'text-blue-400' },
+                                                { border: 'border-purple-500/40', glow: 'shadow-[0_0_40px_-10px_rgba(168,85,247,0.15)]', accent: 'from-purple-600 to-pink-400', tag: 'bg-purple-500/10 text-purple-400 border-purple-500/20', dot: 'bg-purple-500', text: 'text-purple-400' },
+                                                { border: 'border-emerald-500/40', glow: 'shadow-[0_0_40px_-10px_rgba(16,185,129,0.15)]', accent: 'from-emerald-600 to-teal-400', tag: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500', text: 'text-emerald-400' },
+                                                { border: 'border-amber-500/40', glow: 'shadow-[0_0_40px_-10px_rgba(245,158,11,0.15)]', accent: 'from-amber-600 to-orange-400', tag: 'bg-amber-500/10 text-amber-400 border-amber-500/20', dot: 'bg-amber-500', text: 'text-amber-400' },
+                                            ];
+                                            const color = weekColors[i] || weekColors[0];
+
+                                            // SVG Illustration data for between weeks
+                                            const illustrations = [
+                                                // After Week 1: Strategy → Planning illustration  
+                                                {
+                                                    title: "Foundation Complete", subtitle: "Building momentum...", icon: (
+                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad1)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M22 38V26l10-6 10 6v12l-10 6-10-6z" stroke="url(#grad1)" strokeWidth="1.5" fill="rgba(59,130,246,0.1)" /><path d="M32 20v24M22 26l10 6 10-6" stroke="url(#grad1)" strokeWidth="1.5" strokeLinecap="round" /><circle cx="32" cy="16" r="3" fill="url(#grad1)" className="animate-pulse" /><defs><linearGradient id="grad1" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#3b82f6" /><stop offset="1" stopColor="#22d3ee" /></linearGradient></defs></svg>
+                                                    )
+                                                },
+                                                // After Week 2: Growth → Scaling illustration
+                                                {
+                                                    title: "Strategies Deployed", subtitle: "Amplifying reach...", icon: (
+                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad2)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M20 44l8-12 8 6 8-18" stroke="url(#grad2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><circle cx="44" cy="20" r="4" fill="url(#grad2)" className="animate-pulse" /><path d="M40 20h4v4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><rect x="18" y="46" width="4" height="6" rx="1" fill="rgba(168,85,247,0.3)" /><rect x="24" y="42" width="4" height="10" rx="1" fill="rgba(168,85,247,0.5)" /><rect x="30" y="38" width="4" height="14" rx="1" fill="rgba(168,85,247,0.7)" /><defs><linearGradient id="grad2" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#a855f7" /><stop offset="1" stopColor="#ec4899" /></linearGradient></defs></svg>
+                                                    )
+                                                },
+                                                // After Week 3: Results → Dominance illustration
+                                                {
+                                                    title: "Growth Activated", subtitle: "Final optimization...", icon: (
+                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad3)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M32 14v8M26 18l6-4 6 4" stroke="url(#grad3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M24 28h16v16c0 2-2 4-4 4h-8c-2 0-4-2-4-4V28z" stroke="url(#grad3)" strokeWidth="1.5" fill="rgba(16,185,129,0.1)" /><path d="M28 28v-4a4 4 0 018 0v4" stroke="url(#grad3)" strokeWidth="1.5" /><circle cx="32" cy="36" r="3" fill="url(#grad3)" className="animate-pulse" /><path d="M32 36v4" stroke="url(#grad3)" strokeWidth="1.5" strokeLinecap="round" /><defs><linearGradient id="grad3" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#10b981" /><stop offset="1" stopColor="#14b8a6" /></linearGradient></defs></svg>
+                                                    )
+                                                },
+                                            ];
 
                                             return (
-                                                <div key={i} className={`relative bg-[#0B1120] rounded-2xl border transition-all duration-500 group overflow-hidden ${isWeekLocked
-                                                    ? 'border-white/5 opacity-60'
-                                                    : isCurrent
-                                                        ? 'border-blue-500/40 shadow-[0_0_40px_-10px_rgba(59,130,246,0.15)]'
-                                                        : 'border-white/10 hover:border-blue-500/30'
-                                                    }`}>
-
-                                                    {/* Background Number (Visual Depth) */}
-                                                    <div className="absolute -right-4 -top-4 text-[120px] font-black text-white/[0.02] select-none leading-none z-0">
-                                                        0{i + 1}
-                                                    </div>
-
-                                                    {/* Card Header */}
-                                                    <div className="relative z-10 p-6 border-b border-white/5 bg-gradient-to-b from-white/5 to-transparent">
-                                                        <div className="flex justify-between items-start mb-3">
-                                                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border ${isWeekLocked
-                                                                ? 'bg-gray-800 text-gray-500 border-gray-700'
-                                                                : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                                                }`}>
-                                                                {isWeekLocked ? 'LOCKED' : 'PHASE ' + (i + 1)}
-                                                            </span>
-                                                            <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1 bg-black/40 px-2 py-1 rounded">
-                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                                                {week.time_est}
-                                                            </span>
+                                                <div key={i}>
+                                                    {/* Week Card - alternating alignment */}
+                                                    <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 relative ${i % 2 === 0 ? '' : 'md:direction-rtl'}`}>
+                                                        {/* Timeline Dot */}
+                                                        <div className="hidden md:block absolute left-1/2 top-8 -translate-x-1/2 z-20">
+                                                            <div className={`w-4 h-4 rounded-full ${isWeekLocked ? 'bg-gray-600 border-gray-500' : color.dot} border-2 border-[#030712] shadow-lg ${!isWeekLocked ? 'animate-pulse' : ''}`}></div>
                                                         </div>
-                                                        <h4 className="text-xl font-bold text-white mb-1">{week.week}</h4>
-                                                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide truncate opacity-80">{week.focus}</p>
-                                                    </div>
 
-                                                    {/* Card Body */}
-                                                    <div className="relative z-10 p-6 min-h-[280px]">
-                                                        <ul className="space-y-4">
-                                                            {!isUnlocked && i === 0 ? (
-                                                                // Week 1: Partial View (Teaser)
-                                                                <>
-                                                                    {week.tasks?.slice(0, Math.ceil(week.tasks.length / 2)).map((task: string, k: number) => (
-                                                                        <li key={k} className="flex items-start gap-3">
-                                                                            <div className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
-                                                                            <span className="text-sm text-gray-300 leading-snug">{task}</span>
-                                                                        </li>
-                                                                    ))}
-                                                                    {/* Unlock Trigger for Week 1 */}
-                                                                    <div className="absolute inset-x-0 bottom-0 pt-20 pb-6 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/95 to-transparent flex flex-col items-center justify-end cursor-pointer group/btn" onClick={() => setShowPaymentModal(true)}>
-                                                                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600/20 border border-blue-500/50 text-blue-400 text-xs font-bold uppercase tracking-wider group-hover/btn:bg-blue-600 group-hover/btn:text-white transition-all shadow-lg">
-                                                                            <LockIcon />
-                                                                            <span>Unlock Full Plan</span>
+                                                        {/* Week Card - placed on alternating sides */}
+                                                        {i % 2 === 0 ? (
+                                                            <>
+                                                                <div className={`relative bg-[#0B1120] rounded-2xl border transition-all duration-500 group overflow-hidden ${isWeekLocked
+                                                                    ? 'border-white/5 opacity-60'
+                                                                    : isCurrent ? `${color.border} ${color.glow}` : 'border-white/10 hover:border-blue-500/30'
+                                                                    }`}>
+                                                                    <div className="absolute -right-4 -top-4 text-[120px] font-black text-white/[0.02] select-none leading-none z-0">0{i + 1}</div>
+                                                                    <div className={`h-1 bg-gradient-to-r ${color.accent}`}></div>
+                                                                    <div className="relative z-10 p-6 border-b border-white/5 bg-gradient-to-b from-white/5 to-transparent">
+                                                                        <div className="flex justify-between items-start mb-3">
+                                                                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border ${isWeekLocked ? 'bg-gray-800 text-gray-500 border-gray-700' : color.tag}`}>
+                                                                                {isWeekLocked ? 'LOCKED' : 'PHASE ' + (i + 1)}
+                                                                            </span>
+                                                                            <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1 bg-black/40 px-2 py-1 rounded">
+                                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                                {week.time_est}
+                                                                            </span>
                                                                         </div>
+                                                                        <h4 className="text-xl font-bold text-white mb-1">{week.week}</h4>
+                                                                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide truncate opacity-80">{week.focus}</p>
                                                                     </div>
-                                                                </>
-                                                            ) : isWeekLocked ? (
-                                                                // Weeks 2-4: Completely Blurred
-                                                                <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={() => setShowPaymentModal(true)}>
-                                                                    <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-gray-500 group-hover:text-blue-400 group-hover:border-blue-500/30 transition-all">
-                                                                        <LockIcon />
+                                                                    <div className="relative z-10 p-6 min-h-[220px]">
+                                                                        <ul className="space-y-4">
+                                                                            {!isUnlocked && i === 0 ? (
+                                                                                <>
+                                                                                    {week.tasks?.slice(0, Math.ceil(week.tasks.length / 2)).map((task: string, k: number) => (
+                                                                                        <li key={k} className="flex items-start gap-3">
+                                                                                            <div className={`mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full ${color.dot} shadow-[0_0_8px_rgba(59,130,246,0.8)]`}></div>
+                                                                                            <span className="text-sm text-gray-300 leading-snug">{task}</span>
+                                                                                        </li>
+                                                                                    ))}
+                                                                                    <div className="absolute inset-x-0 bottom-0 pt-20 pb-6 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/95 to-transparent flex flex-col items-center justify-end cursor-pointer group/btn" onClick={() => setShowPaymentModal(true)}>
+                                                                                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600/20 border border-blue-500/50 text-blue-400 text-xs font-bold uppercase tracking-wider group-hover/btn:bg-blue-600 group-hover/btn:text-white transition-all shadow-lg">
+                                                                                            <LockIcon /><span>Unlock Full Plan</span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </>
+                                                                            ) : isWeekLocked ? (
+                                                                                <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={() => setShowPaymentModal(true)}>
+                                                                                    <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-gray-500 group-hover:text-blue-400 group-hover:border-blue-500/30 transition-all"><LockIcon /></div>
+                                                                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest group-hover:text-blue-400">Awaiting Clearance</span>
+                                                                                </div>
+                                                                            ) : (
+                                                                                week.tasks?.map((task: string, k: number) => (
+                                                                                    <li key={k} className="flex items-start gap-3 group/item">
+                                                                                        <div className={`mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full ${color.dot}/50 group-hover/item:${color.dot} transition-colors`}></div>
+                                                                                        <span className="text-sm text-gray-300 leading-snug group-hover/item:text-white transition-colors">{task}</span>
+                                                                                    </li>
+                                                                                ))
+                                                                            )}
+                                                                        </ul>
                                                                     </div>
-                                                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest group-hover:text-blue-400">Awaiting Clearance</span>
+                                                                    <div className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ${isWeekLocked ? 'w-0' : `w-full bg-gradient-to-r ${color.accent}`}`}></div>
                                                                 </div>
-                                                            ) : (
-                                                                // Unlocked View
-                                                                week.tasks?.map((task: string, k: number) => (
-                                                                    <li key={k} className="flex items-start gap-3 group/item">
-                                                                        <div className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-cyan-500/50 group-hover/item:bg-cyan-400 transition-colors"></div>
-                                                                        <span className="text-sm text-gray-300 leading-snug group-hover/item:text-white transition-colors">{task}</span>
-                                                                    </li>
-                                                                ))
-                                                            )}
-                                                        </ul>
+                                                                {/* Empty side for alternating layout */}
+                                                                <div className="hidden md:flex items-center justify-center">
+                                                                    <div className="text-center space-y-3 opacity-60">
+                                                                        <div className="w-20 h-20 mx-auto rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center">
+                                                                            <span className={`text-4xl font-black ${color.text} opacity-30`}>0{i + 1}</span>
+                                                                        </div>
+                                                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest">{week.focus}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                {/* Empty side for alternating layout */}
+                                                                <div className="hidden md:flex items-center justify-center">
+                                                                    <div className="text-center space-y-3 opacity-60">
+                                                                        <div className="w-20 h-20 mx-auto rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center">
+                                                                            <span className={`text-4xl font-black ${color.text} opacity-30`}>0{i + 1}</span>
+                                                                        </div>
+                                                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest">{week.focus}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className={`relative bg-[#0B1120] rounded-2xl border transition-all duration-500 group overflow-hidden ${isWeekLocked
+                                                                    ? 'border-white/5 opacity-60'
+                                                                    : isCurrent ? `${color.border} ${color.glow}` : 'border-white/10 hover:border-blue-500/30'
+                                                                    }`}>
+                                                                    <div className="absolute -right-4 -top-4 text-[120px] font-black text-white/[0.02] select-none leading-none z-0">0{i + 1}</div>
+                                                                    <div className={`h-1 bg-gradient-to-r ${color.accent}`}></div>
+                                                                    <div className="relative z-10 p-6 border-b border-white/5 bg-gradient-to-b from-white/5 to-transparent">
+                                                                        <div className="flex justify-between items-start mb-3">
+                                                                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border ${isWeekLocked ? 'bg-gray-800 text-gray-500 border-gray-700' : color.tag}`}>
+                                                                                {isWeekLocked ? 'LOCKED' : 'PHASE ' + (i + 1)}
+                                                                            </span>
+                                                                            <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1 bg-black/40 px-2 py-1 rounded">
+                                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                                {week.time_est}
+                                                                            </span>
+                                                                        </div>
+                                                                        <h4 className="text-xl font-bold text-white mb-1">{week.week}</h4>
+                                                                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide truncate opacity-80">{week.focus}</p>
+                                                                    </div>
+                                                                    <div className="relative z-10 p-6 min-h-[220px]">
+                                                                        <ul className="space-y-4">
+                                                                            {isWeekLocked ? (
+                                                                                <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={() => setShowPaymentModal(true)}>
+                                                                                    <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-gray-500 group-hover:text-blue-400 group-hover:border-blue-500/30 transition-all"><LockIcon /></div>
+                                                                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest group-hover:text-blue-400">Awaiting Clearance</span>
+                                                                                </div>
+                                                                            ) : (
+                                                                                week.tasks?.map((task: string, k: number) => (
+                                                                                    <li key={k} className="flex items-start gap-3 group/item">
+                                                                                        <div className={`mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full ${color.dot}/50 group-hover/item:${color.dot} transition-colors`}></div>
+                                                                                        <span className="text-sm text-gray-300 leading-snug group-hover/item:text-white transition-colors">{task}</span>
+                                                                                    </li>
+                                                                                ))
+                                                                            )}
+                                                                        </ul>
+                                                                    </div>
+                                                                    <div className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ${isWeekLocked ? 'w-0' : `w-full bg-gradient-to-r ${color.accent}`}`}></div>
+                                                                </div>
+                                                            </>
+                                                        )}
                                                     </div>
 
-                                                    {/* Bottom Accent Line (Active Only) */}
-                                                    <div className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ${isWeekLocked ? 'w-0' : 'w-full bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600'}`}></div>
+                                                    {/* Central Illustration between weeks */}
+                                                    {i < illustrations.length && (
+                                                        <div className="flex items-center justify-center py-8 relative">
+                                                            {/* Connecting dots */}
+                                                            <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px border-l border-dashed border-white/10"></div>
+
+                                                            <div className="relative z-10 flex flex-col items-center gap-3 bg-[#030712] px-6 py-4 rounded-2xl border border-white/5">
+                                                                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5">
+                                                                    {illustrations[i].icon}
+                                                                </div>
+                                                                <div className="text-center">
+                                                                    <p className="text-xs font-bold text-gray-300 uppercase tracking-widest">{illustrations[i].title}</p>
+                                                                    <p className="text-[9px] text-gray-600 font-mono mt-0.5">{illustrations[i].subtitle}</p>
+                                                                </div>
+                                                                {/* Animated connector arrow */}
+                                                                <svg className="w-6 h-6 text-gray-600 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                                                </svg>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })}
@@ -2069,7 +2552,10 @@ const comparisonMetrics = useMemo(() =>
                                 </p>
                             </div>
                             <div className="mx-auto h-2 w-64 rounded-full bg-white/10 border border-white/10 overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-amber-400 to-orange-500 animate-[progress-fill_60s_linear_forwards]" />
+                                <div
+                                    className="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-[3000ms] ease-out"
+                                    style={{ width: reportReady ? '100%' : `${Math.min(85, ((loadingMsgIndex + 1) / LOADING_MESSAGES.length) * 85)}%` }}
+                                />
                             </div>
                         </div>
                     </div>
