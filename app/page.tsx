@@ -1390,26 +1390,12 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
                                 {/* LEFT — GMB Logo */}
                                 <div className="flex flex-col items-center gap-4 md:min-w-[220px] shrink-0">
-                                    <div className="w-28 h-28 relative">
-                                        {/* Google Business Profile Pin Icon */}
-                                        <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-[0_0_25px_rgba(66,133,244,0.4)]">
-                                            {/* Pin body */}
-                                            <defs>
-                                                <linearGradient id="pinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                    <stop offset="0%" stopColor="#4285F4" />
-                                                    <stop offset="50%" stopColor="#34A853" />
-                                                    <stop offset="100%" stopColor="#4285F4" />
-                                                </linearGradient>
-                                            </defs>
-                                            <path d="M100 10 C55 10 20 45 20 90 C20 145 100 190 100 190 C100 190 180 145 180 90 C180 45 145 10 100 10Z" fill="url(#pinGrad)" opacity="0.15" stroke="url(#pinGrad)" strokeWidth="2" />
-                                            <circle cx="100" cy="85" r="35" fill="none" stroke="#4285F4" strokeWidth="3" opacity="0.6" />
-                                            {/* Google "G" */}
-                                            <text x="100" y="98" textAnchor="middle" fontFamily="Arial, sans-serif" fontWeight="bold" fontSize="50" fill="#4285F4">G</text>
-                                            {/* Store icon */}
-                                            <rect x="75" y="130" width="50" height="30" rx="4" fill="#34A853" opacity="0.3" />
-                                            <path d="M80 130 L80 120 L120 120 L120 130" fill="none" stroke="#34A853" strokeWidth="2" opacity="0.5" />
-                                            <rect x="93" y="140" width="14" height="20" rx="2" fill="#34A853" opacity="0.4" />
-                                        </svg>
+                                    <div className="w-40 h-40 relative flex items-center justify-center">
+                                        <img
+                                            src="/gmb.png"
+                                            alt="GMB Logo"
+                                            className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(66,133,244,0.3)]"
+                                        />
                                     </div>
                                     <div className="text-center">
                                         <div className="text-lg font-black text-white tracking-tight">Google Business</div>
