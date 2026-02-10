@@ -740,6 +740,31 @@ interface DashboardProps {
 }
 // --- DASHBOARD COMPONENT ---
 
+// --- HELPER: Normalize Data from Different APIs (Serper vs Google Places) ---
+const normalizePlaceData = (place: any) => {
+    // Common fields extraction
+    const title = place.displayName?.text || place.name || place.title;
+    const address = place.formattedAddress || place.formatted_address || place.vicinity || place.address;
+    const rating = place.rating || 0;
+    const reviews = place.userRatingCount ?? place.user_ratings_total ?? place.reviews ?? place.ratingCount ?? 0;
+
+    // ID extraction
+    const place_id = place.id || place.place_id || place.cid;
+
+    // Return normalized object if we have at least a title
+    if (title) {
+        return {
+            ...place,
+            title,
+            address,
+            rating,
+            reviews,
+            place_id,
+            cid: place_id
+        };
+    }
+    return place;
+};
 
 function DashboardLogic({ onHome }: DashboardProps) {
     const { data: session } = useSession();
@@ -876,7 +901,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
         try {
             // Send data (happens in background during the delay)
-            await axios.post("https://nnhore.app.n8n.cloud/webhook/save-lead", payload);
+            await axios.post("https://n8n-pro-775604255858.asia-south1.run.app/webhook/save-lead", payload);
             console.log("Lead saved");
         } catch (err) {
             console.error("Error saving lead:", err);
@@ -897,18 +922,18 @@ function DashboardLogic({ onHome }: DashboardProps) {
         const fetchMyBiz = async () => {
             try {
                 const res = await axios.post("/api/n8n-search", { keyword: debouncedMyQuery });
+                let rawData: any[] = [];
 
-                // FIX 1: Check for 'places' (Serper format)
-                if (res.data.places) {
-                    setMySuggestions(res.data.places);
-                }
-                // Fallback for 'local_results' (SerpApi format)
-                else if (res.data.local_results) {
-                    setMySuggestions(res.data.local_results);
-                }
-                else if (Array.isArray(res.data)) {
-                    setMySuggestions(res.data);
-                }
+                // 1. Normalize the response structure
+                if (res.data.places) rawData = res.data.places;
+                else if (res.data.local_results) rawData = res.data.local_results;
+                else if (Array.isArray(res.data)) rawData = res.data;
+                // Google Places Standard (Old) often uses 'results'
+                else if (res.data.results) rawData = res.data.results;
+
+                // 2. Normalize individual items
+                const formatted = rawData.map(normalizePlaceData);
+                setMySuggestions(formatted);
             } catch (e) { console.error(e); }
         };
         fetchMyBiz();
@@ -919,17 +944,17 @@ function DashboardLogic({ onHome }: DashboardProps) {
         const fetchComp = async () => {
             try {
                 const res = await axios.post("/api/n8n-search", { keyword: debouncedCompQuery });
+                let rawData: any[] = [];
 
-                // FIX 1: Check for 'places' here too
-                if (res.data.places) {
-                    setCompSuggestions(res.data.places);
-                }
-                else if (res.data.local_results) {
-                    setCompSuggestions(res.data.local_results);
-                }
-                else if (Array.isArray(res.data)) {
-                    setCompSuggestions(res.data);
-                }
+                // 1. Normalize the response structure
+                if (res.data.places) rawData = res.data.places;
+                else if (res.data.local_results) rawData = res.data.local_results;
+                else if (Array.isArray(res.data)) rawData = res.data;
+                else if (res.data.results) rawData = res.data.results;
+
+                // 2. Normalize individual items
+                const formatted = rawData.map(normalizePlaceData);
+                setCompSuggestions(formatted);
             } catch (e) { console.error(e); }
         };
         fetchComp();
@@ -948,7 +973,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
         try {
             // 2. Direct Connection to n8n
-            const webhookUrl = "https://nnhore.app.n8n.cloud/webhook/analyze-gmb";
+            const webhookUrl = "https://n8n-pro-775604255858.asia-south1.run.app/webhook/analyze-gmb";
 
             const res = await axios.post(webhookUrl, {
                 keyword: finalKeyword,
