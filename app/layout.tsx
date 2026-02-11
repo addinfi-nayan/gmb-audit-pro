@@ -6,8 +6,8 @@ import { Providers } from "./providers"; // Import the file you just created
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "GMB Audit Pro",
-  description: "AI-Powered Google My Business Audits",
+  title: "GMB Audit Tool | GBP & Competitor Analysis",
+  description: "Analyze your GBP with a detailed GMB audit tool. Compare competitors, find ranking gaps, and improve Google Maps visibility.",
 };
 
 export default function RootLayout({

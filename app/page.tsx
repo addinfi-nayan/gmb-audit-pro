@@ -153,7 +153,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
             <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
                 <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
+                        <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">What<span className="text-blue-500">My</span>Rank</span>
                     </div>
                     <div className="flex items-center gap-4 md:gap-8 relative">
                         {/* Theme toggle (desktop) */}
@@ -234,134 +234,83 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
             </nav>
 
             {/* --- HERO SECTION --- */}
-            <main className="relative z-10 pt-24 md:pt-32 text-center flex-grow">
-                <div className="max-w-6xl mx-auto px-4 md:px-6">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] md:text-xs font-mono mb-6 md:mb-8 animate-fade-in-up">
-                        <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-                        SYSTEM V2.4 ONLINE
+            <main className="relative z-10 text-center">
+                <div className="max-w-6xl mx-auto px-4 md:px-6 w-full md:min-h-screen flex flex-col justify-center items-center pt-28 pb-12 md:pt-20 md:pb-0">
+
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-[10px] md:text-xs font-mono mb-6 backdrop-blur-md">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.6)]"></span>
+                        POWERED BY ADDINFI
                     </div>
 
-                    <h1 className="text-4xl md:text-8xl font-bold tracking-tighter mb-6 md:mb-8 leading-[1.1] md:leading-[0.9] text-white">
-                        DECODE LOCAL <br />
+                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-6 md:mb-8 leading-[1.1] text-white max-w-5xl mx-auto">
+                        Analyze Your <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600">
-                            SEARCH ALGORITHMS
+                            GMB & Competitors
                         </span>
                     </h1>
 
-                    <p className="text-base md:text-xl text-gray-400 max-w-xl md:max-w-2xl mx-auto mb-8 md:mb-12 font-light leading-relaxed">
-                        Analyze ranking vectors, detect competitor weaknesses, and auto-generate
-                        strategic growth protocols using enterprise-grade AI.
+                    <p className="text-base md:text-lg text-gray-400 max-w-3xl mx-auto mb-8 md:mb-12 font-light leading-relaxed">
+                        Your Google Business Profile plays a major role in how customers find you on Google Search and Maps. Our Google Business Profile audit tool gives you a clear, data-driven view of how your GMB is performing and how it compares to your top local competitors.
                     </p>
+
+
 
                     <div className="flex justify-center mb-16 md:mb-24">
                         <button
                             onClick={onStart}
-                            className="w-full md:w-auto px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_40px_-10px_rgba(6,182,212,0.5)] flex items-center justify-center gap-3"
+                            className="w-full md:w-auto px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center justify-center gap-3 transform hover:scale-105"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                            Start Auditing
+                            Run GMB Audit
                         </button>
                     </div>
                 </div>
 
-                {/* --- SCANNER VISUALIZATION --- */}
-                <div className=" terminal-dashboard hidden md:block relative w-full max-w-5xl mx-auto h-[350px] md:h-[400px] border-y border-white/5 bg-[#0B1120]/30 backdrop-blur-sm overflow-hidden mb-20 md:mb-32">
-                    <div className="absolute inset-0 flex items-center justify-center scale-75 md:scale-100">
-                        {/* Radar Circles */}
-                        <div className="w-[600px] h-[600px] border border-white/5 rounded-full absolute"></div>
-                        <div className="w-[400px] h-[400px] border border-white/5 rounded-full absolute"></div>
-                        <div className="w-[200px] h-[200px] border border-blue-500/20 rounded-full absolute animate-pulse"></div>
-                    </div>
-                    {/* Moving Grid Line */}
-                    <div className="absolute top-0 left-0 w-full h-[4px] bg-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.8)] animate-[scan_4s_ease-in-out_infinite]"></div>
-
-                    {/* Top Right Status Overlay */}
-                    <div className="absolute top-4 right-4 md:top-8 md:right-8 text-right font-mono text-xs z-40 opacity-90 pointer-events-none hidden md:block">
-                        <div className="text-cyan-500 text-[10px] tracking-[0.2em] mb-1 font-bold">SYSTEM STATUS: OPERATIONAL</div>
-                        <div className="text-gray-500 text-[10px] tracking-widest">SCAN ID: 4793-A</div>
-                        <div className="text-gray-500 text-[10px] tracking-widest">LATENCY: 12ms</div>
-                        <div className="text-cyan-400 text-[10px] mt-1 animate-pulse tracking-widest font-bold">[&gt;] TARGET ACQUIRED</div>
-                    </div>
-
-                    {/* Modern Glass Card Overlay */}
-                    <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 p-6 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl shadow-2xl max-w-sm w-full animate-fade-in-up hidden md:block">
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
-                                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>
-                            </div>
-                            <div>
-                                <div className="text-base font-bold text-white">Live Intelligence</div>
-                                <div className="text-xs text-blue-400 font-medium flex items-center gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-                                    Processing Data
-                                </div>
-                            </div>
-                        </div>
-                        <div className="space-y-3">
-                            <div className="flex justify-between text-xs text-gray-400 mb-1">
-                                <span>Sentiment Analysis</span>
-                                <span className="text-white font-mono">98%</span>
-                            </div>
-                            <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
-                                <div className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-[98%] rounded-full animate-[shimmer_2s_infinite]"></div>
-                            </div>
-
-                            <div className="flex justify-between text-xs text-gray-400 mb-1 mt-3">
-                                <span>Competitor Benchmarking</span>
-                                <span className="text-white font-mono">Processing...</span>
-                            </div>
-                            <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
-                                <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-full w-[65%] rounded-full animate-[shimmer_2s_infinite]"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* --- LIVE STATS GRID --- */}
-                <div className="max-w-7xl mx-auto px-4 md:px-6 mb-24 md:mb-32">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                {/* --- LIVE STATS GRID (Below Fold) --- */}
+                <div className="w-full max-w-7xl mx-auto px-4 md:px-6 mb-12 md:mb-32">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                         {/* Card 1 */}
-                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-blue-500/30 transition group">
+                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-blue-500/30 transition group flex flex-col items-center justify-center text-center">
                             <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Profiles Analyzed</p>
-                            <div className="flex items-baseline gap-1 mb-2">
+                            <div className="flex items-baseline justify-center gap-1 mb-2">
                                 <span className="text-3xl md:text-4xl font-bold text-white tabular-nums leading-none">{profileCount.toLocaleString()}</span>
                                 <span className="text-blue-500 font-bold text-xl leading-none">+</span>
                             </div>
-                            <div className="hidden md:flex items-center gap-2 text-xs text-blue-400">
+                            <div className="hidden md:flex items-center justify-center gap-2 text-xs text-blue-400">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                                 <span>Real-time processing</span>
                             </div>
                         </div>
                         {/* ... other cards (same structure) ... */}
-                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-purple-500/30 transition group">
+                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-purple-500/30 transition group flex flex-col items-center justify-center text-center">
                             <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Issues Detected</p>
-                            <div className="flex items-baseline gap-1 mb-2">
+                            <div className="flex items-baseline justify-center gap-1 mb-2">
                                 <span className="text-3xl md:text-4xl font-bold text-white tabular-nums leading-none">{issueCount.toLocaleString()}</span>
                                 <span className="text-purple-500 font-bold text-xl leading-none">+</span>
                             </div>
-                            <div className="hidden md:flex items-center gap-2 text-xs text-purple-400">
+                            <div className="hidden md:flex items-center justify-center gap-2 text-xs text-purple-400">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span>Critical gaps found</span>
                             </div>
                         </div>
-                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-green-500/30 transition group">
+                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-green-500/30 transition group flex flex-col items-center justify-center text-center">
                             <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Accuracy Rate</p>
-                            <div className="flex items-baseline gap-1 mb-2">
+                            <div className="flex items-baseline justify-center gap-1 mb-2">
                                 <span className="text-3xl md:text-4xl font-bold text-white leading-none">99.8</span>
                                 <span className="text-green-500 font-bold text-xl leading-none">%</span>
                             </div>
-                            <div className="hidden md:flex items-center gap-2 text-xs text-green-400">
+                            <div className="hidden md:flex items-center justify-center gap-2 text-xs text-green-400">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span>Verified data sources</span>
                             </div>
                         </div>
-                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-cyan-500/30 transition group">
+                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-cyan-500/30 transition group flex flex-col items-center justify-center text-center">
                             <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Hrs Saved</p>
-                            <div className="flex items-baseline gap-1 mb-2">
+                            <div className="flex items-baseline justify-center gap-1 mb-2">
                                 <span className="text-3xl md:text-4xl font-bold text-white leading-none">4.5</span>
                                 <span className="text-cyan-500 font-bold text-xl leading-none">hrs</span>
                             </div>
-                            <div className="hidden md:flex items-center gap-2 text-xs text-cyan-400">
+                            <div className="hidden md:flex items-center justify-center gap-2 text-xs text-cyan-400">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 <span>vs Manual Auditing</span>
                             </div>
@@ -370,7 +319,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                 </div>
 
                 {/* --- BENEFITS & PROTOCOL SECTIONS --- */}
-                <section id="benefits" className="py-20 md:py-32 relative border-t border-white/5 overflow-hidden">
+                <section id="benefits" className="py-10 md:py-32 relative border-t border-white/5 overflow-hidden">
                     {/* Background Tech Elements */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
                         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
@@ -378,25 +327,25 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                     </div>
 
                     <div className="max-w-7xl mx-auto px-6 relative z-10">
-                        <div className="text-center mb-20">
+                        <div className="text-center mb-10 md:mb-20">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-xs font-mono mb-6">
                                 <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-                                SYSTEM ARCHITECTURE V2.0
+                                COMPREHENSIVE ANALYSIS
                             </div>
-                            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Neural <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Propulsion Engine</span></h2>
-                            <p className="text-gray-400 max-w-2xl mx-auto text-lg">Our proprietary stack processes 50+ ranking signals to launch your profile to the top of local search grids.</p>
+                            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">What You Get in Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">GBP Audit Report</span></h2>
+                            <p className="text-gray-400 max-w-2xl mx-auto text-lg">Receive a detailed breakdown of your profile's health and competitive standing.</p>
                         </div>
 
                         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center">
                             {/* Left Column - Features */}
                             <div className="flex-1 space-y-6 w-full">
                                 {[
-                                    { title: "Sentiment Decoding", desc: "NLP algorithms parse review text to identify specific service complaints.", icon: "🧠", color: "text-pink-400", border: "group-hover:border-pink-500/30" },
-                                    { title: "Competitor Matrix", desc: "Real-time benchmarking against top 3 local rivals to expose weakness.", icon: "⚔️", color: "text-red-400", border: "group-hover:border-red-500/30" },
-                                    { title: "Ranking Vectors", desc: "Reverse-engineering local search signals for maximum visibility.", icon: "📊", color: "text-green-400", border: "group-hover:border-green-500/30" }
+                                    { title: "Executive Performance Summary", desc: "Current ranking potential score.", icon: "🧠", color: "text-pink-400", border: "group-hover:border-pink-500/30" },
+                                    { title: "Competitor Comparison Insights", desc: "Why competitors win in local search.", icon: "⚔️", color: "text-red-400", border: "group-hover:border-red-500/30" },
+                                    { title: "Review & Reputation Gaps", desc: "Trust growth opportunities.", icon: "📈", color: "text-purple-400", border: "group-hover:border-purple-500/30" },
                                 ].map((item, i) => (
                                     <div key={i} className={`bg-[#0B1120]/80 backdrop-blur-sm p-6 rounded-xl border border-white/5 transition-all group hover:translate-x-2 ${item.border}`}>
-                                        <div className="flex items-start gap-4">
+                                        <div className="flex flex-col items-center text-center gap-4">
                                             <div className={`p-3 rounded-lg bg-white/5 border border-white/10 text-2xl ${item.color}`}>{item.icon}</div>
                                             <div>
                                                 <h3 className="text-lg font-bold text-gray-100 mb-1 group-hover:text-white transition">{item.title}</h3>
@@ -428,12 +377,12 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                             {/* Right Column - Features */}
                             <div className="flex-1 space-y-6 w-full">
                                 {[
-                                    { title: "Growth Protocol", desc: "Auto-generated 4-week action plan prioritized by impact probability.", icon: "📈", color: "text-purple-400", border: "group-hover:border-purple-500/30" },
-                                    { title: "Grid Triangulation", desc: "Hyper-local proximity analysis to dominate neighborhood search.", icon: "📍", color: "text-yellow-400", border: "group-hover:border-yellow-500/30" },
-                                    { title: "Conversion Heuristics", desc: "Traffic pattern optimization to turn views into paying customers.", icon: "💎", color: "text-cyan-400", border: "group-hover:border-cyan-500/30" }
+                                    { title: "Optimization & Visibility Issues", desc: "Hidden ranking blockers.", icon: "📍", color: "text-yellow-400", border: "group-hover:border-yellow-500/30" },
+                                    { title: "Priority Areas for Improvement", desc: "Fastest impact actions.", icon: "💎", color: "text-cyan-400", border: "group-hover:border-cyan-500/30" },
+                                    { title: "Keyword Ranking Opportunities", desc: "Discover high-value search terms you're missing.", icon: "🔍", color: "text-green-400", border: "group-hover:border-green-500/30" }
                                 ].map((item, i) => (
                                     <div key={i} className={`bg-[#0B1120]/80 backdrop-blur-sm p-6 rounded-xl border border-white/5 transition-all group lg:hover:-translate-x-2 hover:translate-x-2 ${item.border}`}>
-                                        <div className="flex items-start gap-4 flex-row lg:flex-row-reverse text-left lg:text-right">
+                                        <div className="flex flex-col items-center text-center gap-4">
                                             <div className={`p-3 rounded-lg bg-white/5 border border-white/10 text-2xl ${item.color}`}>{item.icon}</div>
                                             <div>
                                                 <h3 className="text-lg font-bold text-gray-100 mb-1 group-hover:text-white transition">{item.title}</h3>
@@ -447,19 +396,19 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                     </div>
                 </section>
 
-                <section id="protocol" className="py-20 md:py-32 bg-[#0B1120]/30 border-t border-white/5">
+                <section id="protocol" className="py-10 md:py-32 bg-[#0B1120]/30 border-t border-white/5">
                     <div className="max-w-7xl mx-auto px-6">
                         <div className="flex flex-col md:flex-row gap-12 items-center">
                             <div className="flex-1">
-                                <div className="inline-block text-cyan-500 font-mono text-xs tracking-widest mb-4 border border-cyan-500/20 px-2 py-1 rounded bg-cyan-500/10">OPERATIONAL PROTOCOL</div>
-                                <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-white">Precision Auditing in <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">3 Simple Steps</span></h2>
-                                <p className="text-gray-400 mb-8 text-lg">Bypass manual analysis. Our system automates the data collection and strategy formulation process.</p>
+                                <div className="inline-block text-cyan-500 font-mono text-xs tracking-widest mb-4 border border-cyan-500/20 px-2 py-1 rounded bg-cyan-500/10">AUDIT PROCESS</div>
+                                <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-white">How the GBP <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">Audit Tool Works</span></h2>
+                                <p className="text-gray-400 mb-8 text-lg">Detailed analysis in 3 simple steps.</p>
 
                                 <div className="space-y-8">
                                     {[
-                                        { step: "01", title: "Target Identification", desc: "Input your business name. We locate your specific GMB Node ID." },
-                                        { step: "02", title: "Deep Scan Analysis", desc: "We extract 2 years of data points and cross-reference with category leaders." },
-                                        { step: "03", title: "Strategy Deployment", desc: "Receive a PDF report with exact keywords, fixes, and response scripts." }
+                                        { step: "01", title: "Enter Your Business Details", desc: "Provide your business name with a maximum of 2 competitors." },
+                                        { step: "02", title: "Competitor & Profile Analysis", desc: "The tool analyzes your profile alongside top competitors using key local ranking factors." },
+                                        { step: "03", title: "Get Your Audit Report", desc: "Receive a clear audit highlighting gaps, strengths, and opportunities." }
                                     ].map((s, i) => (
                                         <div key={i} className="flex gap-4 items-start">
                                             <div className="font-mono text-blue-500 font-bold text-xl opacity-50 leading-none mt-1">{s.step}</div>
@@ -538,18 +487,17 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                     </div>
                 </section>
 
-                <section id="faq" className="py-20 md:py-32 border-t border-white/5">
+                <section id="faq" className="py-10 md:py-32 border-t border-white/5">
                     <div className="max-w-4xl mx-auto px-6">
                         <h2 className="text-3xl md:text-5xl font-bold mb-12 text-center text-white">Frequently Asked <span className="text-blue-500">Questions</span></h2>
                         <div className="space-y-4">
                             {[
-                                { q: "Is this audit really free?", a: "Yes. The initial diagnostic scan and summary report are completely free. We offer a premium unlock for the detailed 4-week execution plan." },
-                                { q: "Do I need to give you access to my GMB?", a: "No. We use public data available via Google Maps API. No login credentials or manager access is required." },
-                                { q: "How long does the scan take?", a: "Approximately 30-60 seconds depending on the volume of reviews and competitor data we need to process." },
-                                { q: "Can I download the report?", a: "Yes, the full report is generated as a high-resolution PDF suitable for presentation to stakeholders or clients." },
-                                { q: "How accurate is the competitor analysis?", a: "We use real-time data directly from Google Maps API to ensure 100% accuracy in benchmarking your profile against live competitors." },
-                                { q: "Can I audit multiple locations?", a: "Yes. You can run separate audits for each location. For enterprise bulk auditing, please contact our support team." },
-                                { q: "What if my business isn't listed?", a: "If your business doesn't appear in the search, ensure it's verified on Google. You can also try searching by your exact Google Maps address." }
+                                { q: "What is a GBP audit tool?", a: "A GBP audit tool analyzes how well your GMB listing is optimized for local search. It evaluates key factors such as reviews, categories, profile completeness, activity, and competitor performance to identify gaps that may be affecting your Google Maps rankings." },
+                                { q: "How does this GMB audit tool compare my business with competitors?", a: "The tool analyzes your GBP alongside top local competitors competing for the same searches. It highlights differences in reviews, optimization strength, and visibility signals, helping you understand why certain competitors rank higher in local results." },
+                                { q: "Is this GBP audit suitable for all types of businesses?", a: "Yes. The audit tool is designed for any business that relies on local visibility, including service providers, clinics, retail stores, agencies, and multi-location brands. The analysis adapts to your local market and competitive landscape." },
+                                { q: "Does this tool help improve Google Maps rankings?", a: "The audit itself does not change rankings, but it clearly identifies the issues that influence Google Maps visibility. By addressing the gaps highlighted in the audit, businesses can improve relevance, trust, and competitive positioning in local search results." },
+                                { q: "How long does it take to generate a Google Business Profile audit report?", a: "The audit process is quick and requires no technical setup. Once you enter your business details, the tool analyzes your profile and competitors and generates a report within minutes." },
+                                { q: "Do I need technical SEO knowledge to understand the audit report?", a: "No. The audit report is designed to be clear and decision-focused. It explains performance and gaps in simple terms so business owners, marketers, and consultants can easily understand what needs attention." }
                             ].map((item, i) => (
                                 <FAQItem key={i} q={item.q} a={item.a} />
                             ))}
@@ -588,13 +536,13 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
 
                 {/* --- FINAL CTA --- */}
                 <div className="max-w-3xl mx-auto px-6 text-center mb-10">
-                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 md:mb-8">Ready to deploy?</h2>
-                    <p className="text-gray-400 mb-8 md:mb-10 text-sm md:text-base">Access the full suite of auditing tools. No credit card required for initial diagnostics.</p>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 md:mb-8">Start Your GBP Audit Today</h2>
+                    <p className="text-gray-400 mb-8 md:mb-10 text-sm md:text-base">If you want better local rankings, more visibility, and a clear understanding of how you compare to competitors, this audit is the right place to start.</p>
                     <button
                         onClick={onStart}
                         className="w-full md:w-auto px-16 py-5 bg-white text-black rounded-xl font-bold text-lg hover:scale-105 transition shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)]"
                     >
-                        Start Auditing
+                        Analyze GMB
                     </button>
                 </div>
 
@@ -656,6 +604,7 @@ const ChartIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stro
 const TrophyIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>);
 const ListIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>);
 const BookIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>);
+const WarningIcon = () => (<svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>);
 
 // --- HOOK: DEBOUNCE ---
 function useDebounce(value: string, delay: number) {
@@ -697,6 +646,14 @@ const responseScore = (value: string | undefined) => {
     const hours = parseNumber(value);
     if (!hours) return 0;
     return Math.max(10, 120 - hours);
+};
+
+const daysSince = (dateString: string | undefined) => {
+    if (!dateString) return 0;
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 0;
+    const diffTime = Math.abs(new Date().getTime() - date.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
 const COMPARISON_METRICS = [
@@ -988,7 +945,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                 key: orderData.key_id,
                 amount: orderData.amount,
                 currency: orderData.currency,
-                name: "GMB Audit Pro",
+                name: "WhatMyRank",
                 description: `Unlock Full Audit for ${myBusiness?.title}`,
                 order_id: orderData.id,
                 handler: async function (response: any) {
@@ -1261,7 +1218,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
                         {/* Logo (Clicking also goes home) */}
                         <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.location.href = "/"}>
-                            <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">GMB<span className="text-blue-500">Audit</span>Pro</span>
+                            <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">What<span className="text-blue-500">My</span>Rank</span>
                         </div>
 
                         {/* Desktop Actions */}
@@ -1540,7 +1497,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                         />
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-lg font-black text-white tracking-tight">Google Business</div>
+                                        <div className="text-lg font-black text-white tracking-tight">WhatMyRank</div>
                                         <div className="text-xs font-bold text-blue-400 tracking-[0.15em] uppercase">Profile Audit</div>
                                     </div>
                                 </div>
@@ -2030,6 +1987,35 @@ function DashboardLogic({ onHome }: DashboardProps) {
                             {/* EXECUTIVE SUMMARY */}
                             {report.executive_summary && (
                                 <div className="max-w-5xl mx-auto">
+                                    {/* CRITICAL WARNING: NO RECENT REVIEWS */}
+                                    {(() => {
+                                        const lastReviewDate = report.latest_review_date || report.matrix?.me?.latest_review_date || report.matrix?.me?.last_review_date;
+                                        const days = daysSince(lastReviewDate);
+
+                                        if (days > 28) {
+                                            return (
+                                                <div className="mb-8 bg-red-900/10 border border-red-500/50 rounded-xl p-6 flex items-start gap-4 animate-pulse">
+                                                    <div className="p-3 bg-red-500/20 rounded-lg shrink-0 border border-red-500/30">
+                                                        <WarningIcon />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-red-400 font-bold text-lg mb-1 uppercase tracking-wider flex items-center gap-2">
+                                                            Critical Attention Needed
+                                                        </h3>
+                                                        <p className="text-gray-300 text-sm leading-relaxed">
+                                                            No new reviews detected for <span className="text-white font-bold">{days} days</span>.
+                                                            Your profile is becoming dormant, which negatively impacts local ranking velocity.
+                                                        </p>
+                                                        <div className="mt-3 inline-block bg-red-500/20 px-3 py-1 rounded border border-red-500/30">
+                                                            <span className="text-xs font-bold text-red-300 uppercase tracking-wide">Recommended Action: Initiate SMS review campaign immediately</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+
                                     <div className="bg-[#0B1120] p-8 rounded-xl shadow-2xl border-t-4 border-blue-600 border-x border-b border-white/5">
                                         <div className="flex items-center gap-3 mb-4">
                                             <span className="bg-blue-900/30 text-blue-400 p-2 rounded-lg border border-blue-500/20"><SearchIcon /></span>
