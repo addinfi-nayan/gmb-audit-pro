@@ -153,13 +153,10 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
             <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
                 <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">What<span className="text-blue-500">My</span>Rank</span>
+                        <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">What<span className="text-blue-500">My</span>Rank<span className="hidden md:inline"> - GMB</span></span>
                     </div>
                     <div className="flex items-center gap-4 md:gap-8 relative">
-                        {/* Theme toggle (desktop) */}
-                        <div className="hidden md:block">
-                            <ThemeToggle />
-                        </div>
+
 
                         <div className="hidden md:flex items-center gap-8 text-xs font-medium text-gray-400 uppercase tracking-widest">
                             <a href="#benefits" className="hover:text-cyan-400 transition cursor-pointer">Architecture</a>
@@ -225,10 +222,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                             </button>
                         )}
 
-                        {/* Theme toggle (mobile) */}
-                        <div className="pt-4 border-t border-white/10">
-                            <ThemeToggle />
-                        </div>
+
                     </div>
                 )}
             </nav>
@@ -2745,7 +2739,10 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                             <span>Processing Payment...</span>
                                         </>
                                     ) : (
-                                        "Pay & Unlock Report →"
+                                        <div className="flex items-center justify-center gap-3">
+                                            <span className="text-lg font-bold">Pay ₹99</span>
+                                            <span className="text-red-500 line-through text-sm">₹999</span>
+                                        </div>
                                     )}
                                 </button>
                             </form>
