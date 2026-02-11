@@ -14,8 +14,8 @@ export default function Icon() {
             // ImageResponse JSX element
             <div
                 style={{
-                    fontSize: 80,
-                    background: "#0B1120",
+                    fontSize: 100, // Increased font size
+                    background: "transparent", // Transparent background
                     width: "100%",
                     height: "100%",
                     display: "flex",
@@ -23,8 +23,7 @@ export default function Icon() {
                     justifyContent: "center",
                     color: "#06B6D4", // Cyan-500
                     fontWeight: 900,
-                    borderRadius: "20%", // Rounded square
-                    border: "8px solid #334155", // Slate-700 border
+                    // Removed border and borderRadius
                 }}
             >
                 GMB
