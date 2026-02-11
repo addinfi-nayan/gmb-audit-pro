@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     console.log("--- DEBUG START ---");
     console.log("1. Received Keyword:", body.keyword);
 
-    const n8nUrl = "https://n8n-pro-775604255858.asia-south1.run.app/webhook/search-gmb";
+    const n8nUrl = process.env.N8N_SEARCH_WEBHOOK_URL || "https://n8n-pro-775604255858.asia-south1.run.app/webhook/search-gmb";
     console.log("2. Using n8n URL:", n8nUrl ? "URL Found ✅" : "URL IS MISSING ❌");
 
     if (!n8nUrl) {

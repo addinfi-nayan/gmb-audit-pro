@@ -28,6 +28,65 @@ const FAQItem = ({ q, a }: { q: string, a: string }) => {
     );
 };
 
+// --- USER MENU COMPONENT ---
+const UserMenu = ({ session }: { session: any }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [imageError, setImageError] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    return (
+        <div className="relative" ref={menuRef}>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border border-white/10 hover:border-white/30 transition focus:outline-none ring-2 ring-transparent focus:ring-blue-500/50 p-0"
+            >
+                {session?.user?.image && !imageError ? (
+                    <img
+                        src={session.user.image}
+                        alt="User"
+                        className="w-full h-full object-cover"
+                        onError={() => setImageError(true)}
+                    />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-sm">
+                        {session?.user?.name?.charAt(0) || "U"}
+                    </div>
+                )}
+            </button>
+
+            {isOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-[#0B1120] border border-white/10 rounded-xl shadow-2xl py-1 z-50 animate-[fadeIn_0.1s_ease-out] backdrop-blur-xl">
+                    <div className="px-4 py-3 border-b border-white/5 bg-white/5">
+                        <p className="text-sm text-white font-bold truncate">{session?.user?.name}</p>
+                        <p className="text-xs text-gray-500 truncate font-mono">{session?.user?.email}</p>
+                    </div>
+                    <div className="p-1">
+                        <button
+                            onClick={() => signOut()}
+                            className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition rounded-lg flex items-center gap-2 group"
+                        >
+                            <div className="w-6 h-6 rounded-md bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                            </div>
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 interface LandingProps {
     onStart: () => void;
 }
@@ -114,12 +173,9 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                             {session ? "Get Audit" : "Get Started"}
                         </button>
                         {session && (
-                            <button
-                                onClick={() => signOut()}
-                                className="hidden md:inline-flex px-4 py-2 border border-white/10 rounded-full text-sm font-semibold text-gray-300 hover:text-white hover:border-white/30 transition"
-                            >
-                                Sign Out
-                            </button>
+                            <div className="hidden md:block">
+                                <UserMenu session={session} />
+                            </div>
                         )}
 
                         {/* Mobile Menu Toggle */}
@@ -738,6 +794,18 @@ export default function Page() {
 interface DashboardProps {
     onHome: () => void;
 }
+
+// --- RAZORPAY LOADER ---
+const loadRazorpay = () => {
+    return new Promise((resolve) => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+};
+
 // --- DASHBOARD COMPONENT ---
 
 // --- HELPER: Normalize Data from Different APIs (Serper vs Google Places) ---
@@ -836,13 +904,8 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
     // --- GATEKEEPER LOGIC ---
     const handleRestrictedAction = () => {
-        // If we already have their email, go straight to payment/coupon
-        if (leadData.email) {
-            setShowPaymentModal(true);
-        } else {
-            // Otherwise, ask for lead info first
-            setShowLeadModal(true);
-        }
+        // Always show the lead confirmation modal to trigger payment
+        setShowLeadModal(true);
     };
 
     // --- UPDATED RESET HANDLER ---
@@ -890,7 +953,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
     const handleLeadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitting(true); // 1. Start Loader
+        setIsSubmitting(true);
 
         const payload = {
             email: leadData.email,
@@ -900,19 +963,75 @@ function DashboardLogic({ onHome }: DashboardProps) {
         };
 
         try {
-            // Send data (happens in background during the delay)
-            await axios.post("https://n8n-pro-775604255858.asia-south1.run.app/webhook/save-lead", payload);
-            console.log("Lead saved");
-        } catch (err) {
-            console.error("Error saving lead:", err);
-        }
+            // 1. Save Lead (Background)
+            axios.post("https://n8n-pro-775604255858.asia-south1.run.app/webhook/save-lead", payload).catch(err => console.error("Lead Error:", err));
 
-        // 2. Wait 1 Second before transitioning
-        setTimeout(() => {
-            setIsSubmitting(false);    // Stop Loader
-            setShowLeadModal(false);   // Close Lead Form
-            setShowPaymentModal(true); // Open Payment/Lock Modal
-        }, 300);
+            // 2. Load Razorpay SDK
+            const isLoaded = await loadRazorpay();
+            if (!isLoaded) {
+                alert("Razorpay SDK failed to load. Please checks your internet connection.");
+                setIsSubmitting(false);
+                return;
+            }
+
+            // 3. Create Order
+            const { data: orderData } = await axios.post("/api/razorpay/create-order");
+
+            if (!orderData || !orderData.id) {
+                alert("Failed to create payment order. Please try again.");
+                setIsSubmitting(false);
+                return;
+            }
+
+            // 4. Open Razorpay Options
+            const options = {
+                key: orderData.key_id,
+                amount: orderData.amount,
+                currency: orderData.currency,
+                name: "GMB Audit Pro",
+                description: `Unlock Full Audit for ${myBusiness?.title}`,
+                order_id: orderData.id,
+                handler: async function (response: any) {
+                    try {
+                        const result = await axios.post("/api/razorpay/verify-payment", {
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                        });
+
+                        if (result.data.success) {
+                            setIsUnlocked(true);
+                            setShowLeadModal(false);
+                            // Auto-download or show success
+                            alert("Payment Successful! Unlocking report...");
+                            setTimeout(() => { generatePDF(); }, 1000);
+                        } else {
+                            alert("Payment Verification Failed. Please contact support.");
+                        }
+                    } catch (err) {
+                        console.error("Verification Error:", err);
+                        alert("Payment Verification Failed.");
+                    }
+                },
+                prefill: {
+                    name: "User", // We could add a name field if needed
+                    email: leadData.email,
+                    contact: leadData.phone,
+                },
+                theme: {
+                    color: "#0891b2",
+                },
+            };
+
+            const paymentObject = new (window as any).Razorpay(options);
+            paymentObject.open();
+            setIsSubmitting(false);
+
+        } catch (err) {
+            console.error("Payment Error:", err);
+            alert("Something went wrong initializing payment.");
+            setIsSubmitting(false);
+        }
     };
     // --- SEARCH EFFECTS ---
     // --- SEARCH EFFECTS (UPDATED FOR SERPER.DEV) ---
@@ -1191,9 +1310,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                     </>
                                 )}
                                 {session && (
-                                    <button onClick={() => signOut()} className="text-xs font-bold text-gray-400 uppercase hover:text-white transition">
-                                        Sign Out
-                                    </button>
+                                    <UserMenu session={session} />
                                 )}
                             </div>
                         </div>
@@ -1680,7 +1797,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                                                     <circle cx="40" cy="40" r="32" fill="none" stroke={strokeColor} strokeWidth="6" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={dashoffset} className="transition-all duration-1000" />
                                                                                 </svg>
                                                                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                                                    <span className={`text-[10px] font-bold ${entity.textClass}`}>{metric.display(entity.data).split('/')[0]}</span>
+                                                                                    <span className={`text-[10px] font-bold ${entity.textClass}`}>{metric.display(entity.data).split('(')[0].trim()}</span>
                                                                                 </div>
                                                                             </div>
                                                                             <span className={`text-[9px] font-bold mt-1 ${entity.textClass} truncate max-w-[70px] text-center`}>{metric.display(entity.data)}</span>
@@ -2639,53 +2756,21 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            <span>Saving...</span>
+                                            <span>Processing Payment...</span>
                                         </>
                                     ) : (
-                                        "Proceed to Unlock →"
+                                        "Pay & Unlock Report →"
                                     )}
                                 </button>
                             </form>
                         </div>
                     </div>
                 )}
-                {/* --- PAYMENT MODAL --- */}
-                {showPaymentModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-                        <div className="bg-[#0B1120] rounded-2xl shadow-2xl max-w-md w-full p-8 text-center border border-white/10 transform transition-all scale-100">
-                            <div className="bg-blue-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
-                                <LockIcon />
-                            </div>
-                            <h2 className="text-2xl font-bold text-white mb-2">Unlock Full Report</h2>
-                            <p className="text-gray-400 mb-6 text-sm">Get immediate access to your comprehensive audit PDF, including competitor data and the 4-week growth plan.</p>
+                {/* --- RAZORPAY PAYMENT MODAL (Optional if you want a pre-check, but we will trigger directly) --- */}
+                {/* We are removing the coupon modal and triggering payment directly from lead capture or a specific button if needed. 
+                    For now, if showPaymentModal is true, we can just show a spinner or "Processing Payment..." 
+                */}
 
-                            <div className="space-y-4">
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500 text-sm font-bold">PROMO</div>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter Coupon Code"
-                                        className="w-full bg-[#020617] border-2 border-white/10 pl-16 pr-4 py-3 rounded-xl focus:border-cyan-500 outline-none font-mono text-center uppercase text-white"
-                                        value={couponCode}
-                                        onChange={(e) => { setCouponCode(e.target.value); setCouponError(""); }}
-                                    />
-                                </div>
-                                {couponError && <p className="text-red-500 text-xs font-bold">{couponError}</p>}
-
-                                <button
-                                    onClick={handleUnlock}
-                                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 rounded-xl font-bold hover:from-blue-500 hover:to-cyan-500 transition shadow-[0_0_20px_rgba(6,182,212,0.4)]"
-                                >
-                                    Unlock Download 🔓
-                                </button>
-
-                                <div className="text-xs text-gray-500 mt-4">
-                                    Limited time: Use code <span className="font-mono bg-yellow-500/10 text-yellow-500 px-1 rounded border border-yellow-500/20">first20</span> for free access.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
             </div>
 
