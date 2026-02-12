@@ -229,7 +229,88 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
 
             {/* --- HERO SECTION --- */}
             <main className="relative z-10 text-center">
-                <div className="max-w-6xl mx-auto px-4 md:px-6 w-full md:min-h-screen flex flex-col justify-center items-center pt-28 pb-12 md:pt-20 md:pb-0">
+                <div className="max-w-6xl mx-auto px-4 md:px-6 w-full md:min-h-screen flex flex-col justify-center items-center pt-28 pb-12 md:pt-20 md:pb-0 relative">
+
+                    {/* Floating GMB Icons - Professional & Subtle - Desktop Only */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block">
+                        {/* Top Left - Star Rating */}
+                        <div className="absolute top-[15%] left-[8%] animate-[fadeInOut_6s_ease-in-out_infinite]">
+                            <div className="bg-yellow-500/10 backdrop-blur-sm border border-yellow-500/20 rounded-xl p-2.5 shadow-lg hover:scale-110 transition-transform duration-300 hover:shadow-yellow-500/30 hover:shadow-2xl">
+                                <div className="flex gap-0.5">
+                                    {[...Array(5)].map((_, i) => (
+                                        <svg key={i} className="w-3.5 h-3.5 text-yellow-400 fill-current animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Top Right - Map Pin */}
+                        <div className="absolute top-[20%] right-[10%] animate-[fadeInOut_7s_ease-in-out_infinite_1s]">
+                            <div className="bg-red-500/10 backdrop-blur-sm border border-red-500/20 rounded-full p-2.5 shadow-lg hover:scale-110 transition-transform duration-300 hover:shadow-red-500/30 hover:shadow-2xl">
+                                <svg className="w-5 h-5 text-red-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Middle Left - Review Comment */}
+                        <div className="absolute top-[50%] left-[5%] animate-[fadeInOut_8s_ease-in-out_infinite_2s]">
+                            <div className="bg-blue-500/10 backdrop-blur-sm border border-blue-500/20 rounded-xl p-2.5 shadow-lg hover:scale-110 transition-transform duration-300 hover:shadow-blue-500/30 hover:shadow-2xl">
+                                <svg className="w-5 h-5 text-blue-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Middle Right - Google "G" Logo */}
+                        <div className="absolute top-[45%] right-[7%] animate-[fadeInOut_6.5s_ease-in-out_infinite_1.5s]">
+                            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-2.5 shadow-lg hover:scale-110 transition-transform duration-300 hover:shadow-white/30 hover:shadow-2xl hover:rotate-12">
+                                <div className="w-7 h-7 relative">
+                                    <svg viewBox="0 0 48 48" className="w-full h-full">
+                                        <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z" />
+                                        <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z" />
+                                        <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7z" />
+                                        <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Bottom Left - Chart/Analytics */}
+                        <div className="absolute bottom-[25%] left-[12%] animate-[fadeInOut_7.5s_ease-in-out_infinite_0.5s]">
+                            <div className="bg-green-500/10 backdrop-blur-sm border border-green-500/20 rounded-xl p-2.5 shadow-lg hover:scale-110 transition-transform duration-300 hover:shadow-green-500/30 hover:shadow-2xl">
+                                <svg className="w-5 h-5 text-green-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Bottom Right - Location/Business */}
+                        <div className="absolute bottom-[30%] right-[15%] animate-[fadeInOut_6s_ease-in-out_infinite_2.5s]">
+                            <div className="bg-purple-500/10 backdrop-blur-sm border border-purple-500/20 rounded-xl p-2.5 shadow-lg hover:scale-110 transition-transform duration-300 hover:shadow-purple-500/30 hover:shadow-2xl">
+                                <svg className="w-5 h-5 text-purple-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Small floating star - top center */}
+                        <div className="absolute top-[12%] left-[48%] animate-[fadeInOut_5s_ease-in-out_infinite_3s]">
+                            <svg className="w-4 h-4 text-yellow-400/50 fill-current animate-pulse" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                        </div>
+
+                        {/* Small map pin - bottom center */}
+                        <div className="absolute bottom-[20%] left-[52%] animate-[fadeInOut_7s_ease-in-out_infinite_1s]">
+                            <svg className="w-4 h-4 text-cyan-400/50 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            </svg>
+                        </div>
+                    </div>
 
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-[10px] md:text-xs font-mono mb-6 backdrop-blur-md">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.6)]"></span>
@@ -254,8 +335,9 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                             onClick={onStart}
                             className="w-full md:w-auto px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center justify-center gap-3 transform hover:scale-105"
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                            Run GMB Audit
+                            <span className="flex items-center gap-2">
+                                Get Audit At ₹99
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -1324,10 +1406,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                 </button>
                             )}
 
-                            {/* Theme toggle (dashboard mobile) */}
-                            <div className="pt-4 border-t border-white/10">
-                                <ThemeToggle />
-                            </div>
+
                         </div>
                     )}
                 </nav>
@@ -1340,7 +1419,16 @@ function DashboardLogic({ onHome }: DashboardProps) {
                         <div className="relative w-full max-w-2xl">
                             <div className="relative flex items-center">
                                 <div className="absolute left-4 text-gray-400"><SearchIcon /></div>
-                                <input className="w-full bg-[#0B1120] border border-white/10 pl-12 pr-4 py-5 rounded-xl text-xl text-white placeholder-gray-500 shadow-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition" placeholder="Type business name..." value={myQuery} onChange={e => { setMyQuery(e.target.value); setMyBusiness(null); }} />
+                                <input className="w-full bg-[#0B1120] border border-white/10 pl-12 pr-12 py-5 rounded-xl text-xl text-white placeholder-gray-500 shadow-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition" placeholder="Type business name..." value={myQuery} onChange={e => { setMyQuery(e.target.value); setMyBusiness(null); }} />
+                                {myQuery && (
+                                    <button
+                                        onClick={() => { setMyQuery(""); setMySuggestions([]); setMyBusiness(null); }}
+                                        className="absolute right-4 text-gray-400 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full"
+                                        aria-label="Clear search"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                )}
                             </div>
                             {mySuggestions.length > 0 && !myBusiness && (
                                 <div className="absolute top-full left-0 w-full bg-[#0B1120] border border-white/10 rounded-xl shadow-2xl mt-2 z-50 max-h-80 overflow-y-auto text-left">
@@ -1387,15 +1475,26 @@ function DashboardLogic({ onHome }: DashboardProps) {
                         </div>
 
                         <div className="relative z-50">
-                            <input
-                                className="w-full bg-[#0B1120] border border-white/10 p-4 rounded-xl text-lg text-white placeholder-gray-500 focus:border-cyan-500 outline-none transition"
+                            <div className="relative flex items-center">
+                                <input
+                                    className="w-full bg-[#0B1120] border border-white/10 p-4 pr-12 rounded-xl text-lg text-white placeholder-gray-500 focus:border-cyan-500 outline-none transition"
 
-                                // --- NEW: Dynamic Placeholder ---
-                                placeholder={competitors.length === 1 ? "You can add one more GMB profile..." : "Search for a competitor..."}
+                                    // --- NEW: Dynamic Placeholder ---
+                                    placeholder={competitors.length === 1 ? "You can add one more GMB profile..." : "Search for a competitor..."}
 
-                                value={compQuery}
-                                onChange={e => setCompQuery(e.target.value)}
-                            />
+                                    value={compQuery}
+                                    onChange={e => setCompQuery(e.target.value)}
+                                />
+                                {compQuery && (
+                                    <button
+                                        onClick={() => { setCompQuery(""); setCompSuggestions([]); }}
+                                        className="absolute right-4 text-gray-400 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full"
+                                        aria-label="Clear search"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                )}
+                            </div>
                             {compSuggestions.length > 0 && (
                                 <div className="absolute top-full left-0 w-full bg-[#0B1120] border border-white/10 rounded-xl shadow-2xl mt-2 max-h-60 overflow-y-auto z-50">
                                     {compSuggestions.map((place, i) => {
@@ -1853,6 +1952,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                                             <LockIcon />
                                                                         </div>
                                                                         <span className="text-[10px] font-bold text-pink-400 uppercase tracking-widest group-hover/lock:underline">Unlock Details</span>
+                                                                        <span className="text-[9px] text-pink-300 font-semibold opacity-0 group-hover/lock:opacity-100 transition-opacity">@ ₹99</span>
                                                                     </div>
                                                                 </div>
                                                             )}
@@ -1904,6 +2004,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                                             <LockIcon />
                                                                         </div>
                                                                         <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest group-hover/lock:underline">Unlock Details</span>
+                                                                        <span className="text-[9px] text-violet-300 font-semibold opacity-0 group-hover/lock:opacity-100 transition-opacity">@ ₹99</span>
                                                                     </div>
                                                                 </div>
                                                             )}
@@ -1962,6 +2063,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                                             <LockIcon />
                                                                         </div>
                                                                         <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest group-hover/lock:underline">Unlock Details</span>
+                                                                        <span className="text-[9px] text-amber-300 font-semibold opacity-0 group-hover/lock:opacity-100 transition-opacity">@ ₹99</span>
                                                                     </div>
                                                                 </div>
                                                             )}
