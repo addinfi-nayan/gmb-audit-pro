@@ -698,12 +698,13 @@ const COMPARISON_METRICS = [
     },
 ];
 
-const buildComparisonEntities = (report: any) => {
+// --- HELPER: Build Comparison Entities for Charts ---
+const buildComparisonEntities = (report: any, userBusinessName?: string) => {
     const comparisonCompetitors = report?.matrix?.competitors?.slice(0, 2) ?? [];
     return [
         {
             key: "me",
-            label: report?.matrix?.me?.title || report?.matrix?.me?.name || report?.matrix?.me?.business_name || "Your Business",
+            label: userBusinessName || report?.matrix?.me?.title || report?.matrix?.me?.name || report?.matrix?.me?.business_name || "Your Business",
             data: report?.matrix?.me,
             textClass: "text-cyan-400",
             barClass: "bg-cyan-500",
@@ -761,15 +762,36 @@ const loadRazorpay = () => {
 // --- DASHBOARD COMPONENT ---
 
 // --- HELPER: Normalize Data from Different APIs (Serper vs Google Places) ---
+// --- HELPER: Normalize Data from Different APIs (Serper vs Google Places) ---
 const normalizePlaceData = (place: any) => {
-    // Common fields extraction
-    const title = place.displayName?.text || place.name || place.title;
+    // 1. Title Extraction
+    // In Places API (New), `displayName.text` is the best title.
+    // `name` is the Resource Name (e.g., "places/ChIJ..."), NOT the display name.
+    // `place.title` is from old APIs or Serper.
+    const title = place.displayName?.text || (place.name && !place.name.startsWith('places/') ? place.name : place.title) || place.name;
+
+    // 2. Address Extraction
     const address = place.formattedAddress || place.formatted_address || place.vicinity || place.address;
+
+    // 3. Metrics Extraction
     const rating = place.rating || 0;
     const reviews = place.userRatingCount ?? place.user_ratings_total ?? place.reviews ?? place.ratingCount ?? 0;
 
-    // ID extraction
-    const place_id = place.id || place.place_id || place.cid;
+    // 4. ID Extraction (CRITICAL FIX)
+    // Google Places API (New) returns `id` (string) and `name` (resource name, e.g., "places/ChIJ...").
+    // We prefer `id`, then `place_id` (old API), then `cid`.
+    // If all missing, we fall back to `name` if it starts with "places/".
+    let place_id = place.id || place.place_id || place.cid;
+
+    if (!place_id && place.name && place.name.startsWith('places/')) {
+        place_id = place.name.split('/')[1]; // Extract ID from "places/..."
+    }
+
+    // FALLBACK: If still no ID, generate one from title + address (LAST RESORT)
+    if (!place_id && title) {
+        place_id = `gen_${title.replace(/\s+/g, '_')}_${(address || '').substring(0, 5)}`;
+        console.warn("Generating fallback ID for:", title, place_id);
+    }
 
     // Return normalized object if we have at least a title
     if (title) {
@@ -823,8 +845,8 @@ function DashboardLogic({ onHome }: DashboardProps) {
     const [showLeadModal, setShowLeadModal] = useState(false);
     const [leadData, setLeadData] = useState({ email: "", phone: "" });
     const comparisonEntities = useMemo(() =>
-        buildComparisonEntities(report),
-        [report]);
+        buildComparisonEntities(report, myBusiness?.title),
+        [report, myBusiness]);
 
     const comparisonMetrics = useMemo(() =>
         COMPARISON_METRICS,
@@ -993,6 +1015,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
     };
     // --- SEARCH EFFECTS ---
     // --- SEARCH EFFECTS (UPDATED FOR SERPER.DEV) ---
+    // --- SEARCH EFFECTS (UPDATED FOR SERPER.DEV) ---
     useEffect(() => {
         if (debouncedMyQuery.length < 3) return setMySuggestions([]);
         if (myBusiness) return;
@@ -1009,7 +1032,13 @@ function DashboardLogic({ onHome }: DashboardProps) {
                 else if (res.data.results) rawData = res.data.results;
 
                 // 2. Normalize individual items
-                const formatted = rawData.map(normalizePlaceData);
+                // Assuming normalizePlaceData is defined elsewhere and takes an item, returns a formatted item
+                const formatted = rawData.map((item) => {
+                    console.log("normalizePlaceData input:", item);
+                    const output = normalizePlaceData(item);
+                    console.log("normalizePlaceData output:", output);
+                    return output;
+                });
                 setMySuggestions(formatted);
             } catch (e) { console.error(e); }
         };
@@ -1030,7 +1059,13 @@ function DashboardLogic({ onHome }: DashboardProps) {
                 else if (res.data.results) rawData = res.data.results;
 
                 // 2. Normalize individual items
-                const formatted = rawData.map(normalizePlaceData);
+                // Assuming normalizePlaceData is defined elsewhere and takes an item, returns a formatted item
+                const formatted = rawData.map((item) => {
+                    console.log("normalizePlaceData input:", item);
+                    const output = normalizePlaceData(item);
+                    console.log("normalizePlaceData output:", output);
+                    return output;
+                });
                 setCompSuggestions(formatted);
             } catch (e) { console.error(e); }
         };
@@ -1049,6 +1084,11 @@ function DashboardLogic({ onHome }: DashboardProps) {
         console.log("Starting Analysis with Keyword:", finalKeyword);
 
         try {
+            // STEP A: CREATE ORDER & VERIFY PAYMENT (Already handled by button, but we check state)
+            // For now, we assume if they are here, they are authorized or it's a free preview.
+            // If you want to enforce payment FIRST:
+            // if (!isUnlocked) { alert("Please pay first"); return; }
+
             // 2. Direct Connection to n8n
             const webhookUrl = "https://n8n-pro-775604255858.asia-south1.run.app/webhook/analyze-gmb";
 
@@ -1174,10 +1214,13 @@ function DashboardLogic({ onHome }: DashboardProps) {
     };
 
     const toggleCompetitor = (place: any) => {
+        console.log('toggleCompetitor called with:', place);
         const uniqueId = place.place_id || place.cid;
+        console.log('uniqueId:', uniqueId);
         if (!uniqueId) return;
 
         const isSelected = competitors.find(c => (c.place_id || c.cid) === uniqueId);
+        console.log('isSelected:', isSelected);
 
         if (isSelected) {
             setCompetitors(competitors.filter(c => (c.place_id || c.cid) !== uniqueId));
@@ -1357,8 +1400,8 @@ function DashboardLogic({ onHome }: DashboardProps) {
                             </div>
                             {mySuggestions.length > 0 && !myBusiness && (
                                 <div className="absolute top-full left-0 w-full bg-[#0B1120] border border-white/10 rounded-xl shadow-2xl mt-2 z-50 max-h-80 overflow-y-auto text-left">
-                                    {mySuggestions.map((place) => (
-                                        <div key={place.place_id} className="p-4 hover:bg-cyan-500/10 cursor-pointer border-b border-white/5 last:border-0 flex justify-between items-start group transition-colors" onClick={() => { setMyBusiness(place); setStep(2); setMyQuery(place.title); setMySuggestions([]); }}>
+                                    {mySuggestions.map((place, i) => (
+                                        <div key={place.place_id || place.cid || i} className="p-4 hover:bg-cyan-500/10 cursor-pointer border-b border-white/5 last:border-0 flex justify-between items-start group transition-colors" onClick={() => { setMyBusiness(place); setStep(2); setMyQuery(place.title); setMySuggestions([]); }}>
                                             <div className="flex items-start gap-3">
                                                 <div className="mt-1 bg-white/5 p-2 rounded-full group-hover:bg-cyan-500/20 group-hover:text-cyan-400 text-gray-400 transition"><MapPinIcon /></div>
                                                 <div>
@@ -1439,9 +1482,9 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                         <StarIcon /> {place.rating || "N/A"}
                                                     </span>
                                                 </div>
-                                                <button className={`ml-auto font-bold text-xs px-3 py-1 rounded whitespace-nowrap border ${isAdded ? 'bg-white/10 border-white/20 text-gray-400' : 'bg-green-500/10 border-green-500/50 text-green-400 hover:bg-green-500/20'}`}>
+                                                <span className={`ml-auto font-bold text-xs px-3 py-1 rounded whitespace-nowrap border ${isAdded ? 'bg-white/10 border-white/20 text-gray-400' : 'bg-green-500/10 border-green-500/50 text-green-400 hover:bg-green-500/20'}`}>
                                                     {isAdded ? "ADDED ✓" : "+ ADD"}
-                                                </button>
+                                                </span>
                                             </div>
                                         );
                                     })}
@@ -1451,7 +1494,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                             {competitors.map((place) => (
-                                <div key={place.place_id} className="p-4 border border-green-500/50 bg-green-500/10 rounded-xl flex justify-between items-center shadow-[0_0_15px_rgba(34,197,94,0.1)] backdrop-blur-sm">
+                                <div key={place.place_id || place.cid} className="p-4 border border-green-500/50 bg-green-500/10 rounded-xl flex justify-between items-center shadow-[0_0_15px_rgba(34,197,94,0.1)] backdrop-blur-sm">
                                     <div className="font-bold text-green-400 truncate pr-2">{place.title}</div>
                                     <button onClick={() => toggleCompetitor(place)} className="text-red-400 hover:bg-red-500/20 p-2 rounded text-sm font-bold flex-shrink-0 transition">✕</button>
                                 </div>
@@ -1516,7 +1559,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                     </div>
                                     <div className="text-center">
                                         <div className="text-lg font-black text-white tracking-tight">WhatMyRank</div>
-                                        <div className="text-xs font-bold text-blue-400 tracking-[0.15em] uppercase">Profile Audit</div>
+                                        <div className="text-xs font-bold text-blue-400 tracking-[0.15em] uppercase">Google Business Profile Audit</div>
                                     </div>
                                 </div>
 
