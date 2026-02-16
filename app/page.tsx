@@ -467,7 +467,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                         className="w-auto px-8 md:px-12 py-4 md:py-5 bg-white text-black hover:bg-gray-100 rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] flex items-center justify-center gap-3 transform hover:scale-105"
                     >
                         <span className="flex items-center gap-2">
-                            {session ? "Get Audit At ₹99" : "Get Audit At ₹99"}
+                            {session ? "Get Audit At ₹99" : "Sign In & Get Audit At ₹99"}
                         </span>
                     </button>
                 </div>
