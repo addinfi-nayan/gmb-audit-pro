@@ -1189,6 +1189,23 @@ function DashboardLogic({ onHome }: DashboardProps) {
                     if (clonedElement) {
                         clonedElement.style.width = '1440px';
                         clonedElement.style.padding = '40px';
+
+                        // FIX: Force Sans-Serif Font for PDF to avoid "Times New Roman" fallback
+                        clonedElement.style.fontFamily = 'Arial, sans-serif';
+
+                        // FIX: Iterate through all elements to remove backdrop-filter and complex shadows
+                        // This fixes the "black box" and alignment issues caused by unsupported CSS in html2canvas
+                        const allElements = clonedElement.getElementsByTagName('*');
+                        for (let i = 0; i < allElements.length; i++) {
+                            const el = allElements[i] as HTMLElement;
+                            el.style.fontFamily = 'Arial, sans-serif';
+                            el.style.backdropFilter = 'none';
+                            el.style.boxShadow = 'none';
+                            // Optional: Add a simple border if shadows are removed to keep definition
+                            if (window.getComputedStyle(el).backgroundColor !== 'rgba(0, 0, 0, 0)') {
+                                // el.style.border = '1px solid #333';
+                            }
+                        }
                     }
                 }
             });
