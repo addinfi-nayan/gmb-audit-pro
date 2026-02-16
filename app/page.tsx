@@ -87,6 +87,19 @@ const UserMenu = ({ session }: { session: any }) => {
     );
 };
 
+const TESTIMONIALS = [
+    { name: "Rahul S", role: "Cafe Owner", text: "Honestly, I was skeptical at first, but the gap analysis opened my eyes. I didn't realize how much traffic I was losing to the guy across the street just because he replied to reviews faster. My weekend footfall is up by 40% now!" },
+    { name: "Priya M", role: "Clinic Manager", text: "We were stuck on page 2 for months. This tool pointed out exactly which keywords we were missing in our services section. Updated it, and within 3 weeks, we started popping up in the top 3 pack for 'dentist near me'." },
+    { name: "Amit V", role: "Retail Store", text: "Bhai, pehle lagta tha GMB bas set karke chhod dena hai. Is audit ne bataya ki 'Updates' na dalne se ranking gir rahi thi. Ab regular post kar raha hu aur customers khud call kar rahe hain store open hone se pehle!" }, // Hinglish
+    { name: "Arjun K", role: "Real Estate", text: "In my line of work, trust is everything. Seeing the 'Reputation Score' drop was a wake-up call. I followed the suggestions to get more detailed reviews from clients, and the difference in lead quality is night and day." },
+    { name: "Sneha R", role: "Salon Owner", text: "Mere competitor ke paas 500 reviews the, mere paas bas 50. Mujhe laga kabhi beat nahi kar paungi. But this tool showed me that 'Review Velocity' matters more. Focused on getting 2 reviews every day, and now I'm ranking higher than them!" }, // Hinglish
+    { name: "Vikram D", role: "Restaurant", text: "I spent thousands on ads with no luck. This ₹99 report showed me that my menu photos were outdated and categories were wrong. Fixed those basic things, and now Friday nights are fully booked without spending a rupee on ads." },
+    { name: "Rohan M", role: "Gym Owner", text: "Simple aur effective tool hai. Sabse best cheez yeh hai ki yeh bata deta hai ki competitor kya kar raha hai jo hum nahi kar rahe. 'Suspension Risk' check karke maine apna profile safe kar liya warna mehnat bekaar jaati." }, // Hinglish
+    { name: "Anjali S", role: "Bakery", text: "I used to ignore customer questions on my profile. The audit highlighted 'Response Time' as a critical failure. I started replying within an hour, and suddenly Google started showing my bakery to way more people in the area." },
+    { name: "Kabir K", role: "Car Dealer", text: "Seedha report milti hai, koi technical jargon nahi. Mujhe pata chala ki 'Products' section khali hone se mein customers loose kar raha tha. Photos daali aur enquiries double ho gayi. Highly recommended for local businesses." }, // Hinglish
+    { name: "Neha G", role: "Dentist", text: "Pehle pata nahi tha kya fix karna hai, bas randomly changes karti thi. Ab step-by-step clear hai. 'Profile Strength' 100% hone ke baad se new patient appointments apne aap badh gaye hain. Best investment for my clinic." } // Hinglish
+];
+
 interface LandingProps {
     onStart: () => void;
 }
@@ -112,26 +125,31 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
     }, []);
 
     // --- LIVE STATS COUNTER (Fixed Hydration Error) ---
-    const [profileCount, setProfileCount] = useState(470);
-    const [issueCount, setIssueCount] = useState(1890);
+    const [profileCount, setProfileCount] = useState(1245);
+    const [issueCount, setIssueCount] = useState(4890);
     const [mounted, setMounted] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { data: session } = useSession();
 
     useEffect(() => {
         setMounted(true);
-        // 1. Initial wait, then add "Daily Batch"
+        // 1. Initial wait, then add small "Daily Batch"
         const initialBatchTimer = setTimeout(() => {
-            const randomIncrease = Math.floor(Math.random() * 6) + 10;
-            setProfileCount(prev => prev + randomIncrease);
+            const randomIncrease = Math.floor(Math.random() * 3) + 2; // +2 to +4
+            // Cap at small increment per session (max +10 total)
+            setProfileCount(prev => Math.min(prev + randomIncrease, 1245 + 8));
             setIssueCount(prev => prev + (randomIncrease * 4));
-        }, 2500);
+        }, 3500);
 
         // 2. Slow "Live" drip
         const liveDripInterval = setInterval(() => {
-            setProfileCount(prev => prev + 1);
-            setIssueCount(prev => prev + Math.floor(Math.random() * 5));
-        }, 12000);
+            // Cap at +8 max increment total
+            setProfileCount(prev => {
+                if (prev >= 1245 + 8) return prev;
+                return prev + 1;
+            });
+            setIssueCount(prev => prev + Math.floor(Math.random() * 3));
+        }, 15000);
 
         return () => {
             clearTimeout(initialBatchTimer);
@@ -167,8 +185,25 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                             onClick={onStart}
                             className="px-6 py-2 bg-white text-black rounded-full font-bold text-sm transition hover:scale-105"
                         >
-                            {session ? "Get Audit" : "Get Started"}
+                            {session ? "Get Audit" : "Sign In"}
                         </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         {session && (
                             <div className="hidden md:block">
                                 <UserMenu session={session} />
@@ -249,17 +284,51 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
 
 
 
-                    <div className="flex justify-center mb-16 md:mb-24">
+                    <div className="flex justify-center mb-8 md:mb-24">
                         <button
                             onClick={onStart}
                             className="w-full md:w-auto px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center justify-center gap-3 transform hover:scale-105"
                         >
                             <span className="flex items-center gap-2">
-                                Get Audit At ₹99
+                                {session ? "Get Report At ₹99" : "Sign In & Get Audit At ₹99"}
                             </span>
                         </button>
                     </div>
                 </div>
+
+                {/* --- TESTIMONIALS SECTION --- */}
+                <section className="py-10 md:py-20 border-t border-white/5 bg-[#0B1120]/30 overflow-hidden mb-12">
+                    <div className="text-center mb-12">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-[10px] md:text-xs font-mono mb-6 backdrop-blur-md">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.6)]"></span>
+                            TRUSTED BY 500+ BUSINESSES
+                        </div>
+                        <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Real Results from <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Local Businesses</span></h2>
+                    </div>
+
+                    {/* Infinite Marquee */}
+                    <div className="relative w-full flex overflow-hidden group">
+                        <div className="flex animate-marquee whitespace-nowrap gap-6 py-4 px-4 hover:[animation-play-state:paused]">
+                            {[...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
+                                <div key={i} className="inline-block w-[350px] bg-[#030712] border border-white/10 p-6 rounded-2xl whitespace-normal hover:border-blue-500/30 transition group hover:-translate-y-1 duration-300">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                                            {t.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <div className="text-white font-bold">{t.name}</div>
+                                            <div className="text-xs text-blue-400 uppercase tracking-wider font-mono">{t.role}</div>
+                                        </div>
+                                    </div>
+                                    <p className="text-gray-400 text-sm leading-relaxed italic">"{t.text}"</p>
+                                </div>
+                            ))}
+                        </div>
+                        {/* Gradient Fade Edges */}
+                        <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-[#030712] to-transparent z-10"></div>
+                        <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-[#030712] to-transparent z-10"></div>
+                    </div>
+                </section>
 
                 {/* --- LIVE STATS GRID (Below Fold) --- */}
                 <div className="w-full max-w-7xl mx-auto px-4 md:px-6 mb-12 md:mb-32">
@@ -391,6 +460,18 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                     </div>
                 </section>
 
+                {/* --- INTERMEDIATE CTA --- */}
+                <div className="flex justify-center py-12 border-t border-white/5 bg-[#0B1120]/30">
+                    <button
+                        onClick={onStart}
+                        className="w-auto px-8 md:px-12 py-4 md:py-5 bg-white text-black hover:bg-gray-100 rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] flex items-center justify-center gap-3 transform hover:scale-105"
+                    >
+                        <span className="flex items-center gap-2">
+                            {session ? "Get Audit At ₹99" : "Get Audit At ₹99"}
+                        </span>
+                    </button>
+                </div>
+
                 <section id="protocol" className="py-10 md:py-32 bg-[#0B1120]/30 border-t border-white/5">
                     <div className="max-w-7xl mx-auto px-6">
                         <div className="flex flex-col md:flex-row gap-12 items-center">
@@ -405,11 +486,11 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                                         { step: "02", title: "Competitor & Profile Analysis", desc: "The tool analyzes your profile alongside top competitors using key local ranking factors." },
                                         { step: "03", title: "Get Your Audit Report", desc: "Receive a clear audit highlighting gaps, strengths, and opportunities." }
                                     ].map((s, i) => (
-                                        <div key={i} className="flex gap-4 items-start">
-                                            <div className="font-mono text-blue-500 font-bold text-xl opacity-50 leading-none mt-1">{s.step}</div>
+                                        <div key={i} className="flex gap-6 items-start text-left">
+                                            <div className="min-w-[40px] font-mono text-blue-500 font-bold text-xl opacity-50 leading-none mt-1">{s.step}</div>
                                             <div>
-                                                <h4 className="text-white font-bold text-lg">{s.title}</h4>
-                                                <p className="text-gray-500 text-sm">{s.desc}</p>
+                                                <h4 className="text-white font-bold text-lg mb-2">{s.title}</h4>
+                                                <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -482,6 +563,8 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                     </div>
                 </section>
 
+
+
                 <section id="faq" className="py-10 md:py-32 border-t border-white/5">
                     <div className="max-w-4xl mx-auto px-6">
                         <h2 className="text-3xl md:text-5xl font-bold mb-12 text-center text-white">Frequently Asked <span className="text-blue-500">Questions</span></h2>
@@ -505,25 +588,17 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                                 <p className="text-gray-400 text-sm mt-2">Our support team is ready to help you optimize your local presence.</p>
                             </div>
                             <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
-                                <a href="mailto:nayan@addinfi.com" className="flex items-center gap-4 bg-[#0B1120] border border-white/5 p-4 rounded-xl hover:border-cyan-500/30 transition group min-w-[250px]">
+                                <a href="mailto:info@addinfi.com" className="flex items-center gap-4 bg-[#0B1120] border border-white/5 p-4 rounded-xl hover:border-cyan-500/30 transition group min-w-[250px]">
                                     <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition">
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                                     </div>
                                     <div className="text-left">
                                         <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Email Support</div>
-                                        <div className="text-sm font-bold text-gray-200 group-hover:text-cyan-400 transition">nayan@addinfi.com</div>
+                                        <div className="text-sm font-bold text-gray-200 group-hover:text-cyan-400 transition">info@addinfi.com</div>
                                     </div>
                                 </a>
 
-                                <a href="tel:+918381032114" className="flex items-center gap-4 bg-[#0B1120] border border-white/5 p-4 rounded-xl hover:border-green-500/30 transition group min-w-[250px]">
-                                    <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-400 group-hover:scale-110 transition">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                                    </div>
-                                    <div className="text-left">
-                                        <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Call Us</div>
-                                        <div className="text-sm font-bold text-gray-200 group-hover:text-green-400 transition">+91 83810 32114</div>
-                                    </div>
-                                </a>
+
                             </div>
                         </div>
                     </div>
@@ -537,7 +612,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                         onClick={onStart}
                         className="w-full md:w-auto px-16 py-5 bg-white text-black rounded-xl font-bold text-lg hover:scale-105 transition shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)]"
                     >
-                        Analyze GMB
+                        {session ? "Get Audit At ₹99" : "Sign In & Get Audit At ₹99"}
                     </button>
                 </div>
 
@@ -724,6 +799,93 @@ export default function Page() {
     const { data: session, status } = useSession();
     const [view, setView] = useState<"landing" | "dashboard">("landing");
 
+    // --- GLOBAL RECENT ACTIVITY NOTIFICATIONS ---
+    const [recentActivity, setRecentActivity] = useState<{ name: string, time: string, action: string } | null>(null);
+
+    useEffect(() => {
+        // Random Data Pools
+        const names = [
+            "Mohan", "Simran", "Rahul", "Vikram", "Neha", "Kabir", "Anjali", "Priya", "Suresh", "Rajesh", "Amit", "Divya", "Arjun", "Sneha",
+            "Aarav", "Advik", "Akash", "Akshay", "Aman", "Ananya", "Aniket", "Anish", "Ankit", "Anmol", "Anup", "Anurag", "Aryan", "Ashish",
+            "Avinash", "Ayush", "Bhavya", "Chirag", "Deep", "Deepak", "Dev", "Diya", "Gaurav", "Harsh", "Himanshu", "Ishaan", "Ishani",
+            "Jatin", "Jyoti", "Karan", "Karthik", "Kavya", "Kiran", "Kritika", "Kunal", "Lakshya", "Madhav", "Manish", "Manvi", "Mayank",
+            "Megha", "Nakul", "Naman", "Nayan", "Nikhil", "Nishi", "Nitin", "Om", "Pankaj", "Parth", "Payal", "Piyush", "Pranav", "Pranay",
+            "Prateek", "Prerna", "Puneet", "Raghav", "Raj", "Rajat", "Rakesh", "Ram", "Rhea", "Riddhima", "Rishi", "Ritika", "Ritu",
+            "Ritvik", "Rohan", "Rohit", "Roshni", "Rudra", "Sahil", "Sakshi", "Sameer", "Sandeep", "Sanjay", "Sanjana", "Sanya", "Saransh",
+            "Saurabh", "Shaurya", "Shivam", "Shreya", "Shubham", "Siddharth", "Smriti", "Somesh", "Sonali", "Sumit", "Sunny", "Tanmay",
+            "Tanishq", "Tanvi", "Tarun", "Tushar", "Uday", "Utkarsh", "Vaibhav", "Vanshika", "Varun", "Vedant", "Vidhi", "Vinay", "Vishal",
+            "Yash", "Yogesh", "Abhay", "Aditi", "Aishwarya", "Alok", "Amrita", "Anant", "Ansh", "Archana", "Bala", "Bhuvnesh", "Daksh",
+            "Daman", "Ekta", "Falguni", "Ganesh", "Gayatri", "Gopal", "Gunjita", "Hemant", "Inder", "Indu", "Jagdish", "Janvi", "Jaspreet",
+            "Kailash", "Kalpana", "Kamlesh", "Kanchan", "Komal", "Lalit", "Lata", "Leela", "Manoj", "Meenakshi", "Mridul", "Mukesh",
+            "Nanda", "Narendra", "Navdeep", "Naveen", "Nilam", "Nirmal", "Pallavi", "Pawan", "Poonam", "Prabha", "Pramod", "Prashant",
+            "Radha", "Rajni", "Rani", "Ratna", "Rekha", "Reena", "Richa", "Sagar", "Sangeeta", "Santosh", "Sarita", "Seema", "Shalini",
+            "Shanti", "Sharda", "Shashi", "Shikha", "Shilpa", "Shivani", "Shobha", "Shruti", "Suman", "Sunita", "Sushma", "Swati", "Trupti",
+            "Uma", "Urmila", "Usha", "Vandana", "Varsha", "Veena", "Vimala", "Vineeta", "Brijesh", "Dinesh", "Girdhari", "Hariram", "Jaipal",
+            "Kishan", "Laxman", "Mahender", "Murari", "Narayan", "Omkar", "Prabhu", "Radhe", "Shyamlal", "Tarachand", "Upendra", "Vasu",
+            "Yadram", "Zeeshan", "Afzal", "Imran", "Javed", "Khalid", "Mansoor", "Nasir", "Parvez", "Qasim", "Rashid", "Sajid", "Tahir",
+            "Usman", "Waseem", "Yasin", "Zahid", "Ayesha", "Farida", "Ghazala", "Hamida", "Irat", "Jabeen", "Kehkashan", "Lubna", "Mumtaz",
+            "Nargis", "Parveen", "Qamar", "Razia", "Sultana", "Tasnim", "Uzma", "Wahida", "Yasmin", "Zeba"
+        ];
+        const actions = [
+            "just generated a free audit",
+            "downloaded their GMB report",
+            "unlocked competitor insights",
+            "analyzed their local ranking",
+            "is optimizing their profile",
+            "fixed a GMB listing error",
+            "scanned 3 local competitors",
+            "just saved 90% on an audit",
+            "unlocked full SEO metrics",
+            "ran a real-time gap analysis",
+            "found missing keywords",
+            "evaluated their reputation",
+            "checked for GMB suspension risk",
+            "compared with top rivals",
+            "generated a citations report",
+            "audited their map visibility"
+        ];
+        const times = [
+            "just now", "just now", "2 sec ago", "5 sec ago", "8 sec ago", "12 sec ago", "15 sec ago", "20 sec ago",
+            "25 sec ago", "30 sec ago", "45 sec ago", "55 sec ago", "1 min ago", "1 min ago", "2 min ago", "3 min ago",
+            "5 min ago", "8 min ago", "10 min ago"
+        ];
+
+        const showRandomToast = () => {
+            // Random selection
+            const rawName = names[Math.floor(Math.random() * names.length)];
+            const action = actions[Math.floor(Math.random() * actions.length)];
+            const time = times[Math.floor(Math.random() * times.length)];
+
+            // Mask name: "Moh***"
+            const maskedName = rawName.substring(0, 3) + "***";
+
+            // Set Toast
+            setRecentActivity({ name: maskedName, time, action });
+
+            // Hide after 4 seconds
+            setTimeout(() => setRecentActivity(null), 4000);
+        };
+
+        // 1. Initial Toast (Fast)
+        const initialTimer = setTimeout(showRandomToast, 3000);
+
+        // 2. Random Interval Loop (10s - 25s)
+        const loop = () => {
+            const delay = Math.floor(Math.random() * 15000) + 10000; // 10s to 25s
+            return setTimeout(() => {
+                showRandomToast();
+                loopId = loop(); // Recurse
+            }, delay);
+        };
+
+        let loopId = loop();
+
+        return () => {
+            clearTimeout(initialTimer);
+            clearTimeout(loopId);
+        };
+    }, []);
+
     // 1. Fix "Invalid Hook Call": Ensure no hooks are outside this function
     if (status === "loading") return <div className="min-h-screen bg-[#030712]" />;
 
@@ -735,13 +897,34 @@ export default function Page() {
         }
     };
 
-    // 2. Fix "Property onHome does not exist": 
-    // We pass the setView function down so the sub-components can change the view
-    if (view === "dashboard" && session) {
-        return <DashboardLogic onHome={() => setView("landing")} />;
-    }
+    return (
+        <>
+            {/* --- GLOBAL TOAST OVERLAY --- */}
+            {recentActivity && (
+                <div className="fixed bottom-6 left-6 z-[9999] bg-[#0B1120]/90 border border-cyan-500/30 backdrop-blur-md rounded-xl p-4 shadow-[0_0_20px_rgba(6,182,212,0.2)] animate-[slide-up_0.3s_ease-out] flex items-center gap-3 hover:scale-105 transition cursor-default pointer-events-none">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-xs shadow-inner">
+                        {recentActivity.name.charAt(0)}
+                    </div>
+                    <div>
+                        <div className="text-sm text-white font-bold tracking-wide">
+                            {recentActivity.name} <span className="font-normal text-gray-400 text-xs ml-1">{recentActivity.action}</span>
+                        </div>
+                        <div className="text-[10px] text-cyan-400 font-mono mt-0.5 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                            {recentActivity.time}
+                        </div>
+                    </div>
+                </div>
+            )}
 
-    return <LandingPage onStart={handleStartAction} />;
+            {/* --- MAIN CONTENT --- */}
+            {view === "dashboard" && session ? (
+                <DashboardLogic onHome={() => setView("landing")} />
+            ) : (
+                <LandingPage onStart={handleStartAction} />
+            )}
+        </>
+    );
 }
 
 interface DashboardProps {
@@ -926,13 +1109,77 @@ function DashboardLogic({ onHome }: DashboardProps) {
         })()
         : [];
 
+
+
+    const performAnalysis = async () => {
+        setLoading(true);
+        setErrorMsg(null);
+        setReport(null);
+
+        // 1. Smart Keyword Logic
+        const finalKeyword = compQuery.trim() ? compQuery : (myBusiness?.title || "Digital Marketing Agency");
+        console.log("Starting Analysis with Keyword:", finalKeyword);
+
+        try {
+            // 2. Direct Connection to n8n
+            const webhookUrl = "https://n8n-pro-775604255858.asia-south1.run.app/webhook/analyze-gmb";
+
+            const res = await axios.post(webhookUrl, {
+                keyword: finalKeyword,
+                myBusiness: myBusiness,
+                competitors: competitors,
+                action: "analyze"
+            });
+
+            // --- NEW: THE CLEANING LOGIC ---
+            let rawData = res.data;
+            let finalReport = null;
+
+            // Scenario A: It came back as an Array (Common with n8n AI Agent)
+            if (Array.isArray(rawData) && rawData[0]?.text) {
+                rawData = rawData[0].text;
+            }
+
+            // Scenario B: It is a String (possibly with ```json markdown)
+            if (typeof rawData === "string") {
+                // Remove Markdown code blocks (```json and ```)
+                const cleanString = rawData.replace(/```json/g, "").replace(/```/g, "").trim();
+                try {
+                    finalReport = JSON.parse(cleanString);
+                } catch (e) {
+                    console.error("JSON Parse Error:", e);
+                    throw new Error("AI returned messy text instead of JSON.");
+                }
+            } else {
+                // Scenario C: It is already a perfect Object
+                finalReport = rawData;
+            }
+
+            // 3. Final Validation
+            if (finalReport && (finalReport.audit_score || finalReport.matrix)) {
+                setReport(finalReport);
+                setIsUnlocked(true); // Payment is done, so unlock immediately
+                // Don't finalize immediately — let the loader animation complete first
+                setReportReady(true);
+            } else {
+                console.error("Invalid AI Structure:", finalReport);
+                throw new Error("The AI report is missing key data (audit_score).");
+            }
+
+        } catch (e: any) {
+            console.error("Analysis Error:", e);
+            setErrorMsg(e.message || "Connection Failed.");
+            setLoading(false);
+        }
+    };
+
     const handleLeadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
 
         const payload = {
             email: leadData.email,
-            phone: leadData.phone,
+            // phone: leadData.phone, // Removed
             business: myBusiness?.title || "Unknown Business",
             date: new Date().toLocaleString()
         };
@@ -977,13 +1224,10 @@ function DashboardLogic({ onHome }: DashboardProps) {
                         if (result.data.success) {
                             setShowLeadModal(false);
                             setIsPaymentSuccess(true);
-                            // Show success modal for 2 seconds, then unlock and auto-download
+                            // Show success modal for 2 seconds, then start analysis
                             setTimeout(() => {
-                                setIsUnlocked(true);
-                                setTimeout(() => {
-                                    setIsPaymentSuccess(false);
-                                    generatePDF();
-                                }, 1500);
+                                setIsPaymentSuccess(false);
+                                performAnalysis();
                             }, 2000);
                         } else {
                             alert("Payment Verification Failed. Please contact support.");
@@ -996,7 +1240,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                 prefill: {
                     name: "User", // We could add a name field if needed
                     email: leadData.email,
-                    contact: leadData.phone,
+                    // contact: leadData.phone, // Removed
                 },
                 theme: {
                     color: "#0891b2",
@@ -1074,71 +1318,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
     // Analyse
 
-    const handleAnalyze = async () => {
-        setLoading(true);
-        setErrorMsg(null);
-        setReport(null);
 
-        // 1. Smart Keyword Logic
-        const finalKeyword = compQuery.trim() ? compQuery : (myBusiness?.title || "Digital Marketing Agency");
-        console.log("Starting Analysis with Keyword:", finalKeyword);
-
-        try {
-            // STEP A: CREATE ORDER & VERIFY PAYMENT (Already handled by button, but we check state)
-            // For now, we assume if they are here, they are authorized or it's a free preview.
-            // If you want to enforce payment FIRST:
-            // if (!isUnlocked) { alert("Please pay first"); return; }
-
-            // 2. Direct Connection to n8n
-            const webhookUrl = "https://n8n-pro-775604255858.asia-south1.run.app/webhook/analyze-gmb";
-
-            const res = await axios.post(webhookUrl, {
-                keyword: finalKeyword,
-                myBusiness: myBusiness,
-                competitors: competitors,
-                action: "analyze"
-            });
-
-            // --- NEW: THE CLEANING LOGIC ---
-            let rawData = res.data;
-            let finalReport = null;
-
-            // Scenario A: It came back as an Array (Common with n8n AI Agent)
-            if (Array.isArray(rawData) && rawData[0]?.text) {
-                rawData = rawData[0].text;
-            }
-
-            // Scenario B: It is a String (possibly with ```json markdown)
-            if (typeof rawData === "string") {
-                // Remove Markdown code blocks (```json and ```)
-                const cleanString = rawData.replace(/```json/g, "").replace(/```/g, "").trim();
-                try {
-                    finalReport = JSON.parse(cleanString);
-                } catch (e) {
-                    console.error("JSON Parse Error:", e);
-                    throw new Error("AI returned messy text instead of JSON.");
-                }
-            } else {
-                // Scenario C: It is already a perfect Object
-                finalReport = rawData;
-            }
-
-            // 3. Final Validation
-            if (finalReport && (finalReport.audit_score || finalReport.matrix)) {
-                setReport(finalReport);
-                // Don't finalize immediately — let the loader animation complete first
-                setReportReady(true);
-            } else {
-                console.error("Invalid AI Structure:", finalReport);
-                throw new Error("The AI report is missing key data (audit_score).");
-            }
-
-        } catch (e: any) {
-            console.error("Analysis Error:", e);
-            setErrorMsg(e.message || "Connection Failed.");
-            setLoading(false);
-        }
-    };
 
     const finalize = () => { setTimeout(() => { setStep(3); setLoading(false); }, 500); };
 
@@ -1162,6 +1342,16 @@ function DashboardLogic({ onHome }: DashboardProps) {
     };
 
     // --- PDF GENERATION ---
+    // --- AUTO DOWNLOAD ON REPORT READY ---
+    useEffect(() => {
+        if (step === 3 && report && !errorMsg) {
+            // Wait for DOM to paint completely
+            setTimeout(() => {
+                generatePDF();
+            }, 1000);
+        }
+    }, [step, report, errorMsg]);
+
     // --- UPDATED PDF GENERATION (Desktop Layout Fix) ---
     const generatePDF = async () => {
         if (!reportRef.current) return;
@@ -1521,7 +1711,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
                         {competitors.length > 0 && (
                             <div className="flex justify-center pt-4">
-                                <button onClick={handleAnalyze} disabled={loading} className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-3 text-sm">
+                                <button onClick={() => setShowLeadModal(true)} disabled={loading} className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-3 text-sm">
                                     {loading ? (
                                         <>
                                             <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
@@ -1529,7 +1719,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                         </>
                                     ) : (
                                         <>
-                                            <span>Generate Audit Report</span>
+                                            <span>Get Audit At ₹99</span>
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                         </>
                                     )}
@@ -2786,7 +2976,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
 
                             <h2 className="text-2xl font-bold text-white mb-2">Almost There</h2>
-                            <p className="text-gray-400 mb-6 text-sm">Enter your details to generate the secure download link and proceed to checkout.</p>
+                            <p className="text-gray-400 mb-6 text-sm">Enter your email to generate the secure download link and get future updates.</p>
 
                             <form onSubmit={handleLeadSubmit} className="space-y-4 text-left">
                                 <div>
@@ -2800,17 +2990,9 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                         onChange={(e) => setLeadData({ ...leadData, email: e.target.value })}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
-                                    <input
-                                        type="tel"
-                                        required
-                                        className="w-full bg-[#020617] border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none text-white transition"
-                                        placeholder="+91 00000 00000"
-                                        value={leadData.phone}
-                                        onChange={(e) => setLeadData({ ...leadData, phone: e.target.value })}
-                                    />
-                                </div>
+
+
+
                                 {/* UPDATED SUBMIT BUTTON WITH LOADER */}
                                 <button
                                     type="submit"
@@ -2873,9 +3055,8 @@ function DashboardLogic({ onHome }: DashboardProps) {
                     </div>
                 )}
                 {/* --- RAZORPAY PAYMENT MODAL (Optional if you want a pre-check, but we will trigger directly) --- */}
-                {/* We are removing the coupon modal and triggering payment directly from lead capture or a specific button if needed. 
-                    For now, if showPaymentModal is true, we can just show a spinner or "Processing Payment..." 
-                */}
+
+
 
 
             </div>
