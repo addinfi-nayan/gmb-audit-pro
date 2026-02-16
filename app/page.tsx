@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { ThemeToggle } from "../components/ThemeToggle";
+
 
 // ==========================================
 //  PART 1: THE CYBER-CORE LANDING PAGE
@@ -827,13 +827,13 @@ export default function Page() {
             "Nargis", "Parveen", "Qamar", "Razia", "Sultana", "Tasnim", "Uzma", "Wahida", "Yasmin", "Zeba"
         ];
         const actions = [
-            "just generated a free audit",
+            "just generated an audit report",
             "downloaded their GMB report",
             "unlocked competitor insights",
             "analyzed their local ranking",
             "is optimizing their profile",
             "fixed a GMB listing error",
-            "scanned 3 local competitors",
+            "scanned 2 local competitors",
             "just saved 90% on an audit",
             "unlocked full SEO metrics",
             "ran a real-time gap analysis",
@@ -862,16 +862,16 @@ export default function Page() {
             // Set Toast
             setRecentActivity({ name: maskedName, time, action });
 
-            // Hide after 4 seconds
-            setTimeout(() => setRecentActivity(null), 4000);
+            // Hide after 3 seconds for snappier feel
+            setTimeout(() => setRecentActivity(null), 3000);
         };
 
         // 1. Initial Toast (Fast)
-        const initialTimer = setTimeout(showRandomToast, 3000);
+        const initialTimer = setTimeout(showRandomToast, 2000);
 
-        // 2. Random Interval Loop (10s - 25s)
+        // 2. Ultra-Fast Random Interval Loop (4s - 4.5s total cycle, ~1-1.5s gap)
         const loop = () => {
-            const delay = Math.floor(Math.random() * 15000) + 10000; // 10s to 25s
+            const delay = Math.floor(Math.random() * 500) + 4000;
             return setTimeout(() => {
                 showRandomToast();
                 loopId = loop(); // Recurse
@@ -1474,8 +1474,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
 
                         {/* Desktop Actions */}
                         <div className="hidden md:flex items-center gap-4">
-                            {/* Theme toggle (dashboard desktop) */}
-                            <ThemeToggle />
+
 
                             {/* Download Button (Visible only at Step 3) */}
                             {step === 3 && !errorMsg && (
