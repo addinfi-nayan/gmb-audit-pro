@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import Link from "next/link";
 
 
 // ==========================================
@@ -175,12 +176,13 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                     </div>
                     <div className="flex items-center gap-4 md:gap-8 relative">
 
-
                         <div className="hidden md:flex items-center gap-8 text-xs font-medium text-gray-400 uppercase tracking-widest">
-                            <a href="#benefits" className="hover:text-cyan-400 transition cursor-pointer">Architecture</a>
-                            <a href="#protocol" className="hover:text-cyan-400 transition cursor-pointer">How It Works</a>
-                            <a href="#faq" className="hover:text-cyan-400 transition cursor-pointer">FAQs</a>
+                            <Link href="/terms-and-conditions" className="hover:text-cyan-400 transition cursor-pointer">Terms</Link>
+                            <Link href="/privacy-policy" className="hover:text-cyan-400 transition cursor-pointer">Privacy</Link>
+                            <Link href="/refund-policy" className="hover:text-cyan-400 transition cursor-pointer">Refund Policy</Link>
                         </div>
+
+
                         <button
                             onClick={onStart}
                             className="px-6 py-2 bg-white text-black rounded-full font-bold text-sm transition hover:scale-105"
@@ -227,27 +229,10 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                 {/* Mobile Menu Dropdown */}
                 {isMobileMenuOpen && (
                     <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col items-center text-center">
-                        <a
-                            href="#benefits"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition"
-                        >
-                            Architecture
-                        </a>
-                        <a
-                            href="#protocol"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition"
-                        >
-                            How It Works
-                        </a>
-                        <a
-                            href="#faq"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition"
-                        >
-                            FAQs
-                        </a>
+                        <Link href="/terms-and-conditions" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">Terms</Link>
+                        <Link href="/privacy-policy" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">Privacy</Link>
+                        <Link href="/refund-policy" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">Refund Policy</Link>
+
                         {session && (
                             <button
                                 onClick={() => { setIsMobileMenuOpen(false); signOut(); }}
@@ -1374,26 +1359,43 @@ function DashboardLogic({ onHome }: DashboardProps) {
                 width: 1440,       // <--- ENSURES CONTAINER IS WIDE
                 backgroundColor: "#030712", // Match your background color
                 onclone: (clonedDoc) => {
-                    // Optional: Force the cloned element to be full width
                     const clonedElement = clonedDoc.getElementById('report-content');
                     if (clonedElement) {
                         clonedElement.style.width = '1440px';
                         clonedElement.style.padding = '40px';
-
-                        // FIX: Force Sans-Serif Font for PDF to avoid "Times New Roman" fallback
                         clonedElement.style.fontFamily = 'Arial, sans-serif';
 
-                        // FIX: Iterate through all elements to remove backdrop-filter and complex shadows
-                        // This fixes the "black box" and alignment issues caused by unsupported CSS in html2canvas
                         const allElements = clonedElement.getElementsByTagName('*');
                         for (let i = 0; i < allElements.length; i++) {
                             const el = allElements[i] as HTMLElement;
                             el.style.fontFamily = 'Arial, sans-serif';
                             el.style.backdropFilter = 'none';
+                            (el.style as any).webkitBackdropFilter = 'none';
                             el.style.boxShadow = 'none';
-                            // Optional: Add a simple border if shadows are removed to keep definition
-                            if (window.getComputedStyle(el).backgroundColor !== 'rgba(0, 0, 0, 0)') {
-                                // el.style.border = '1px solid #333';
+                            el.style.animation = 'none';
+                            el.style.transition = 'none';
+
+                            // Fix text overflow — force word wrapping on all elements
+                            el.style.wordBreak = 'break-word';
+                            el.style.overflowWrap = 'break-word';
+                            el.style.whiteSpace = 'normal';
+                            el.style.overflow = 'visible';
+
+                            // Remove truncation classes that clip text in PDF
+                            el.classList.remove('truncate', 'line-clamp-1', 'line-clamp-2', 'line-clamp-3');
+                            if (el.style.textOverflow === 'ellipsis') {
+                                el.style.textOverflow = 'unset';
+                            }
+
+                            // Remove blur effects that render as black boxes
+                            if (el.style.filter?.includes('blur') || el.classList.contains('blur-sm') || el.classList.contains('blur-[2px]') || el.classList.contains('blur-[4px]')) {
+                                el.style.filter = 'none';
+                            }
+
+                            // Fix grid containers — ensure they expand properly
+                            const computedStyle = window.getComputedStyle(el);
+                            if (computedStyle.display === 'grid') {
+                                el.style.gridAutoRows = 'auto';
                             }
                         }
                     }
@@ -2186,64 +2188,7 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                                     );
                                                 })()}
 
-                                                {/* ══════════ 7. PROFILE AUTHORITY — Timeline / Age Comparison ══════════ */}
-                                                {(() => {
-                                                    const metric = comparisonMetrics.find(m => m.key === "listing_age");
-                                                    if (!metric) return null;
-                                                    const values = comparisonEntities.map(e => metric.getValue(e.data));
-                                                    const maxVal = Math.max(1, ...values);
-                                                    return (
-                                                        <div className="md:col-span-2 bg-[#060D1B] border border-amber-500/10 rounded-2xl p-5 hover:border-amber-500/30 transition-all duration-300 group relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
-                                                                <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20">
-                                                                    <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Profile Authority</h4>
-                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">GMB Listing Age & Domain Trust</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className={`space-y-4 relative z-10 ${!isUnlocked ? 'blur-sm opacity-40 grayscale select-none pointer-events-none' : ''}`}>
-                                                                {comparisonEntities.map((entity, idx) => {
-                                                                    const val = values[idx];
-                                                                    const pct = maxVal ? Math.min((val / maxVal) * 100, 100) : 0;
-                                                                    const colorMap: Record<string, string> = { 'bg-cyan-500': 'from-amber-600 via-cyan-500 to-cyan-400', 'bg-purple-500': 'from-amber-600 via-purple-500 to-purple-400', 'bg-indigo-500': 'from-amber-600 via-indigo-500 to-indigo-400' };
-                                                                    return (
-                                                                        <div key={`auth-${entity.key}`}>
-                                                                            <div className="flex items-center justify-between mb-1.5">
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <span className={`text-[10px] font-bold ${entity.textClass}`}>{entity.label}</span>
-                                                                                    <svg className="w-3 h-3 text-amber-400/50" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                                                                                </div>
-                                                                                <span className="text-[10px] text-gray-400 font-mono">{metric.display(entity.data)}</span>
-                                                                            </div>
-                                                                            <div className="w-full h-4 bg-white/5 rounded-full overflow-hidden border border-white/5 relative">
-                                                                                <div className={`h-full bg-gradient-to-r ${colorMap[entity.barClass] || 'from-gray-600 to-gray-400'} rounded-full transition-all duration-1000 relative`} style={{ width: `${pct}%` }}>
-                                                                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-                                                                                    <div className="absolute right-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full shadow-lg"></div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                            {/* Lock Overlay */}
-                                                            {!isUnlocked && (
-                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={handleRestrictedAction}>
-                                                                    <div className="absolute inset-0 bg-gradient-to-t from-[#060D1B] via-[#060D1B]/80 to-transparent"></div>
-                                                                    <div className="relative z-10 flex flex-col items-center gap-2">
-                                                                        <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover/lock:scale-110 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                                                                            <LockIcon />
-                                                                        </div>
-                                                                        <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest group-hover/lock:underline">Unlock Details</span>
-                                                                        <span className="text-[9px] text-amber-300 font-semibold opacity-0 group-hover/lock:opacity-100 transition-opacity">@ ₹99</span>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })()}
+
 
                                             </div>
                                         </div>
@@ -2878,6 +2823,13 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                     <p className="text-[10px] text-gray-500 leading-relaxed max-w-4xl mx-auto">
                                         <span className="font-bold text-gray-400 uppercase">Disclaimer:</span> All analysis, insights, and recommendations provided in this report are generated by artificial intelligence. These suggestions are for informational purposes only. Implementation of any strategies is at the sole discretion and risk of the user. We are not liable for any negative outcomes, including but not limited to profile suspension, blacklisting, ranking drops, or loss of data that may occur from applying these recommendations.
                                     </p>
+                                    <div className="flex items-center justify-center gap-6 mt-4">
+                                        <Link href="/terms-and-conditions" className="text-[10px] text-gray-500 hover:text-cyan-400 transition uppercase tracking-wider font-bold">Terms & Conditions</Link>
+                                        <span className="text-gray-700">|</span>
+                                        <Link href="/privacy-policy" className="text-[10px] text-gray-500 hover:text-cyan-400 transition uppercase tracking-wider font-bold">Privacy Policy</Link>
+                                        <span className="text-gray-700">|</span>
+                                        <Link href="/refund-policy" className="text-[10px] text-gray-500 hover:text-cyan-400 transition uppercase tracking-wider font-bold">Refund Policy</Link>
+                                    </div>
                                 </div>
                             </div>
 
@@ -3065,6 +3017,13 @@ function DashboardLogic({ onHome }: DashboardProps) {
                 <div className="flex items-center justify-center gap-2 mb-4 opacity-50">
                     <div className="w-2 h-2 rounded-full bg-green-500"></div>
                     <span className="text-[10px] md:text-xs font-mono text-gray-400">ALL SYSTEMS OPERATIONAL</span>
+                </div>
+                <div className="flex items-center justify-center gap-4 mb-3">
+                    <Link href="/terms-and-conditions" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Terms</Link>
+                    <span className="text-gray-700">•</span>
+                    <Link href="/privacy-policy" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Privacy</Link>
+                    <span className="text-gray-700">•</span>
+                    <Link href="/refund-policy" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Refund Policy</Link>
                 </div>
                 <p className="text-gray-600 text-[10px] md:text-xs font-mono">&copy; {new Date().getFullYear()} ADDINFI DIGITECH PVT. LTD. // SECURE CONNECTION</p>
             </footer>
