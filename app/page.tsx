@@ -125,8 +125,8 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
     }, []);
 
     // --- LIVE STATS COUNTER (Fixed Hydration Error) ---
-    const [profileCount, setProfileCount] = useState(1245);
-    const [issueCount, setIssueCount] = useState(4890);
+    const [profileCount, setProfileCount] = useState(35454);
+    const [issueCount, setIssueCount] = useState(128450);
     const [mounted, setMounted] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { data: session } = useSession();
@@ -137,7 +137,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
         const initialBatchTimer = setTimeout(() => {
             const randomIncrease = Math.floor(Math.random() * 3) + 2; // +2 to +4
             // Cap at small increment per session (max +10 total)
-            setProfileCount(prev => Math.min(prev + randomIncrease, 1245 + 8));
+            setProfileCount(prev => Math.min(prev + randomIncrease, 35454 + 8));
             setIssueCount(prev => prev + (randomIncrease * 4));
         }, 3500);
 
@@ -145,7 +145,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
         const liveDripInterval = setInterval(() => {
             // Cap at +8 max increment total
             setProfileCount(prev => {
-                if (prev >= 1245 + 8) return prev;
+                if (prev >= 35454 + 8) return prev;
                 return prev + 1;
             });
             setIssueCount(prev => prev + Math.floor(Math.random() * 3));
@@ -301,7 +301,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                     <div className="text-center mb-12">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-[10px] md:text-xs font-mono mb-6 backdrop-blur-md">
                             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.6)]"></span>
-                            TRUSTED BY 500+ BUSINESSES
+                            TRUSTED BY 5000+ BUSINESSES
                         </div>
                         <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Real Results from <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Local Businesses</span></h2>
                     </div>
