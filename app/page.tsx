@@ -5,6 +5,7 @@ import axios from "axios";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Link from "next/link";
+import { saveReport, getReports, updateReportPdfData, type SavedReport } from "./utils/reportStore";
 
 
 // ==========================================
@@ -103,9 +104,10 @@ const TESTIMONIALS = [
 
 interface LandingProps {
     onStart: () => void;
+    onReports?: () => void;
 }
 
-const LandingPage = ({ onStart }: { onStart: () => void }) => {
+const LandingPage = ({ onStart, onReports }: { onStart: () => void; onReports?: () => void }) => {
 
     // --- FAST SCROLL ENGINE ---
     useEffect(() => {
@@ -180,6 +182,12 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                             <Link href="/terms-and-conditions" className="hover:text-cyan-400 transition cursor-pointer">Terms</Link>
                             <Link href="/privacy-policy" className="hover:text-cyan-400 transition cursor-pointer">Privacy</Link>
                             <Link href="/refund-policy" className="hover:text-cyan-400 transition cursor-pointer">Refund Policy</Link>
+                            {onReports && (
+                                <button onClick={onReports} className="hover:text-cyan-400 transition cursor-pointer flex items-center gap-1">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    My Reports
+                                </button>
+                            )}
                         </div>
 
 
@@ -232,6 +240,15 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                         <Link href="/terms-and-conditions" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">Terms</Link>
                         <Link href="/privacy-policy" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">Privacy</Link>
                         <Link href="/refund-policy" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">Refund Policy</Link>
+
+                        {onReports && (
+                            <button
+                                onClick={() => { setIsMobileMenuOpen(false); onReports(); }}
+                                className="block text-sm font-medium text-cyan-400 uppercase tracking-widest hover:text-white transition"
+                            >
+                                📄 My Reports
+                            </button>
+                        )}
 
                         {session && (
                             <button
@@ -782,10 +799,12 @@ const buildComparisonEntities = (report: any, userBusinessName?: string) => {
 // --- MAIN PAGE COMPONENT ---
 export default function Page() {
     const { data: session, status } = useSession();
-    const [view, setView] = useState<"landing" | "dashboard">("landing");
+    const [view, setView] = useState<"landing" | "dashboard" | "reports">("landing");
 
     // --- GLOBAL RECENT ACTIVITY NOTIFICATIONS ---
     const [recentActivity, setRecentActivity] = useState<{ name: string, time: string, action: string } | null>(null);
+    const [pendingDownload, setPendingDownload] = useState<SavedReport | null>(null);
+    const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null); // gmbName after success
 
     useEffect(() => {
         // Random Data Pools
@@ -902,18 +921,414 @@ export default function Page() {
                 </div>
             )}
 
+            {/* --- PDF GENERATION LOADER OVERLAY --- */}
+            {pendingDownload && (
+                <div className="fixed bottom-6 right-6 z-[9999] pointer-events-none">
+                    <div className="bg-[#0B1120]/95 border border-cyan-500/40 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-[0_0_40px_rgba(6,182,212,0.25)] flex items-center gap-4 min-w-[280px]">
+                        {/* Spinning ring */}
+                        <div className="relative w-10 h-10 shrink-0">
+                            <div className="absolute inset-0 rounded-full border-2 border-cyan-500/20" />
+                            <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-cyan-400 animate-spin" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-white font-bold text-sm tracking-wide">Generating PDF</div>
+                            <div className="text-cyan-400 text-[11px] font-mono mt-0.5 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                                This may take a moment...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- PDF SUCCESS TOAST --- */}
+            {downloadSuccess && !pendingDownload && (
+                <div className="fixed bottom-6 right-6 z-[9999] pointer-events-none">
+                    <div className="bg-[#0B1120]/95 border border-green-500/40 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-[0_0_40px_rgba(34,197,94,0.2)] flex items-center gap-4 min-w-[280px]">
+                        {/* Checkmark */}
+                        <div className="w-10 h-10 rounded-full bg-green-500/15 border border-green-500/40 flex items-center justify-center shrink-0">
+                            <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div className="text-white font-bold text-sm tracking-wide">PDF Downloaded!</div>
+                            <div className="text-green-400 text-[11px] font-mono mt-0.5 truncate max-w-[180px]">{downloadSuccess}</div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* --- MAIN CONTENT --- */}
-            {view === "dashboard" && session ? (
-                <DashboardLogic onHome={() => setView("landing")} />
+            {view === "reports" && session ? (
+                <>
+                    <ReportsPage
+                        session={session}
+                        onHome={() => setView("landing")}
+                        onGetAudit={handleStartAction}
+                        onTriggerDownload={(saved) => setPendingDownload(saved)}
+                        externalDownloadingId={pendingDownload?.id ?? null}
+                    />
+                    {/* Silent background DashboardLogic for exact-match PDF — no redirect */}
+                    {pendingDownload && (
+                        <div style={{ position: "fixed", top: 0, left: "-19999px", width: "1440px", pointerEvents: "none", zIndex: -1 }}>
+                            <DashboardLogic
+                                onHome={() => { }}
+                                onReports={() => { }}
+                                preloadedData={{
+                                    report: pendingDownload.reportData,
+                                    myBusiness: pendingDownload.myBusiness,
+                                    reportId: pendingDownload.id,
+                                    gmbName: pendingDownload.gmbName,
+                                }}
+                                onDownloadComplete={() => {
+                                    const name = pendingDownload?.gmbName ?? "Report";
+                                    setPendingDownload(null);
+                                    setDownloadSuccess(name);
+                                    setTimeout(() => setDownloadSuccess(null), 4000);
+                                }}
+                            />
+                        </div>
+                    )}
+                </>
+            ) : view === "dashboard" && session ? (
+                <DashboardLogic
+                    onHome={() => setView("landing")}
+                    onReports={() => setView("reports")}
+                />
             ) : (
-                <LandingPage onStart={handleStartAction} />
+                <LandingPage onStart={handleStartAction} onReports={session ? () => setView("reports") : undefined} />
             )}
         </>
     );
 }
 
+// ==========================================
+//  REPORTS PAGE
+// ==========================================
+
+function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalDownloadingId }: {
+    session: any;
+    onHome: () => void;
+    onGetAudit: () => void;
+    onTriggerDownload: (saved: SavedReport) => void;
+    externalDownloadingId?: string | null;
+}) {
+    const [reports, setReports] = useState<SavedReport[]>([]);
+    const [downloading, setDownloading] = useState<string | null>(null);
+    const reportRef = useRef<HTMLDivElement>(null);
+    const [activeReport, setActiveReport] = useState<SavedReport | null>(null);
+
+    useEffect(() => {
+        if (session?.user?.email) {
+            setReports(getReports(session.user.email));
+        }
+    }, [session]);
+
+    const formatDate = (iso: string) => {
+        const d = new Date(iso);
+        return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) +
+            " at " + d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+    };
+
+    const handleDownload = async (saved: SavedReport) => {
+        setDownloading(saved.id);
+
+        try {
+            // --- FAST PATH: Use the exact cached PDF image from when user first downloaded ---
+            if (saved.pdfImageData) {
+                const imgData = saved.pdfImageData;
+                const img = new Image();
+                img.src = imgData;
+                await new Promise((res) => { img.onload = res; });
+                const imgWidth = 210;
+                const imgHeight = (img.naturalHeight * imgWidth) / img.naturalWidth;
+                const pdf = new jsPDF("p", "mm", [imgWidth, imgHeight]);
+                pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+                pdf.save(`${saved.gmbName}_Audit_Report.pdf`);
+                setDownloading(null);
+                return;
+            }
+
+            // --- FALLBACK: Render DashboardLogic invisibly in background for exact-match PDF ---
+            onTriggerDownload(saved);
+            setDownloading(null); // spinner kept alive via externalDownloadingId (pendingDownload)
+        } catch (e) {
+            console.error("PDF error", e);
+        }
+        setDownloading(null);
+        setActiveReport(null);
+    };
+
+    return (
+        <div className="min-h-screen bg-[#030712] text-white font-sans">
+            {/* Grid Background */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+            </div>
+
+            {/* Navbar */}
+            <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
+                <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
+                    <button onClick={onHome} className="flex items-center gap-3">
+                        <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">What<span className="text-blue-500">My</span>Rank</span>
+                    </button>
+                    <div className="flex items-center gap-4">
+                        <button onClick={onHome} className="text-xs font-bold text-gray-400 uppercase hover:text-white transition">Home</button>
+                        <button
+                            onClick={onGetAudit}
+                            className="px-5 py-2 bg-white text-black rounded-full font-bold text-sm transition hover:scale-105"
+                        >
+                            Get Audit
+                        </button>
+                        {session && <UserMenu session={session} />}
+                    </div>
+                </div>
+            </nav>
+
+            {/* Content */}
+            <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 pt-32 pb-20">
+                {/* Header */}
+                <div className="mb-12">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-[10px] md:text-xs font-mono mb-6 backdrop-blur-md">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.6)]"></span>
+                        AUDIT HISTORY
+                    </div>
+                    <h1 className="text-3xl md:text-5xl font-bold tracking-tighter text-white">My <span className="text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600">Reports</span></h1>
+                    <p className="text-gray-400 mt-3 text-sm md:text-base">All your past GMB audit reports, ready to download.</p>
+                </div>
+
+                {/* No Reports Empty State */}
+                {reports.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-24 text-center">
+                        <div className="w-20 h-20 rounded-2xl bg-[#0B1120] border border-white/10 flex items-center justify-center mb-6 shadow-[0_0_40px_-10px_rgba(6,182,212,0.3)]">
+                            <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-white mb-3">No Reports Created Yet</h2>
+                        <p className="text-gray-500 text-sm max-w-sm mb-8 leading-relaxed">
+                            Once you generate a GMB audit report, it will appear here. Your reports are saved automatically.
+                        </p>
+                        <button
+                            onClick={onGetAudit}
+                            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] transform hover:scale-105"
+                        >
+                            Get Your First Audit →
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {reports.map((saved, i) => (
+                            <div
+                                key={saved.id}
+                                className="group bg-[#0B1120] border border-white/5 hover:border-cyan-500/30 rounded-2xl p-5 md:p-6 transition-all duration-300 flex flex-col md:flex-row md:items-center gap-4 md:gap-6"
+                            >
+                                {/* Report Number */}
+                                <div className="hidden md:flex w-10 h-10 shrink-0 rounded-xl bg-blue-500/10 border border-blue-500/20 items-center justify-center">
+                                    <span className="text-blue-400 font-bold text-sm font-mono">#{i + 1}</span>
+                                </div>
+
+                                {/* Info */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">
+                                            <span className="w-1 h-1 rounded-full bg-green-400"></span>
+                                            COMPLETED
+                                        </span>
+                                    </div>
+                                    <h3 className="text-white font-bold text-lg truncate group-hover:text-cyan-100 transition">{saved.gmbName}</h3>
+                                    <p className="text-gray-500 text-xs font-mono mt-0.5">
+                                        <svg className="w-3 h-3 inline mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                        {formatDate(saved.createdAt)}
+                                    </p>
+                                </div>
+
+                                {/* Download */}
+                                <button
+                                    onClick={() => handleDownload(saved)}
+                                    disabled={downloading === saved.id || externalDownloadingId === saved.id}
+                                    className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-500 disabled:bg-green-900 disabled:text-green-600 text-white rounded-xl font-bold text-xs transition group-hover:shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                                >
+                                    {(downloading === saved.id || externalDownloadingId === saved.id) ? (
+                                        <>
+                                            <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                            Generating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                            Download PDF
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Hidden off-screen render area for PDF generation (fallback) */}
+            <div style={{ position: "fixed", top: 0, left: "-9999px", width: "794px", height: 0, overflow: "hidden", pointerEvents: "none" }}>
+                {activeReport && (() => {
+                    const report = activeReport.reportData;
+                    const pdfEntities = buildComparisonEntities(report, activeReport.myBusiness?.title || activeReport.gmbName);
+                    return (
+                        <div
+                            ref={reportRef}
+                            id="report-content-redownload"
+                            style={{
+                                width: "794px",
+                                background: "#030712",
+                                color: "white",
+                                fontFamily: "Arial, sans-serif",
+                                padding: "40px",
+                                boxSizing: "border-box",
+                            }}
+                        >
+                            {/* === HEADER === */}
+                            <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
+                                {/* Score badge */}
+                                <div style={{ flexShrink: 0, width: "90px", height: "90px", borderRadius: "20px", background: "linear-gradient(135deg, #1e3a5f 0%, #0e7490 100%)", border: "1px solid rgba(6,182,212,0.5)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                    <div style={{ fontSize: "36px", fontWeight: "900", color: "#ffffff", lineHeight: 1 }}>{report?.audit_score ?? "—"}</div>
+                                    <div style={{ fontSize: "10px", color: "#67e8f9", fontWeight: "bold", letterSpacing: "2px", marginTop: "3px" }}>/ 100</div>
+                                </div>
+                                {/* Title block */}
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: "9px", color: "#06b6d4", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "6px" }}>WhatMyRank — Google Business Profile Audit</div>
+                                    <div style={{ fontSize: "22px", fontWeight: "900", color: "#ffffff", wordBreak: "break-word" }}>{activeReport.gmbName}</div>
+                                    <div style={{ fontSize: "11px", color: "#6b7280", marginTop: "4px" }}>Generated: {formatDate(activeReport.createdAt)}</div>
+                                </div>
+                            </div>
+
+                            {/* === COMPETITOR TABLE === */}
+                            {report?.matrix && (() => {
+                                const me = report.matrix.me;
+                                const comps = report.matrix.competitors || [];
+                                const rows = [
+                                    { label: activeReport.gmbName, data: me, isMe: true },
+                                    ...comps.slice(0, 2).map((c: any) => ({ label: c.title || c.name || c.business_name || "Competitor", data: c, isMe: false }))
+                                ];
+                                const thS: React.CSSProperties = { padding: "10px 14px", color: "#9ca3af", fontWeight: "bold", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", borderBottom: "2px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", textAlign: "center" as const };
+                                return (
+                                    <div style={{ marginBottom: "36px" }}>
+                                        <div style={{ fontSize: "10px", color: "#06b6d4", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "14px" }}>Competitor Comparison</div>
+                                        <table style={{ width: "714px", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                                            <colgroup>
+                                                <col style={{ width: "264px" }} />
+                                                <col style={{ width: "90px" }} />
+                                                <col style={{ width: "90px" }} />
+                                                <col style={{ width: "90px" }} />
+                                                <col style={{ width: "90px" }} />
+                                                <col style={{ width: "90px" }} />
+                                            </colgroup>
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ ...thS, textAlign: "left" }}>Business</th>
+                                                    <th style={thS}>Score</th>
+                                                    <th style={thS}>Rating</th>
+                                                    <th style={thS}>Reviews</th>
+                                                    <th style={thS}>Gap</th>
+                                                    <th style={thS}>Photos</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {rows.map((r, i) => (
+                                                    <tr key={i} style={{ background: r.isMe ? "rgba(6,182,212,0.07)" : (i % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"), borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: r.isMe ? "#67e8f9" : "#e5e7eb", fontWeight: r.isMe ? "bold" : "normal", wordBreak: "break-word" }}>
+                                                            {r.isMe && <span style={{ background: "#0e7490", color: "#67e8f9", fontSize: "8px", fontWeight: "bold", padding: "2px 6px", borderRadius: "4px", marginRight: "7px" }}>YOU</span>}
+                                                            {r.label}
+                                                        </td>
+                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#a78bfa", fontWeight: "bold", textAlign: "center" }}>{r.data?.audit_score ?? "—"}</td>
+                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#fbbf24", fontWeight: "bold", textAlign: "center" }}>{r.data?.rating ?? "—"} ⭐</td>
+                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#e5e7eb", textAlign: "center" }}>{r.data?.reviews ?? r.data?.total_reviews ?? "—"}</td>
+                                                        <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: "bold", textAlign: "center", color: String(r.data?.audit_gap ?? "").includes("-") ? "#f87171" : "#34d399" }}>{r.data?.audit_gap ?? "—"}</td>
+                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#e5e7eb", textAlign: "center" }}>{r.data?.photos ?? "—"}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                );
+                            })()}
+
+                            {/* === MATRIX DETAILS === */}
+                            {report?.matrix && (() => {
+                                const allEntities = pdfEntities;
+                                if (!allEntities?.length) return null;
+                                const metrics = COMPARISON_METRICS;
+                                return (
+                                    <div style={{ marginBottom: "36px" }}>
+                                        <div style={{ fontSize: "10px", color: "#06b6d4", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "14px" }}>Profile Metrics Breakdown</div>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                                            {metrics.slice(0, 8).map((metric: any) => (
+                                                <div key={metric.key} style={{ background: "#0B1120", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "14px 16px" }}>
+                                                    <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "bold", marginBottom: "10px" }}>{metric.label}</div>
+                                                    <div style={{ display: "flex", gap: "12px" }}>
+                                                        {allEntities.map((entity: any) => (
+                                                            <div key={entity.key} style={{ flex: 1 }}>
+                                                                <div style={{ fontSize: "10px", color: entity.key === "me" ? "#67e8f9" : "#c4b5fd", marginBottom: "4px", fontWeight: "bold" }}>{entity.label}</div>
+                                                                <div style={{ height: "6px", background: "rgba(255,255,255,0.08)", borderRadius: "3px", overflow: "hidden" }}>
+                                                                    <div style={{ height: "100%", width: `${Math.min(100, (metric.getValue(entity.data) / (metric.max || 5)) * 100)}%`, background: entity.key === "me" ? "#06b6d4" : "#8b5cf6", borderRadius: "3px" }} />
+                                                                </div>
+                                                                <div style={{ fontSize: "10px", color: "#d1d5db", marginTop: "3px" }}>{metric.display(entity.data)}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
+                            {/* === ACTION PLAN === */}
+                            {report?.action_plan?.length > 0 && (
+                                <div style={{ marginBottom: "36px" }}>
+                                    <div style={{ fontSize: "10px", color: "#06b6d4", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "14px" }}>Action Plan</div>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                        {report.action_plan.map((item: any, i: number) => (
+                                            <div key={i} style={{ background: "#0B1120", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "12px 16px", display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                                                <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "rgba(6,182,212,0.18)", border: "1px solid rgba(6,182,212,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#06b6d4", fontWeight: "bold", flexShrink: 0 }}>{i + 1}</div>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{ fontSize: "13px", color: "#ffffff", fontWeight: "bold", marginBottom: item.description ? "5px" : 0 }}>{item.title || item.action || String(item)}</div>
+                                                    {item.description && <div style={{ fontSize: "12px", color: "#9ca3af", lineHeight: "1.6" }}>{item.description}</div>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* === FOOTER === */}
+                            <div style={{ paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div style={{ fontSize: "10px", color: "#4b5563" }}>Powered by Addinfi · WhatMyRank GMB Audit Pro</div>
+                                <div style={{ fontSize: "10px", color: "#4b5563" }}>Confidential · {new Date().getFullYear()}</div>
+                            </div>
+                        </div>
+                    );
+                })()}
+            </div>
+        </div>
+    );
+}
+
+
 interface DashboardProps {
     onHome: () => void;
+    onReports: () => void;
+    preloadedData?: {
+        report: any;
+        myBusiness: any;
+        reportId: string;
+        gmbName: string;
+    };
+    onDownloadComplete?: () => void;
 }
 
 // --- RAZORPAY LOADER ---
@@ -976,12 +1391,12 @@ const normalizePlaceData = (place: any) => {
     return place;
 };
 
-function DashboardLogic({ onHome }: DashboardProps) {
+function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }: DashboardProps) {
     const { data: session } = useSession();
     const reportRef = useRef<HTMLDivElement>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     // STATE
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(preloadedData ? 3 : 1);
     const [myQuery, setMyQuery] = useState("");
     const [compQuery, setCompQuery] = useState("");
     const debouncedMyQuery = useDebounce(myQuery, 400);
@@ -990,20 +1405,24 @@ function DashboardLogic({ onHome }: DashboardProps) {
     const [mySuggestions, setMySuggestions] = useState<any[]>([]);
     const [compSuggestions, setCompSuggestions] = useState<any[]>([]);
 
-    const [myBusiness, setMyBusiness] = useState<any>(null);
+    const [myBusiness, setMyBusiness] = useState<any>(preloadedData?.myBusiness ?? null);
     const [competitors, setCompetitors] = useState<any[]>([]);
 
     const [loading, setLoading] = useState(false);
     const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
 
     const [downloading, setDownloading] = useState(false);
-    const [report, setReport] = useState<any>(null);
+    const [report, setReport] = useState<any>(preloadedData?.report ?? null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [savedReportId, setSavedReportId] = useState<string | null>(preloadedData?.reportId ?? null);
+
+    // Flag so auto-download useEffect knows not to cache this (already saved)
+    const isPreloaded = useRef<boolean>(!!preloadedData);
 
     // PAYMENT / COUPON STATE
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [couponCode, setCouponCode] = useState("");
-    const [isUnlocked, setIsUnlocked] = useState(false);
+    const [isUnlocked, setIsUnlocked] = useState(!!preloadedData);
     const [couponError, setCouponError] = useState("");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [reportReady, setReportReady] = useState(false);
@@ -1143,6 +1562,11 @@ function DashboardLogic({ onHome }: DashboardProps) {
             // 3. Final Validation
             if (finalReport && (finalReport.audit_score || finalReport.matrix)) {
                 setReport(finalReport);
+                // Save to localStorage for My Reports
+                if (session?.user?.email) {
+                    const newId = saveReport(session.user.email, finalReport, myBusiness);
+                    setSavedReportId(newId);
+                }
                 setIsUnlocked(true); // Payment is done, so unlock immediately
                 // Don't finalize immediately — let the loader animation complete first
                 setReportReady(true);
@@ -1415,6 +1839,20 @@ function DashboardLogic({ onHome }: DashboardProps) {
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
             pdf.save(`${myBusiness?.title || 'GMB'}_Audit_Report.pdf`);
 
+            // 5. Cache the image so My Reports can re-download the exact same PDF instantly
+            if (session?.user?.email && savedReportId) {
+                try {
+                    updateReportPdfData(session.user.email, savedReportId, imgData);
+                } catch {
+                    // localStorage might be full — non-critical, silently ignore
+                }
+            }
+
+            // 6. If this was a pre-loaded download (triggered from My Reports), navigate back
+            if (isPreloaded.current && onDownloadComplete) {
+                onDownloadComplete();
+            }
+
         } catch (err) {
             console.error("PDF Error", err);
             alert("Failed to generate PDF.");
@@ -1518,6 +1956,13 @@ function DashboardLogic({ onHome }: DashboardProps) {
                                         </button>
                                     </>
                                 )}
+                                <button
+                                    onClick={onReports}
+                                    className="text-xs font-bold text-gray-400 uppercase hover:text-cyan-400 transition flex items-center gap-1"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    My Reports
+                                </button>
                                 {session && (
                                     <UserMenu session={session} />
                                 )}
@@ -1573,6 +2018,16 @@ function DashboardLogic({ onHome }: DashboardProps) {
                             >
                                 Home
                             </button>
+                            <button
+                                onClick={() => {
+                                    setIsMobileMenuOpen(false);
+                                    onReports();
+                                }}
+                                className="w-full text-center text-sm font-medium text-cyan-400 uppercase tracking-widest hover:text-white transition py-3 border-b border-white/5"
+                            >
+                                📄 My Reports
+                            </button>
+
                             {session && (
                                 <button
                                     onClick={() => { setIsMobileMenuOpen(false); signOut(); }}

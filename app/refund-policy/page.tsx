@@ -59,14 +59,10 @@ const RefundPolicy = () => {
                 <h2 className="text-xl font-bold text-white mb-4 uppercase tracking-widest">Need Assistance?</h2>
                 <p className="text-sm text-gray-400 leading-relaxed max-w-2xl">If you are experiencing any technical issues or have questions regarding your billing, please don't hesitate to reach out. We're here to help.</p>
 
-                <div className="mt-8 grid md:grid-cols-2 gap-6">
+                <div className="mt-8">
                     <div className="flex flex-col gap-1">
                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Main Email</span>
                         <a href="mailto:info@addinfi.com" className="text-cyan-400 font-mono hover:underline">info@addinfi.com</a>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Technical/Billing Support</span>
-                        <a href="mailto:ads@addinfi.com" className="text-cyan-400 font-mono hover:underline">ads@addinfi.com</a>
                     </div>
                 </div>
 
