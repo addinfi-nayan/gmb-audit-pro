@@ -47,6 +47,20 @@ const RefundPolicy = () => {
 
             <section className="space-y-4">
                 <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
+                    <span className="w-1.5 h-6 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]"></span>
+                    Implementation Disclaimer
+                </h2>
+                <div className="bg-amber-500/5 border border-amber-500/20 p-6 rounded-xl">
+                    <p className="text-sm leading-relaxed">
+                        All changes suggested in our audit reports are to be implemented by the user <span className="text-amber-400 font-bold">only if they deem them applicable</span>.
+                        Any such changes are made at the <span className="text-white font-bold">user's sole risk</span>.
+                        Addinfi shall not be held responsible for any positive or negative outcomes resulting from these implementations.
+                    </p>
+                </div>
+            </section>
+
+            <section className="space-y-4">
+                <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                     Exceptional Circumstances
                 </h2>

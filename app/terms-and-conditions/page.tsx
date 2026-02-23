@@ -104,7 +104,8 @@ const TermsAndConditions = () => {
                 <ul className="list-disc pl-6 space-y-2">
                     <li>Not to misuse, scrape, reverse engineer, or replicate the system.</li>
                     <li>Not to use data for unlawful or unethical purposes.</li>
-                    <li>Not to hold Addinfi liable for business decisions made using this tool.</li>
+                    <li>That any changes made based on audit reports are at your <span className="text-white font-bold underline decoration-blue-500/50">sole risk and discretion</span>.</li>
+                    <li>Not to hold Addinfi liable for business decisions or implementation outcomes made using this tool.</li>
                 </ul>
             </section>
 
