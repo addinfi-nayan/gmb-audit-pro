@@ -6,11 +6,10 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Link from "next/link";
 import { saveReport, getReports, updateReportPdfData, type SavedReport } from "./utils/reportStore";
+import SignInModal from "../components/SignInModal";
+import CookieConsent from "../components/CookieConsent";
 
-
-// ==========================================
-//  PART 1: THE CYBER-CORE LANDING PAGE
-// ==========================================
+// ... rest of the code remains the same ...
 
 const FAQItem = ({ q, a }: { q: string, a: string }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -625,6 +624,11 @@ const LandingPage = ({ onStart, onReports }: { onStart: () => void; onReports?: 
                     <div className="w-2 h-2 rounded-full bg-green-500"></div>
                     <span className="text-[10px] md:text-xs font-mono text-gray-400">ALL SYSTEMS OPERATIONAL</span>
                 </div>
+                <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-6">
+                    <Link href="/terms-and-conditions" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Terms & Conditions</Link>
+                    <Link href="/privacy-policy" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Privacy Policy</Link>
+                    <Link href="/refund-policy" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Refund Policy</Link>
+                </div>
                 <p className="text-gray-600 text-[10px] md:text-xs font-mono">&copy; {new Date().getFullYear()} ADDINFI DIGITECH PVT. LTD. // SECURE CONNECTION</p>
             </footer>
         </div>
@@ -800,6 +804,7 @@ const buildComparisonEntities = (report: any, userBusinessName?: string) => {
 export default function Page() {
     const { data: session, status } = useSession();
     const [view, setView] = useState<"landing" | "dashboard" | "reports">("landing");
+    const [showSignInModal, setShowSignInModal] = useState(false);
 
     // --- GLOBAL RECENT ACTIVITY NOTIFICATIONS ---
     const [recentActivity, setRecentActivity] = useState<{ name: string, time: string, action: string } | null>(null);
@@ -895,7 +900,7 @@ export default function Page() {
 
     const handleStartAction = () => {
         if (!session) {
-            signIn("google");
+            setShowSignInModal(true);
         } else {
             setView("dashboard");
         }
@@ -1004,6 +1009,16 @@ export default function Page() {
             ) : (
                 <LandingPage onStart={handleStartAction} onReports={session ? () => setView("reports") : undefined} />
             )}
+
+            {/* Sign In Modal */}
+            <SignInModal 
+                isOpen={showSignInModal}
+                onClose={() => setShowSignInModal(false)}
+                onSuccess={() => setView("dashboard")}
+            />
+
+            {/* Cookie Consent Banner */}
+            <CookieConsent />
         </>
     );
 }
