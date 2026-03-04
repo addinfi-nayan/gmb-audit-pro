@@ -1603,7 +1603,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
         const payload = {
             email: leadData.email,
-            // phone: leadData.phone, // Removed
+            phone: leadData.phone,
             business: myBusiness?.title || "Unknown Business",
             date: new Date().toLocaleString()
         };
@@ -3394,8 +3394,6 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                 className="absolute top-4 right-4 text-gray-500 hover:text-white transition"
                             >✕</button>
 
-
-
                             <h2 className="text-2xl font-bold text-white mb-2">Almost There</h2>
                             <p className="text-gray-400 mb-6 text-sm">Enter your email to generate the secure download link and get future updates.</p>
 
@@ -3412,7 +3410,17 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                     />
                                 </div>
 
-
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
+                                    <input
+                                        type="tel"
+                                        required
+                                        className="w-full bg-[#020617] border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none text-white transition"
+                                        placeholder="+91 98765 00000"
+                                        value={leadData.phone}
+                                        onChange={(e) => setLeadData({ ...leadData, phone: e.target.value })}
+                                    />
+                                </div>
 
                                 {/* UPDATED SUBMIT BUTTON WITH LOADER */}
                                 <button
