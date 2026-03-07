@@ -803,8 +803,25 @@ const buildComparisonEntities = (report: any, userBusinessName?: string) => {
 // --- MAIN PAGE COMPONENT ---
 export default function Page() {
     const { data: session, status } = useSession();
-    const [view, setView] = useState<"landing" | "dashboard" | "reports">("landing");
+    const [view, setView] = useState<"landing" | "dashboard" | "reports">(() => {
+        if (typeof window !== 'undefined') {
+            const saved = sessionStorage.getItem('gmb_view');
+            if (saved === 'dashboard' || saved === 'reports') return saved;
+        }
+        return 'landing';
+    });
     const [showSignInModal, setShowSignInModal] = useState(false);
+
+    // Persist view to sessionStorage whenever it changes
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            if (view === 'dashboard' || view === 'reports') {
+                sessionStorage.setItem('gmb_view', view);
+            } else {
+                sessionStorage.removeItem('gmb_view');
+            }
+        }
+    }, [view]);
 
     // --- GLOBAL RECENT ACTIVITY NOTIFICATIONS ---
     const [recentActivity, setRecentActivity] = useState<{ name: string, time: string, action: string } | null>(null);
@@ -906,6 +923,16 @@ export default function Page() {
         }
     };
 
+    // Helper: navigate to landing and clear all session persistence
+    const goToLanding = () => {
+        sessionStorage.removeItem('gmb_view');
+        sessionStorage.removeItem('gmb_step');
+        sessionStorage.removeItem('gmb_report');
+        sessionStorage.removeItem('gmb_myBusiness');
+        sessionStorage.removeItem('gmb_loading');
+        setView('landing');
+    };
+
     return (
         <>
             {/* --- GLOBAL TOAST OVERLAY --- */}
@@ -974,7 +1001,7 @@ export default function Page() {
                 <>
                     <ReportsPage
                         session={session}
-                        onHome={() => setView("landing")}
+                        onHome={goToLanding}
                         onGetAudit={handleStartAction}
                         onTriggerDownload={(saved) => setPendingDownload(saved)}
                         externalDownloadingId={pendingDownload?.id ?? null}
@@ -1003,7 +1030,7 @@ export default function Page() {
                 </>
             ) : view === "dashboard" && session ? (
                 <DashboardLogic
-                    onHome={() => setView("landing")}
+                    onHome={goToLanding}
                     onReports={() => setView("reports")}
                 />
             ) : (
@@ -1410,8 +1437,50 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     const { data: session } = useSession();
     const reportRef = useRef<HTMLDivElement>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // --- RESTORE FROM SESSION STORAGE (handles page refresh) ---
+    const getRestoredStep = () => {
+        if (preloadedData) return 3;
+        if (typeof window !== 'undefined') {
+            // If the page was refreshed while loading was running, the API call is lost.
+            // Clear the stale step so we go back to the input form (step 1).
+            if (sessionStorage.getItem('gmb_loading') === 'true') {
+                sessionStorage.removeItem('gmb_step');
+                sessionStorage.removeItem('gmb_loading');
+                return 1;
+            }
+            const s = sessionStorage.getItem('gmb_step');
+            if (s === '2' || s === '3') return parseInt(s);
+        }
+        return 1;
+    };
+    const getRestoredReport = () => {
+        if (preloadedData) return preloadedData.report;
+        if (typeof window !== 'undefined') {
+            try {
+                const r = sessionStorage.getItem('gmb_report');
+                return r ? JSON.parse(r) : null;
+            } catch { return null; }
+        }
+        return null;
+    };
+    const getRestoredMyBusiness = () => {
+        if (preloadedData) return preloadedData.myBusiness;
+        if (typeof window !== 'undefined') {
+            try {
+                const b = sessionStorage.getItem('gmb_myBusiness');
+                return b ? JSON.parse(b) : null;
+            } catch { return null; }
+        }
+        return null;
+    };
+    const getRestoredLoading = () => {
+        // Never restore loading=true (API call is lost on refresh), always start fresh
+        return false;
+    };
+
     // STATE
-    const [step, setStep] = useState(preloadedData ? 3 : 1);
+    const [step, setStep] = useState(getRestoredStep);
     const [myQuery, setMyQuery] = useState("");
     const [compQuery, setCompQuery] = useState("");
     const debouncedMyQuery = useDebounce(myQuery, 400);
@@ -1420,24 +1489,64 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     const [mySuggestions, setMySuggestions] = useState<any[]>([]);
     const [compSuggestions, setCompSuggestions] = useState<any[]>([]);
 
-    const [myBusiness, setMyBusiness] = useState<any>(preloadedData?.myBusiness ?? null);
+    const [myBusiness, setMyBusiness] = useState<any>(getRestoredMyBusiness);
     const [competitors, setCompetitors] = useState<any[]>([]);
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(getRestoredLoading);
     const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
 
     const [downloading, setDownloading] = useState(false);
-    const [report, setReport] = useState<any>(preloadedData?.report ?? null);
+    const [report, setReport] = useState<any>(getRestoredReport);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [savedReportId, setSavedReportId] = useState<string | null>(preloadedData?.reportId ?? null);
 
     // Flag so auto-download useEffect knows not to cache this (already saved)
     const isPreloaded = useRef<boolean>(!!preloadedData);
 
+    // --- PERSIST STATE TO SESSION STORAGE ---
+    useEffect(() => {
+        if (typeof window !== 'undefined' && !preloadedData) {
+            sessionStorage.setItem('gmb_step', String(step));
+        }
+    }, [step]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && !preloadedData) {
+            if (report) {
+                try { sessionStorage.setItem('gmb_report', JSON.stringify(report)); } catch { }
+            } else {
+                sessionStorage.removeItem('gmb_report');
+            }
+        }
+    }, [report]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && !preloadedData) {
+            if (myBusiness) {
+                try { sessionStorage.setItem('gmb_myBusiness', JSON.stringify(myBusiness)); } catch { }
+            } else {
+                sessionStorage.removeItem('gmb_myBusiness');
+            }
+        }
+    }, [myBusiness]);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined' && !preloadedData) {
+            sessionStorage.setItem('gmb_loading', loading ? 'true' : 'false');
+        }
+    }, [loading]);
+
     // PAYMENT / COUPON STATE
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [couponCode, setCouponCode] = useState("");
-    const [isUnlocked, setIsUnlocked] = useState(!!preloadedData);
+    // isUnlocked: true if preloaded (from My Reports), OR if restoring a completed report (step=3 + report exists)
+    const [isUnlocked, setIsUnlocked] = useState(() => {
+        if (!!preloadedData) return true;
+        if (typeof window !== 'undefined') {
+            return sessionStorage.getItem('gmb_step') === '3' && !!sessionStorage.getItem('gmb_report');
+        }
+        return false;
+    });
     const [couponError, setCouponError] = useState("");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [reportReady, setReportReady] = useState(false);
@@ -1492,6 +1601,13 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
     // --- UPDATED RESET HANDLER ---
     const handleReset = () => {
+        // 0. Clear session storage persistence
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('gmb_step');
+            sessionStorage.removeItem('gmb_report');
+            sessionStorage.removeItem('gmb_myBusiness');
+            sessionStorage.removeItem('gmb_loading');
+        }
         // 1. Reset UI Step
         setStep(1);
         setReport(null);
@@ -3597,4 +3713,4 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             </footer>
         </div>
     );
-} 
+}                                                                                                                                                                                                                                                                                                                                                                                                        
