@@ -1955,7 +1955,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                     <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
 
                         {/* Logo (Clicking also goes home) */}
-                        <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.location.href = "/"}>
+                        <div className="flex items-center gap-3 cursor-pointer" onClick={onHome}>
                             <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">What<span className="text-blue-500">My</span>Rank</span>
                         </div>
 
@@ -2059,7 +2059,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                             <button
                                 onClick={() => {
                                     setIsMobileMenuOpen(false);
-                                    window.location.href = "/";
+                                    onHome();
                                 }}
                                 className="w-full text-center text-sm text-gray-400 hover:text-white font-medium transition py-3"
                             >
