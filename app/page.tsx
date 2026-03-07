@@ -1011,7 +1011,7 @@ export default function Page() {
             )}
 
             {/* Sign In Modal */}
-            <SignInModal 
+            <SignInModal
                 isOpen={showSignInModal}
                 onClose={() => setShowSignInModal(false)}
                 onSuccess={() => setView("dashboard")}
@@ -1446,6 +1446,11 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     // --- NEW: LEAD CAPTURE STATE ---
     const [showLeadModal, setShowLeadModal] = useState(false);
     const [leadData, setLeadData] = useState({ email: "", phone: "" });
+    const [leadCouponCode, setLeadCouponCode] = useState("");
+    const [leadCouponError, setLeadCouponError] = useState("");
+    const [leadCouponApplied, setLeadCouponApplied] = useState(false);
+
+    const VALID_COUPON = "addinfi26";
     const comparisonEntities = useMemo(() =>
         buildComparisonEntities(report, myBusiness?.title),
         [report, myBusiness]);
@@ -1505,7 +1510,12 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         setLeadData({ email: "", phone: "" });
         setIsUnlocked(false);
 
-        // 4. Close any open modals just in case
+        // 4. Reset coupon state
+        setLeadCouponCode("");
+        setLeadCouponError("");
+        setLeadCouponApplied(false);
+
+        // 5. Close any open modals just in case
         setShowLeadModal(false);
         setShowPaymentModal(false);
     };
@@ -1597,6 +1607,17 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         }
     };
 
+    // --- COUPON APPLY HANDLER (in Lead Modal) ---
+    const handleLeadCouponApply = () => {
+        if (leadCouponCode.trim().toLowerCase() === VALID_COUPON.toLowerCase()) {
+            setLeadCouponApplied(true);
+            setLeadCouponError("");
+        } else {
+            setLeadCouponError("Invalid coupon code. Please try again.");
+            setLeadCouponApplied(false);
+        }
+    };
+
     const handleLeadSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -1605,6 +1626,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             email: leadData.email,
             phone: leadData.phone,
             business: myBusiness?.title || "Unknown Business",
+            coupon: leadCouponApplied ? VALID_COUPON : "",
             date: new Date().toLocaleString()
         };
 
@@ -1612,15 +1634,26 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             // 1. Save Lead (Background)
             axios.post("https://n8n-pro-775604255858.asia-south1.run.app/webhook/save-lead", payload).catch(err => console.error("Lead Error:", err));
 
-            // 2. Load Razorpay SDK
+            // 2. COUPON PATH — skip payment entirely
+            if (leadCouponApplied) {
+                setShowLeadModal(false);
+                setIsUnlocked(true);
+                setLeadCouponCode("");
+                setLeadCouponApplied(false);
+                setIsSubmitting(false);
+                performAnalysis();
+                return;
+            }
+
+            // 3. PAYMENT PATH — Load Razorpay SDK
             const isLoaded = await loadRazorpay();
             if (!isLoaded) {
-                alert("Razorpay SDK failed to load. Please checks your internet connection.");
+                alert("Razorpay SDK failed to load. Please check your internet connection.");
                 setIsSubmitting(false);
                 return;
             }
 
-            // 3. Create Order
+            // 4. Create Order
             const { data: orderData } = await axios.post("/api/razorpay/create-order");
 
             if (!orderData || !orderData.id) {
@@ -1629,7 +1662,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 return;
             }
 
-            // 4. Open Razorpay Options
+            // 5. Open Razorpay
             const options = {
                 key: orderData.key_id,
                 amount: orderData.amount,
@@ -1662,9 +1695,8 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                     }
                 },
                 prefill: {
-                    name: "User", // We could add a name field if needed
+                    name: "User",
                     email: leadData.email,
-                    // contact: leadData.phone, // Removed
                 },
                 theme: {
                     color: "#0891b2",
@@ -3390,12 +3422,12 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-[fadeIn_0.2s_ease-out]">
                         <div className="bg-[#0B1120] rounded-2xl shadow-2xl max-w-md w-full p-8 text-center border border-white/10 relative">
                             <button
-                                onClick={() => setShowLeadModal(false)}
+                                onClick={() => { setShowLeadModal(false); setLeadCouponCode(""); setLeadCouponError(""); setLeadCouponApplied(false); }}
                                 className="absolute top-4 right-4 text-gray-500 hover:text-white transition"
                             >✕</button>
 
                             <h2 className="text-2xl font-bold text-white mb-2">Almost There</h2>
-                            <p className="text-gray-400 mb-6 text-sm">Enter your email to generate the secure download link and get future updates.</p>
+                            <p className="text-gray-400 mb-6 text-sm">Enter your details to unlock the full GMB audit report.</p>
 
                             <form onSubmit={handleLeadSubmit} className="space-y-4 text-left">
                                 <div>
@@ -3422,11 +3454,67 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                     />
                                 </div>
 
-                                {/* UPDATED SUBMIT BUTTON WITH LOADER */}
+                                {/* --- COUPON CODE SECTION --- */}
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Coupon Code <span className="text-gray-600 normal-case font-normal">(optional)</span></label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            className={`flex-1 bg-[#020617] border p-3 rounded-xl outline-none text-white transition text-sm ${leadCouponApplied
+                                                ? "border-green-500/60 text-green-400"
+                                                : leadCouponError
+                                                    ? "border-red-500/60"
+                                                    : "border-white/10 focus:border-cyan-500"
+                                                }`}
+                                            placeholder="Enter coupon code"
+                                            value={leadCouponCode}
+                                            onChange={(e) => { setLeadCouponCode(e.target.value); setLeadCouponError(""); setLeadCouponApplied(false); }}
+                                            disabled={leadCouponApplied}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleLeadCouponApply}
+                                            disabled={!leadCouponCode.trim() || leadCouponApplied}
+                                            className="px-4 py-3 rounded-xl font-bold text-sm transition bg-white/10 hover:bg-white/20 text-white border border-white/10 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                                        >
+                                            {leadCouponApplied ? "✓ Applied" : "Apply"}
+                                        </button>
+                                    </div>
+                                    {leadCouponApplied && (
+                                        <p className="text-green-400 text-xs mt-1.5 flex items-center gap-1">
+                                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                            Coupon applied! Payment waived.
+                                        </p>
+                                    )}
+                                    {leadCouponError && (
+                                        <p className="text-red-400 text-xs mt-1.5">{leadCouponError}</p>
+                                    )}
+                                </div>
+
+                                {/* PRICE LINE */}
+                                {!leadCouponApplied ? (
+                                    <div className="flex items-center justify-between px-1 pt-1">
+                                        <span className="text-gray-400 text-xs">Unlock full audit report</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-white font-bold text-sm">₹99</span>
+                                            <span className="text-gray-500 line-through text-xs">₹999</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between px-1 pt-1">
+                                        <span className="text-green-400 text-xs font-medium">🎉 Coupon applied — Payment waived!</span>
+                                        <span className="text-green-400 font-bold text-sm">FREE</span>
+                                    </div>
+                                )}
+
+                                {/* SUBMIT BUTTON */}
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-4 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transition mt-2 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className={`w-full text-white py-4 rounded-xl font-bold transition mt-1 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${leadCouponApplied
+                                        ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]"
+                                        : "bg-gradient-to-r from-blue-600 to-cyan-600 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                                        }`}
                                 >
                                     {isSubmitting ? (
                                         <>
@@ -3434,12 +3522,14 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            <span>Processing Payment...</span>
+                                            <span>{leadCouponApplied ? "Generating Report..." : "Processing Payment..."}</span>
                                         </>
                                     ) : (
-                                        <div className="flex items-center justify-center gap-3">
-                                            <span className="text-lg font-bold">Pay ₹99</span>
-                                            <span className="text-red-500 line-through text-sm">₹999</span>
+                                        <div className="flex items-center justify-center gap-2">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                            <span className="text-base font-bold">
+                                                {leadCouponApplied ? "Generate Report — Free" : "Generate Report @ ₹99"}
+                                            </span>
                                         </div>
                                     )}
                                 </button>
