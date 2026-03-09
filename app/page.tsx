@@ -1,5 +1,6 @@
 "use client";
 import { useSession, signIn, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
 import html2canvas from "html2canvas";
@@ -803,6 +804,7 @@ const buildComparisonEntities = (report: any, userBusinessName?: string) => {
 // --- MAIN PAGE COMPONENT ---
 export default function Page() {
     const { data: session, status } = useSession();
+    const pathname = usePathname();
     const [view, setView] = useState<"landing" | "dashboard" | "reports">(() => {
         if (typeof window !== 'undefined') {
             const saved = sessionStorage.getItem('gmb_view');
@@ -829,6 +831,9 @@ export default function Page() {
     const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null); // gmbName after success
 
     useEffect(() => {
+        // Only run notifications on landing (home) view
+        if (view !== "landing") return;
+        
         // Random Data Pools
         const names = [
             "Mohan", "Simran", "Rahul", "Vikram", "Neha", "Kabir", "Anjali", "Priya", "Suresh", "Rajesh", "Amit", "Divya", "Arjun", "Sneha",
@@ -910,7 +915,7 @@ export default function Page() {
             clearTimeout(initialTimer);
             clearTimeout(loopId);
         };
-    }, []);
+    }, [view]);
 
     // 1. Fix "Invalid Hook Call": Ensure no hooks are outside this function
     if (status === "loading") return <div className="min-h-screen bg-[#030712]" />;
@@ -936,7 +941,7 @@ export default function Page() {
     return (
         <>
             {/* --- GLOBAL TOAST OVERLAY --- */}
-            {recentActivity && (
+            {recentActivity && view === "landing" && (
                 <div className="fixed bottom-6 left-6 z-[9999] bg-[#0B1120]/90 border border-cyan-500/30 backdrop-blur-md rounded-xl p-4 shadow-[0_0_20px_rgba(6,182,212,0.2)] animate-[slide-up_0.3s_ease-out] flex items-center gap-3 hover:scale-105 transition cursor-default pointer-events-none">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-xs shadow-inner">
                         {recentActivity.name.charAt(0)}
