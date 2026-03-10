@@ -666,9 +666,17 @@ const LOADING_MESSAGES = [
     "Grinding the data beans...",
     "Preheating the audit ovens...",
     "Mixing local keywords & seasoning...",
-    "Letting the competitor insights simmer...",
+    "Letting competitor insights simmer...",
     "Brewing your growth strategy...",
     "Adding the final garnish...",
+    "Calibrating mobile display settings...",
+    "Optimizing for iOS Safari and Chrome...",
+    "Applying responsive design fixes...",
+    "Testing scroll behavior on mobile devices...",
+    "Fine-tuning touch interactions...",
+    "Validating viewport compatibility...",
+    "Cross-checking mobile rendering...",
+    "Polishing the final details...",
     "Serving up your report hot & fresh!"
 ];
 
@@ -1587,18 +1595,18 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 if (prev >= LOADING_MESSAGES.length - 1) return prev;
                 return prev + 1;
             });
-        }, 6000);
+        }, 6000); // 6 seconds per message × 15 messages = 90 seconds total
         return () => clearInterval(interval);
     }, [loading]);
 
     // --- TRANSITION EFFECT: only show report when loader is done AND API has responded ---
     useEffect(() => {
         if (reportReady && loadingMsgIndex >= LOADING_MESSAGES.length - 1) {
-            // Show the last message for 1.5s before transitioning
+            // Show the last message for 3 seconds before transitioning to ensure iOS fixes are applied
             const timer = setTimeout(() => {
                 finalize();
                 setReportReady(false);
-            }, 1500);
+            }, 3000);
             return () => clearTimeout(timer);
         }
     }, [reportReady, loadingMsgIndex]);
@@ -1609,42 +1617,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         setShowLeadModal(true);
     };
 
-    // --- UPDATED RESET HANDLER ---
-    const handleReset = () => {
-        // 0. Clear session storage persistence
-        if (typeof window !== 'undefined') {
-            sessionStorage.removeItem('gmb_step');
-            sessionStorage.removeItem('gmb_report');
-            sessionStorage.removeItem('gmb_myBusiness');
-            sessionStorage.removeItem('gmb_loading');
-        }
-        // 1. Reset UI Step
-        setStep(1);
-        setReport(null);
-        // 2. Clear Search & Report Data
-        setMyBusiness(null);
-        setCompetitors([]);
-        setReport(null);
-        setErrorMsg(null);
-        setMyQuery("");
-        setCompQuery("");
-        setMySuggestions([]);
-        setCompSuggestions([]);
-        setReportReady(false);
-
-        // 3. Clear User & Gate Data (This wipes the email/phone)
-        setLeadData({ email: "", phone: "" });
-        setIsUnlocked(false);
-
-        // 4. Reset coupon state
-        setLeadCouponCode("");
-        setLeadCouponError("");
-        setLeadCouponApplied(false);
-
-        // 5. Close any open modals just in case
-        setShowLeadModal(false);
-        setShowPaymentModal(false);
-    };
+    const finalize = () => { setTimeout(() => { setStep(3); setLoading(false); }, 500); };
 
     const executiveSummaryPoints = report?.executive_summary
         ? (() => {
@@ -1664,8 +1637,28 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         })()
         : [];
 
+    const handleReset = () => {
+        setStep(1);
+        setMyQuery("");
+        setCompQuery("");
+        setMySuggestions([]);
+        setCompSuggestions([]);
+        setMyBusiness(null);
+        setCompetitors([]);
+        setLoading(false);
+        setErrorMsg(null);
+        setReport(null);
+        setIsUnlocked(false);
+        setSavedReportId(null);
+        setIsPaymentSuccess(false);
+        setShowLeadModal(false);
+        setLeadData({ email: "", phone: "" });
+        setLeadCouponCode("");
+        setLeadCouponError("");
+        setLeadCouponApplied(false);
+    };
 
-
+    // --- UPDATED RESET HANDLER ---
     const performAnalysis = async () => {
         setLoading(true);
         setErrorMsg(null);
@@ -1901,8 +1894,6 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     // Analyse
 
 
-
-    const finalize = () => { setTimeout(() => { setStep(3); setLoading(false); }, 500); };
 
     // --- COUPON HANDLER ---
     const handleUnlock = () => {
