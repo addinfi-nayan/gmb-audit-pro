@@ -1,0 +1,99 @@
+/* iOS-specific fixes for Chrome scrolling issues */
+
+/* iOS scrollbar handling - show scrollbars on iOS */
+@supports (-webkit-touch-callout: none) {
+  html,
+  body {
+    scrollbar-width: auto !important;
+  }
+  
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 4px !important;
+    height: 4px !important;
+  }
+  
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+  
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 2px !important;
+  }
+}
+
+/* Override global scrollbar hiding for iOS */
+@supports (-webkit-touch-callout: none) {
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    width: auto !important;
+    height: auto !important;
+    background: transparent !important;
+  }
+}
+
+/* iOS smooth scrolling */
+@supports (-webkit-touch-callout: none) {
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* Custom scrollbar for report containers - iOS optimized */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* iOS-specific custom scrollbar optimizations */
+@supports (-webkit-touch-callout: none) {
+  .custom-scrollbar {
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px !important;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-radius: 2px !important;
+  }
+}
+
+/* Ensure report content is visible on iOS */
+@supports (-webkit-touch-callout: none) {
+  #report-content {
+    min-height: 100vh !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  #report-content .overflow-y-auto {
+    max-height: calc(100vh - 200px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}

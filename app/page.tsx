@@ -6,6 +6,7 @@ import axios from "axios";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Link from "next/link";
+import Head from "next/head";
 import { saveReport, getReports, updateReportPdfData, type SavedReport } from "./utils/reportStore";
 import SignInModal from "../components/SignInModal";
 import CookieConsent from "../components/CookieConsent";
@@ -833,7 +834,7 @@ export default function Page() {
     useEffect(() => {
         // Only run notifications on landing (home) view
         if (view !== "landing") return;
-        
+
         // Random Data Pools
         const names = [
             "Mohan", "Simran", "Rahul", "Vikram", "Neha", "Kabir", "Anjali", "Priya", "Suresh", "Rajesh", "Amit", "Divya", "Arjun", "Sneha",
@@ -940,6 +941,10 @@ export default function Page() {
 
     return (
         <>
+            <Head>
+                <link rel="stylesheet" href="/ios-fixes.css" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            </Head>
             {/* --- GLOBAL TOAST OVERLAY --- */}
             {recentActivity && view === "landing" && (
                 <div className="fixed bottom-6 left-6 z-[9999] bg-[#0B1120]/90 border border-cyan-500/30 backdrop-blur-md rounded-xl p-4 shadow-[0_0_20px_rgba(6,182,212,0.2)] animate-[slide-up_0.3s_ease-out] flex items-center gap-3 hover:scale-105 transition cursor-default pointer-events-none">
@@ -2373,7 +2378,14 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 {/* STEP 3: REPORT */}
                 {step === 3 && report && !errorMsg && (
                     // WRAPPER REF FOR PDF CAPTURE (UPDATED STYLES FOR PDF MODE)
-                    <div ref={reportRef} id="report-content" className="bg-[#030712] pt-24 md:pt-32 px-4 md:px-12 pb-40 min-h-screen text-white">
+                    <div ref={reportRef} id="report-content" className="bg-[#030712] pt-24 md:pt-32 px-4 md:px-12 pb-40 min-h-screen text-white" style={{
+                        '@supports (-webkit-touch-callout: none)': {
+                            WebkitOverflowScrolling: 'touch',
+                            overflowY: 'auto',
+                            height: 'auto',
+                            minHeight: '100vh'
+                        }
+                    } as React.CSSProperties}>
 
                         <div className="bg-[#0B1120] border border-white/10 py-12 px-8 md:px-16 rounded-xl shadow-2xl mb-12 relative overflow-hidden">
                             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
@@ -2531,7 +2543,12 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                         </div>
 
                                         {/* Enhanced Multi-Visualization Grid */}
-                                        <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
+                                        <div className="flex-1 p-6 overflow-y-auto custom-scrollbar" style={{
+                        '@supports (-webkit-touch-callout: none)': {
+                            WebkitOverflowScrolling: 'touch',
+                            maxHeight: 'calc(100vh - 200px)'
+                        }
+                    } as React.CSSProperties}>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                                                 {/* ══════════ 1. REPUTATION SCORE — Star Rating Display ══════════ */}
