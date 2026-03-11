@@ -16,28 +16,50 @@ const downloadPDF = (pdf: jsPDF, filename: string) => {
     // Check if it's a mobile device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
     
     if (isMobile) {
         try {
-            // For mobile devices, create a blob and handle download appropriately
+            // Show mobile user instructions
+            if (isIOS) {
+                alert('For iOS: The PDF will open in a new tab. Use the share button to save or print the PDF.');
+            } else if (isAndroid) {
+                alert('For Android: The PDF will download to your Downloads folder. If it opens in a new tab, use the download button in the browser.');
+            }
+            
+            // Generate PDF as blob
             const pdfBlob = pdf.output('blob');
             const url = URL.createObjectURL(pdfBlob);
             
             if (isIOS) {
-                // iOS Safari: Open in new tab since direct download is restricted
-                const newWindow = window.open(url, '_blank');
-                if (!newWindow) {
-                    // Fallback: try to download directly
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = filename;
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
-            } else {
-                // Android and other mobile: Try direct download first
+                // iOS Safari: Use a more reliable approach
+                // Method 1: Try to open in new tab with proper iOS handling
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (e.target?.result) {
+                        const dataUrl = e.target.result as string;
+                        // Create a temporary link for iOS
+                        const link = document.createElement('a');
+                        link.href = dataUrl;
+                        link.target = '_blank';
+                        link.download = filename;
+                        
+                        // iOS-specific handling
+                        if (link.download) {
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        } else {
+                            // Fallback for iOS that doesn't support download attribute
+                            window.open(dataUrl, '_blank');
+                        }
+                    }
+                };
+                reader.readAsDataURL(pdfBlob);
+                
+            } else if (isAndroid) {
+                // Android: Try multiple approaches
+                // Method 1: Direct download attempt
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = filename;
@@ -46,23 +68,47 @@ const downloadPDF = (pdf: jsPDF, filename: string) => {
                 link.click();
                 document.body.removeChild(link);
                 
-                // Fallback: open in new tab if download doesn't work
+                // Method 2: Fallback - open in new tab after delay
                 setTimeout(() => {
                     const newWindow = window.open(url, '_blank');
                     if (newWindow) {
-                        newWindow.onload = () => {
-                            setTimeout(() => newWindow.close(), 1000);
-                        };
+                        // Auto-close after 3 seconds to allow user to download
+                        setTimeout(() => {
+                            if (!newWindow.closed) {
+                                newWindow.close();
+                            }
+                        }, 3000);
                     }
-                }, 500);
+                }, 1000);
+                
+            } else {
+                // Other mobile browsers: General approach
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
             
-            // Clean up the object URL after a delay
-            setTimeout(() => URL.revokeObjectURL(url), 5000);
+            // Clean up the object URL after a longer delay for mobile
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 10000);
+            
         } catch (error) {
             console.error('Mobile PDF download error:', error);
-            // Final fallback: try the standard save method
-            pdf.save(filename);
+            // Final fallback: use data URL approach
+            try {
+                const dataUrl = pdf.output('dataurlstring');
+                window.open(dataUrl, '_blank');
+                alert('PDF opened in new tab. Please use your browser\'s download or share option to save it.');
+            } catch (fallbackError) {
+                console.error('All PDF download methods failed:', fallbackError);
+                // Last resort: alert user
+                alert('PDF download failed. Please try again on a desktop browser or check your browser settings.');
+            }
         }
     } else {
         // For desktop, use the standard save method
