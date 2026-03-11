@@ -1595,7 +1595,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 if (prev >= LOADING_MESSAGES.length - 1) return prev;
                 return prev + 1;
             });
-        }, 6000); // 6 seconds per message × 15 messages = 90 seconds total
+        }, 8000); // 8 seconds per message × 15 messages = 120 seconds total (2 minutes)
         return () => clearInterval(interval);
     }, [loading]);
 
