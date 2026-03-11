@@ -947,26 +947,52 @@ export default function Page() {
         setView('landing');
     };
 
+            // --- MOBILE ERROR HANDLING ---
+    const [mobileError, setMobileError] = useState<string | null>(null);
+
+    // Mobile-specific error detection
+    useEffect(() => {
+        if (typeof window !== 'undefined' && step === 3) {
+            // Check if content is not loading after 10 seconds
+            const errorTimer = setTimeout(() => {
+                if (loading && !report) {
+                    setMobileError("Report is taking longer than expected. Please check your connection and try again.");
+                    setLoading(false);
+                }
+            }, 10000); // 10 seconds
+
+            // Check if report content is not visible
+            const visibilityTimer = setTimeout(() => {
+                const reportElement = document.getElementById('report-content');
+                if (reportElement && reportElement.offsetHeight === 0) {
+                    setMobileError("Report content failed to load. Please refresh the page.");
+                }
+            }, 5000); // 5 seconds
+
+            return () => {
+                clearTimeout(errorTimer);
+                clearTimeout(visibilityTimer);
+            };
+        }
+    }, [step, loading, report]);
+
     return (
         <>
-            <Head>
-                <link rel="stylesheet" href="/ios-fixes.css" />
-                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-            </Head>
-            {/* --- GLOBAL TOAST OVERLAY --- */}
-            {recentActivity && view === "landing" && (
-                <div className="fixed bottom-6 left-6 z-[9999] bg-[#0B1120]/90 border border-cyan-500/30 backdrop-blur-md rounded-xl p-4 shadow-[0_0_20px_rgba(6,182,212,0.2)] animate-[slide-up_0.3s_ease-out] flex items-center gap-3 hover:scale-105 transition cursor-default pointer-events-none">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-xs shadow-inner">
-                        {recentActivity.name.charAt(0)}
-                    </div>
-                    <div>
-                        <div className="text-sm text-white font-bold tracking-wide">
-                            {recentActivity.name} <span className="font-normal text-gray-400 text-xs ml-1">{recentActivity.action}</span>
-                        </div>
-                        <div className="text-[10px] text-cyan-400 font-mono mt-0.5 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                            {recentActivity.time}
-                        </div>
+            {/* Mobile Error Display */}
+            {mobileError && (
+                <div className="fixed inset-0 z-[9999] bg-red-900/95 flex items-center justify-center p-4">
+                    <div className="bg-red-800 border border-red-500 rounded-lg p-4 max-w-md text-center">
+                        <div className="text-red-200 font-bold text-lg mb-2">⚠️ Mobile Display Error</div>
+                        <div className="text-red-100 text-sm">{mobileError}</div>
+                        <button 
+                            onClick={() => {
+                                setMobileError(null);
+                                window.location.reload();
+                            }}
+                            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                        >
+                            Refresh Page
+                        </button>
                     </div>
                 </div>
             )}
@@ -2374,7 +2400,9 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                             WebkitOverflowScrolling: 'touch',
                             overflowY: 'auto',
                             height: 'auto',
-                            minHeight: '100vh'
+                            minHeight: '100vh',
+                            position: 'relative',
+                            zIndex: '1'
                         }
                     } as React.CSSProperties}>
 
