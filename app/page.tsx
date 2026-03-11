@@ -947,52 +947,26 @@ export default function Page() {
         setView('landing');
     };
 
-            // --- MOBILE ERROR HANDLING ---
-    const [mobileError, setMobileError] = useState<string | null>(null);
-
-    // Mobile-specific error detection
-    useEffect(() => {
-        if (typeof window !== 'undefined' && step === 3) {
-            // Check if content is not loading after 10 seconds
-            const errorTimer = setTimeout(() => {
-                if (loading && !report) {
-                    setMobileError("Report is taking longer than expected. Please check your connection and try again.");
-                    setLoading(false);
-                }
-            }, 10000); // 10 seconds
-
-            // Check if report content is not visible
-            const visibilityTimer = setTimeout(() => {
-                const reportElement = document.getElementById('report-content');
-                if (reportElement && reportElement.offsetHeight === 0) {
-                    setMobileError("Report content failed to load. Please refresh the page.");
-                }
-            }, 5000); // 5 seconds
-
-            return () => {
-                clearTimeout(errorTimer);
-                clearTimeout(visibilityTimer);
-            };
-        }
-    }, [step, loading, report]);
-
     return (
         <>
-            {/* Mobile Error Display */}
-            {mobileError && (
-                <div className="fixed inset-0 z-[9999] bg-red-900/95 flex items-center justify-center p-4">
-                    <div className="bg-red-800 border border-red-500 rounded-lg p-4 max-w-md text-center">
-                        <div className="text-red-200 font-bold text-lg mb-2">⚠️ Mobile Display Error</div>
-                        <div className="text-red-100 text-sm">{mobileError}</div>
-                        <button 
-                            onClick={() => {
-                                setMobileError(null);
-                                window.location.reload();
-                            }}
-                            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
-                        >
-                            Refresh Page
-                        </button>
+            <Head>
+                <link rel="stylesheet" href="/ios-fixes.css" />
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            </Head>
+            {/* --- GLOBAL TOAST OVERLAY --- */}
+            {recentActivity && view === "landing" && (
+                <div className="fixed bottom-6 left-6 z-[9999] bg-[#0B1120]/90 border border-cyan-500/30 backdrop-blur-md rounded-xl p-4 shadow-[0_0_20px_rgba(6,182,212,0.2)] animate-[slide-up_0.3s_ease-out] flex items-center gap-3 hover:scale-105 transition cursor-default pointer-events-none">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-xs shadow-inner">
+                        {recentActivity.name.charAt(0)}
+                    </div>
+                    <div>
+                        <div className="text-sm text-white font-bold tracking-wide">
+                            {recentActivity.name} <span className="font-normal text-gray-400 text-xs ml-1">{recentActivity.action}</span>
+                        </div>
+                        <div className="text-[10px] text-cyan-400 font-mono mt-0.5 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                            {recentActivity.time}
+                        </div>
                     </div>
                 </div>
             )}
@@ -1628,11 +1602,11 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     // --- TRANSITION EFFECT: only show report when loader is done AND API has responded ---
     useEffect(() => {
         if (reportReady && loadingMsgIndex >= LOADING_MESSAGES.length - 1) {
-            // Show the last message for 3 seconds before transitioning to ensure iOS fixes are applied
+            // Show the last message for 1.5s before transitioning
             const timer = setTimeout(() => {
                 finalize();
                 setReportReady(false);
-            }, 3000);
+            }, 1500);
             return () => clearTimeout(timer);
         }
     }, [reportReady, loadingMsgIndex]);
@@ -1643,7 +1617,42 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         setShowLeadModal(true);
     };
 
-    const finalize = () => { setTimeout(() => { setStep(3); setLoading(false); }, 500); };
+    // --- UPDATED RESET HANDLER ---
+    const handleReset = () => {
+        // 0. Clear session storage persistence
+        if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('gmb_step');
+            sessionStorage.removeItem('gmb_report');
+            sessionStorage.removeItem('gmb_myBusiness');
+            sessionStorage.removeItem('gmb_loading');
+        }
+        // 1. Reset UI Step
+        setStep(1);
+        setReport(null);
+        // 2. Clear Search & Report Data
+        setMyBusiness(null);
+        setCompetitors([]);
+        setReport(null);
+        setErrorMsg(null);
+        setMyQuery("");
+        setCompQuery("");
+        setMySuggestions([]);
+        setCompSuggestions([]);
+        setReportReady(false);
+
+        // 3. Clear User & Gate Data (This wipes the email/phone)
+        setLeadData({ email: "", phone: "" });
+        setIsUnlocked(false);
+
+        // 4. Reset coupon state
+        setLeadCouponCode("");
+        setLeadCouponError("");
+        setLeadCouponApplied(false);
+
+        // 5. Close any open modals just in case
+        setShowLeadModal(false);
+        setShowPaymentModal(false);
+    };
 
     const executiveSummaryPoints = report?.executive_summary
         ? (() => {
@@ -1663,28 +1672,8 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         })()
         : [];
 
-    const handleReset = () => {
-        setStep(1);
-        setMyQuery("");
-        setCompQuery("");
-        setMySuggestions([]);
-        setCompSuggestions([]);
-        setMyBusiness(null);
-        setCompetitors([]);
-        setLoading(false);
-        setErrorMsg(null);
-        setReport(null);
-        setIsUnlocked(false);
-        setSavedReportId(null);
-        setIsPaymentSuccess(false);
-        setShowLeadModal(false);
-        setLeadData({ email: "", phone: "" });
-        setLeadCouponCode("");
-        setLeadCouponError("");
-        setLeadCouponApplied(false);
-    };
 
-    // --- UPDATED RESET HANDLER ---
+
     const performAnalysis = async () => {
         setLoading(true);
         setErrorMsg(null);
@@ -1920,6 +1909,8 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     // Analyse
 
 
+
+    const finalize = () => { setTimeout(() => { setStep(3); setLoading(false); }, 500); };
 
     // --- COUPON HANDLER ---
     const handleUnlock = () => {
@@ -2395,14 +2386,17 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 {/* STEP 3: REPORT */}
                 {step === 3 && report && !errorMsg && (
                     // WRAPPER REF FOR PDF CAPTURE (UPDATED STYLES FOR PDF MODE)
-                    <div ref={reportRef} id="report-content" className="bg-[#030712] pt-24 md:pt-32 px-4 md:px-12 pb-40 min-h-screen text-white" style={{
+                    <div ref={reportRef} id="report-content" className="bg-[#030712] pt-16 md:pt-32 px-4 md:px-12 pb-40 min-h-screen text-white" style={{
+                        width: '100%',
+                        maxWidth: '100vw',
+                        overflowX: 'hidden',
                         '@supports (-webkit-touch-callout: none)': {
                             WebkitOverflowScrolling: 'touch',
                             overflowY: 'auto',
+                            overflowX: 'hidden',
                             height: 'auto',
                             minHeight: '100vh',
-                            position: 'relative',
-                            zIndex: '1'
+                            width: '100vw'
                         }
                     } as React.CSSProperties}>
 
@@ -2485,53 +2479,53 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                             {/* ========================================================== */}
                             <div className="space-y-6 font-sans text-gray-300">
 
-                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
 
                                     {/* LEFT COLUMN: THE REACTOR & INTELLIGENCE (4 Cols) */}
                                     {/* LEFT COLUMN: REACTOR & INTELLIGENCE */}
-                                    <div className="lg:col-span-4 flex flex-col gap-6">
+                                    <div className="lg:col-span-4 flex flex-col gap-4 lg:gap-6">
 
                                         {/* 1. AUDIT REACTOR (ALWAYS VISIBLE) */}
-                                        <div className="bg-[#0B1120] border border-cyan-500/30 rounded-3xl p-8 relative overflow-hidden shadow-[0_0_50px_-15px_rgba(6,182,212,0.3)] flex flex-col items-center text-center group">
+                                        <div className="bg-[#0B1120] border border-cyan-500/30 rounded-2xl lg:rounded-3xl p-4 lg:p-8 relative overflow-hidden shadow-[0_0_50px_-15px_rgba(6,182,212,0.3)] flex flex-col items-center text-center group">
                                             <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/10 to-transparent opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                                            <h3 className="text-cyan-400 font-bold tracking-[0.3em] text-[10px] uppercase mb-6 z-10">System Integrity Score</h3>
-                                            <div className="relative z-10 mb-6">
-                                                <div className="w-40 h-40 rounded-full border-4 border-cyan-900/50 flex items-center justify-center relative">
+                                            <h3 className="text-cyan-400 font-bold tracking-[0.3em] text-[8px] lg:text-[10px] uppercase mb-4 lg:mb-6 z-10">System Integrity Score</h3>
+                                            <div className="relative z-10 mb-4 lg:mb-6">
+                                                <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-full border-4 border-cyan-900/50 flex items-center justify-center relative">
                                                     <div className="absolute inset-0 rounded-full border-4 border-cyan-500 border-t-transparent border-l-transparent animate-spin-slow opacity-80"></div>
-                                                    <div className="w-32 h-32 rounded-full bg-cyan-900/20 backdrop-blur-md flex flex-col items-center justify-center shadow-inner border border-white/10 relative overflow-hidden">
+                                                    <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-cyan-900/20 backdrop-blur-md flex flex-col items-center justify-center shadow-inner border border-white/10 relative overflow-hidden">
                                                         {report.audit_score && report.audit_score > 0 ? (
-                                                            <span className="text-6xl font-black text-white tracking-tighter drop-shadow-[0_0_15px_rgba(6,182,212,0.5)] z-20">{report.audit_score}</span>
+                                                            <span className="text-4xl lg:text-6xl font-black text-white tracking-tighter drop-shadow-[0_0_15px_rgba(6,182,212,0.5)] z-20">{report.audit_score}</span>
                                                         ) : (
-                                                            <div className="relative z-10 animate-pulse"><svg className="w-12 h-12 text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" /></svg></div>
+                                                            <div className="relative z-10 animate-pulse"><svg className="w-8 lg:w-12 h-8 lg:h-12 text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" /></svg></div>
                                                         )}
-                                                        <div className="mt-1 relative z-10"><span className="text-[10px] font-bold text-cyan-200 uppercase tracking-widest bg-cyan-900/40 px-2 py-0.5 rounded-full border border-cyan-500/20">Health</span></div>
+                                                        <div className="mt-1 relative z-10"><span className="text-[8px] lg:text-[10px] font-bold text-cyan-200 uppercase tracking-widest bg-cyan-900/40 px-2 py-0.5 rounded-full border border-cyan-500/20">Health</span></div>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="z-10 flex flex-col gap-2 w-full">
-                                                <div className="flex justify-between items-center text-xs px-4 py-2 bg-white/5 rounded-lg border border-white/5"><span className="text-gray-400 uppercase font-bold text-[10px]">Audit Gap</span><span className={`font-mono font-bold ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-green-400"}`}>{report.matrix?.me?.audit_gap || "N/A"}</span></div>
-                                                <div className="flex justify-between items-center text-xs px-4 py-2 bg-white/5 rounded-lg border border-white/5"><span className="text-gray-400 uppercase font-bold text-[10px]">Market Status</span><span className={`font-bold text-[10px] uppercase ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-green-400"}`}>{report.matrix?.me?.audit_gap?.includes("-") ? "CRITICAL LAG" : "MARKET LEADER"}</span></div>
+                                                <div className="flex justify-between items-center text-xs px-2 lg:px-4 py-2 bg-white/5 rounded-lg border border-white/5"><span className="text-gray-400 uppercase font-bold text-[8px] lg:text-[10px]">Audit Gap</span><span className={`font-mono font-bold ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-green-400"}`}>{report.matrix?.me?.audit_gap || "N/A"}</span></div>
+                                                <div className="flex justify-between items-center text-xs px-2 lg:px-4 py-2 bg-white/5 rounded-lg border border-white/5"><span className="text-gray-400 uppercase font-bold text-[8px] lg:text-[10px]">Market Status</span><span className={`font-bold text-[8px] lg:text-[10px] uppercase ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-green-400"}`}>{report.matrix?.me?.audit_gap?.includes("-") ? "CRITICAL LAG" : "MARKET LEADER"}</span></div>
                                             </div>
                                         </div>
 
                                         {/* 2. TRUST MATRIX (LOCKED) */}
                                         <div className="relative">
                                             {!isUnlocked && (
-                                                <div onClick={() => setShowLeadModal(true)} className="absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-md bg-[#0B1120]/80 rounded-3xl border border-white/10 cursor-pointer group">
-                                                    <div className="bg-[#0B1120] p-3 rounded-full border border-cyan-500/30 mb-2 group-hover:scale-110 transition-transform"><LockIcon /></div>
-                                                    <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Trust Matrix Locked</span>
+                                                <div onClick={() => setShowLeadModal(true)} className="absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-md bg-[#0B1120]/80 rounded-2xl lg:rounded-3xl border border-white/10 cursor-pointer group">
+                                                    <div className="bg-[#0B1120] p-2 lg:p-3 rounded-full border border-cyan-500/30 mb-2 group-hover:scale-110 transition-transform"><LockIcon /></div>
+                                                    <span className="text-[8px] lg:text-[10px] text-cyan-400 font-bold uppercase tracking-widest text-center px-2">Trust Matrix Locked</span>
                                                 </div>
                                             )}
-                                            <div className={`bg-[#0B1120] border border-white/10 rounded-3xl p-6 relative overflow-hidden flex-1 min-h-[200px] ${!isUnlocked ? 'blur-sm opacity-50 grayscale select-none' : ''}`}>
-                                                <h3 className="text-gray-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-4 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Trust Matrix</h3>
-                                                <div className="space-y-4">
+                                            <div className={`bg-[#0B1120] border border-white/10 rounded-2xl lg:rounded-3xl p-4 lg:p-6 relative overflow-hidden flex-1 min-h-[180px] lg:min-h-[200px] ${!isUnlocked ? 'blur-sm opacity-50 grayscale select-none' : ''}`}>
+                                                <h3 className="text-gray-500 font-bold tracking-[0.2em] text-[8px] lg:text-[10px] uppercase mb-4 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Trust Matrix</h3>
+                                                <div className="space-y-3 lg:space-y-4">
                                                     <div>
-                                                        <div className="flex justify-between text-[10px] uppercase mb-1"><span className="text-white font-bold">Positive Sentiment</span><span className="text-emerald-400">{report.matrix?.me?.sentiment?.match(/\d+/)?.[0] || 0}%</span></div>
+                                                        <div className="flex justify-between text-[8px] lg:text-[10px] uppercase mb-1"><span className="text-white font-bold">Positive Sentiment</span><span className="text-emerald-400">{report.matrix?.me?.sentiment?.match(/\d+/)?.[0] || 0}%</span></div>
                                                         <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden flex"><div className="bg-emerald-500 h-full" style={{ width: `${report.matrix?.me?.sentiment?.match(/\d+/)?.[0] || 0}%` }}></div><div className="w-1 h-full bg-white relative z-10" style={{ left: `-${100 - (parseInt(report.matrix?.competitors?.[0]?.sentiment?.match(/\d+/)?.[0]) || 50)}%` }}></div></div>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="bg-white/5 rounded-xl p-3 border border-white/5"><span className="text-gray-400 text-[9px] uppercase font-bold block mb-1">NPS Score</span><div className="flex items-center gap-2"><span className="text-white font-bold font-mono text-lg">{report.matrix?.me?.nps}</span><span className="text-[9px] text-gray-600">vs {report.matrix?.competitors?.[0]?.nps}</span></div></div>
-                                                        <div className="bg-white/5 rounded-xl p-3 border border-white/5"><span className="text-gray-400 text-[9px] uppercase font-bold block mb-1">Keyword Heat</span><div className="flex items-center gap-2"><span className="text-cyan-400 font-bold font-mono text-lg">{report.matrix?.me?.keyword_sentiment || "8.5"}</span><span className="text-[9px] text-gray-600">/ 10</span></div></div>
+                                                    <div className="grid grid-cols-2 gap-2 lg:gap-3">
+                                                        <div className="bg-white/5 rounded-xl p-2 lg:p-3 border border-white/5"><span className="text-gray-400 text-[8px] lg:text-[9px] uppercase font-bold block mb-1">NPS Score</span><div className="flex items-center gap-1 lg:gap-2"><span className="text-white font-bold font-mono text-sm lg:text-lg">{report.matrix?.me?.nps}</span><span className="text-[8px] lg:text-[9px] text-gray-600">vs {report.matrix?.competitors?.[0]?.nps}</span></div></div>
+                                                        <div className="bg-white/5 rounded-xl p-2 lg:p-3 border border-white/5"><span className="text-gray-400 text-[8px] lg:text-[9px] uppercase font-bold block mb-1">Keyword Heat</span><div className="flex items-center gap-1 lg:gap-2"><span className="text-cyan-400 font-bold font-mono text-sm lg:text-lg">{report.matrix?.me?.keyword_sentiment || "8.5"}</span><span className="text-[8px] lg:text-[9px] text-gray-600">/ 10</span></div></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -2539,22 +2533,22 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                     </div>
 
                                     {/* RIGHT: STRATEGIC COMPARISON — ENHANCED MULTI-VIZ */}
-                                    <div className="lg:col-span-8 bg-[#0B1120] border border-white/10 rounded-3xl overflow-hidden flex flex-col h-full relative">
+                                    <div className="lg:col-span-8 bg-[#0B1120] border border-white/10 rounded-2xl lg:rounded-3xl overflow-hidden flex flex-col h-full relative">
                                         {/* Header */}
-                                        <div className="px-8 py-6 border-b border-white/10 bg-gradient-to-r from-cyan-900/10 via-purple-900/5 to-indigo-900/10">
-                                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                        <div className="px-4 lg:px-8 py-4 lg:py-6 border-b border-white/10 bg-gradient-to-r from-cyan-900/10 via-purple-900/5 to-indigo-900/10">
+                                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 lg:gap-4">
                                                 <div>
-                                                    <div className="flex items-center gap-3 mb-1">
+                                                    <div className="flex items-center gap-2 lg:gap-3 mb-1">
                                                         <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
-                                                        <h3 className="text-white font-bold uppercase tracking-widest text-sm">Strategic Comparison</h3>
+                                                        <h3 className="text-white font-bold uppercase tracking-widest text-xs lg:text-sm">Strategic Comparison</h3>
                                                     </div>
-                                                    <p className="text-[10px] text-gray-500 font-mono ml-5">LIVE METRICS • MULTI-DIMENSIONAL ANALYSIS</p>
+                                                    <p className="text-[8px] lg:text-[10px] text-gray-500 font-mono ml-5">LIVE METRICS • MULTI-DIMENSIONAL ANALYSIS</p>
                                                 </div>
-                                                <div className="flex flex-wrap gap-3">
+                                                <div className="flex flex-wrap gap-2 lg:gap-3">
                                                     {comparisonEntities.map((entity) => (
-                                                        <div key={entity.key} className="flex items-center gap-2 bg-white/5 border border-white/5 px-3 py-1.5 rounded-full">
-                                                            <div className={`w-2.5 h-2.5 rounded-full ${entity.barClass} shadow-lg`}></div>
-                                                            <span className={`text-[10px] font-bold uppercase tracking-wider ${entity.textClass}`}>{entity.label}</span>
+                                                        <div key={entity.key} className="flex items-center gap-1 lg:gap-2 bg-white/5 border border-white/5 px-2 lg:px-3 py-1.5 rounded-full">
+                                                            <div className={`w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full ${entity.barClass} shadow-lg`}></div>
+                                                            <span className={`text-[8px] lg:text-[10px] font-bold uppercase tracking-wider ${entity.textClass}`}>{entity.label}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -2562,13 +2556,13 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                         </div>
 
                                         {/* Enhanced Multi-Visualization Grid */}
-                                        <div className="flex-1 p-6 overflow-y-auto custom-scrollbar" style={{
+                                        <div className="flex-1 p-3 lg:p-6 overflow-y-auto custom-scrollbar" style={{
                         '@supports (-webkit-touch-callout: none)': {
                             WebkitOverflowScrolling: 'touch',
                             maxHeight: 'calc(100vh - 200px)'
                         }
                     } as React.CSSProperties}>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-5">
 
                                                 {/* ══════════ 1. REPUTATION SCORE — Star Rating Display ══════════ */}
                                                 {(() => {
