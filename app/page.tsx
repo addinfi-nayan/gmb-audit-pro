@@ -11,6 +11,65 @@ import { saveReport, getReports, updateReportPdfData, type SavedReport } from ".
 import SignInModal from "../components/SignInModal";
 import CookieConsent from "../components/CookieConsent";
 
+// Mobile-friendly PDF download helper
+const downloadPDF = (pdf: jsPDF, filename: string) => {
+    // Check if it's a mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (isMobile) {
+        try {
+            // For mobile devices, create a blob and handle download appropriately
+            const pdfBlob = pdf.output('blob');
+            const url = URL.createObjectURL(pdfBlob);
+            
+            if (isIOS) {
+                // iOS Safari: Open in new tab since direct download is restricted
+                const newWindow = window.open(url, '_blank');
+                if (!newWindow) {
+                    // Fallback: try to download directly
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            } else {
+                // Android and other mobile: Try direct download first
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Fallback: open in new tab if download doesn't work
+                setTimeout(() => {
+                    const newWindow = window.open(url, '_blank');
+                    if (newWindow) {
+                        newWindow.onload = () => {
+                            setTimeout(() => newWindow.close(), 1000);
+                        };
+                    }
+                }, 500);
+            }
+            
+            // Clean up the object URL after a delay
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+        } catch (error) {
+            console.error('Mobile PDF download error:', error);
+            // Final fallback: try the standard save method
+            pdf.save(filename);
+        }
+    } else {
+        // For desktop, use the standard save method
+        pdf.save(filename);
+    }
+};
+
 // ... rest of the code remains the same ...
 
 const FAQItem = ({ q, a }: { q: string, a: string }) => {
@@ -1110,7 +1169,7 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                 const imgHeight = (img.naturalHeight * imgWidth) / img.naturalWidth;
                 const pdf = new jsPDF("p", "mm", [imgWidth, imgHeight]);
                 pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-                pdf.save(`${saved.gmbName}_Audit_Report.pdf`);
+                downloadPDF(pdf, `${saved.gmbName}_Audit_Report.pdf`);
                 setDownloading(null);
                 return;
             }
@@ -2018,7 +2077,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             const pdf = new jsPDF('p', 'mm', [imgWidth, imgHeight]);
 
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            pdf.save(`${myBusiness?.title || 'GMB'}_Audit_Report.pdf`);
+            downloadPDF(pdf, `${myBusiness?.title || 'GMB'}_Audit_Report.pdf`);
 
             // 5. Cache the image so My Reports can re-download the exact same PDF instantly
             if (session?.user?.email && savedReportId) {
