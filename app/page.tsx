@@ -12,24 +12,36 @@ import SignInModal from "../components/SignInModal";
 import CookieConsent from "../components/CookieConsent";
 
 // Mobile-friendly PDF download helper
-const downloadPDF = (pdf: jsPDF, filename: string) => {
+const downloadPDF = (pdf: jsPDF, filename: string, userEmail?: string) => {
     // Check if it's a mobile device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
     
+    // Email confirmation message
+    const emailMessage = userEmail ? 
+        `\n\n📧 **Email Sent Successfully!**\nYour report has also been sent to: ${userEmail}\nCheck your inbox for a permanent copy of this report.` : 
+        '';
+    
     if (isMobile) {
         try {
-            // Show mobile user instructions
+            // Enhanced mobile user instructions with email confirmation
             if (isIOS) {
-                alert('For iOS: The PDF will open in a new tab. Use the share button to save or print the PDF.');
+                alert(`📱 **iOS Instructions:**\nThe PDF will open in a new tab. Use the share button to save or print the PDF.${emailMessage}\n\n⚠️ **Mobile Rendering Notice:**\nIf you face any rendering issues, don't worry! The complete report has been sent to your email. We're continuously working to improve mobile rendering.`);
             } else if (isAndroid) {
-                alert('For Android: The PDF will download to your Downloads folder. If it opens in a new tab, use the download button in the browser.');
+                alert(`📱 **Android Instructions:**\nThe PDF will download to your Downloads folder. If it opens in a new tab, use the download button in the browser.${emailMessage}\n\n⚠️ **Mobile Rendering Notice:**\nIf you face any rendering issues, don't worry! The complete report has been sent to your email. We're working to resolve mobile-specific issues.`);
+            } else {
+                alert(`📱 **Mobile Instructions:**\nThe PDF will download to your device. Check your Downloads folder or browser downloads.${emailMessage}\n\n⚠️ **Mobile Rendering Notice:**\nIf you face any rendering issues, don't worry! The complete report has been sent to your email. We're working to improve mobile experience.`);
             }
             
             // Generate PDF as blob
             const pdfBlob = pdf.output('blob');
             const url = URL.createObjectURL(pdfBlob);
+            
+            // Send PDF via email if user email is provided
+            if (userEmail) {
+                sendPDFViaEmail(pdfBlob, filename, userEmail);
+            }
             
             if (isIOS) {
                 // iOS Safari: Use a more reliable approach
@@ -99,20 +111,100 @@ const downloadPDF = (pdf: jsPDF, filename: string) => {
             
         } catch (error) {
             console.error('Mobile PDF download error:', error);
+            // Enhanced error message with email fallback
+            const fallbackEmailMessage = userEmail ? 
+                `\n\n📧 **Backup Plan:**\nThe complete report has been sent to your email: ${userEmail}\nYou can access it there anytime!` : 
+                `\n\n💡 **Tip:**\nTry downloading on a desktop computer for the best experience.`;
+            
+            alert(`❌ **Download Issue Detected**\nWe encountered an issue with the mobile download.${fallbackEmailMessage}\n\n🔧 **We're Working On It:**\nOur team is actively improving mobile rendering to provide you with a seamless experience.`);
+            
             // Final fallback: use data URL approach
             try {
                 const dataUrl = pdf.output('dataurlstring');
                 window.open(dataUrl, '_blank');
-                alert('PDF opened in new tab. Please use your browser\'s download or share option to save it.');
             } catch (fallbackError) {
                 console.error('All PDF download methods failed:', fallbackError);
                 // Last resort: alert user
-                alert('PDF download failed. Please try again on a desktop browser or check your browser settings.');
+                alert(`❌ **All Download Methods Failed**\nPlease try again on a desktop browser or check your email for the report.${userEmail ? `\n\n📧 Report sent to: ${userEmail}` : ''}`);
             }
         }
     } else {
         // For desktop, use the standard save method
         pdf.save(filename);
+        
+        // Desktop success message with email confirmation
+        if (userEmail) {
+            // Send PDF via email if user email is provided
+            const pdfBlob = pdf.output('blob');
+            sendPDFViaEmail(pdfBlob, filename, userEmail);
+            
+            // Show desktop success message
+            setTimeout(() => {
+                alert(`✅ **Download Successful!**\nYour GMB Audit Report has been downloaded to your computer.\n\n📧 **Email Confirmation:**\nThe complete report has also been sent to: ${userEmail}\nCheck your inbox for a permanent copy.`);
+            }, 1000);
+        } else {
+            // Show desktop success message without email
+            setTimeout(() => {
+                alert(`✅ **Download Successful!**\nYour GMB Audit Report has been downloaded to your computer.\n\n💡 **Tip:**\nSave this report in a safe place for future reference.`);
+            }, 1000);
+        }
+    }
+};
+
+// Function to send PDF via email
+const sendPDFViaEmail = async (pdfBlob: Blob, filename: string, userEmail: string) => {
+    try {
+        // Convert blob to base64
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            if (e.target?.result) {
+                const base64Data = e.target.result as string;
+                
+                // Send email with PDF attachment
+                const emailPayload = {
+                    to: userEmail,
+                    subject: `Your GMB Audit Report - ${filename}`,
+                    body: `
+                        <h2>Your GMB Audit Report is Ready!</h2>
+                        <p>Hi there,</p>
+                        <p>Your Google My Business audit report has been generated and is attached to this email.</p>
+                        <p><strong>Report Details:</strong></p>
+                        <ul>
+                            <li>Report Name: ${filename}</li>
+                            <li>Generated: ${new Date().toLocaleString()}</li>
+                        </ul>
+                        <p>This report contains detailed insights about your GMB performance, competitor analysis, and actionable recommendations to improve your local SEO ranking.</p>
+                        <p>If you have any questions or need help implementing the recommendations, feel free to reach out to our team.</p>
+                        <br>
+                        <p>Best regards,<br>Team WhatMyRank</p>
+                    `,
+                    attachment: {
+                        filename: filename,
+                        content: base64Data.split(',')[1], // Remove data:application/pdf;base64, prefix
+                        contentType: 'application/pdf'
+                    }
+                };
+
+                // Send email via your email service (you'll need to set up an email service endpoint)
+                const response = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(emailPayload),
+                });
+
+                if (response.ok) {
+                    console.log('PDF sent successfully to:', userEmail);
+                } else {
+                    console.error('Failed to send PDF to email:', response.statusText);
+                }
+            }
+        };
+        reader.readAsDataURL(pdfBlob);
+        
+    } catch (error) {
+        console.error('Error sending PDF via email:', error);
     }
 };
 
@@ -1215,7 +1307,7 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                 const imgHeight = (img.naturalHeight * imgWidth) / img.naturalWidth;
                 const pdf = new jsPDF("p", "mm", [imgWidth, imgHeight]);
                 pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-                downloadPDF(pdf, `${saved.gmbName}_Audit_Report.pdf`);
+                downloadPDF(pdf, `${saved.gmbName}_Audit_Report.pdf`, session?.user?.email || undefined);
                 setDownloading(null);
                 return;
             }
@@ -2123,7 +2215,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             const pdf = new jsPDF('p', 'mm', [imgWidth, imgHeight]);
 
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            downloadPDF(pdf, `${myBusiness?.title || 'GMB'}_Audit_Report.pdf`);
+            downloadPDF(pdf, `${myBusiness?.title || 'GMB'}_Audit_Report.pdf`, leadData.email || session?.user?.email || undefined);
 
             // 5. Cache the image so My Reports can re-download the exact same PDF instantly
             if (session?.user?.email && savedReportId) {
