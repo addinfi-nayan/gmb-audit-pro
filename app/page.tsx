@@ -62,6 +62,72 @@ const downloadPDF = (pdf: jsPDF, filename: string, userEmail?: string) => {
     }
 };
 
+// Mobile-specific rendering alert function
+const showMobileRenderingAlert = () => {
+    // Check if it's a mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+        // Create theme-styled mobile alert
+        const alertDiv = document.createElement('div');
+        alertDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: #f1f5f9;
+            padding: 20px 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 20px rgba(239, 68, 68, 0.1);
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            animation: slideInTop 0.4s ease-out;
+            max-width: 320px;
+            text-align: center;
+        `;
+        alertDiv.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                <span style="font-size: 24px; margin-right: 8px;">📱</span>
+                <span style="font-weight: 600; color: #ef4444;">Mobile Notice</span>
+            </div>
+            <p style="margin: 0; line-height: 1.5;">
+                If you face any rendering issues, don't worry! The complete report has been sent to your email.
+            </p>
+        `;
+        
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInTop {
+                from { transform: translate(-50%, -100%); opacity: 0; }
+                to { transform: translate(-50%, 0); opacity: 1; }
+            }
+            @keyframes slideOutTop {
+                from { transform: translate(-50%, 0); opacity: 1; }
+                to { transform: translate(-50%, -100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Show alert
+        document.body.appendChild(alertDiv);
+        
+        // Auto-remove after 4 seconds (longer than regular alerts)
+        setTimeout(() => {
+            alertDiv.style.animation = 'slideOutTop 0.3s ease-out';
+            setTimeout(() => {
+                document.body.removeChild(alertDiv);
+                document.head.removeChild(style);
+            }, 300);
+        }, 4000);
+    }
+};
+
 // Theme-based alert function
 const showThemeAlert = (message: string) => {
     // Create theme-styled alert
@@ -1736,7 +1802,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     const [leadCouponError, setLeadCouponError] = useState("");
     const [leadCouponApplied, setLeadCouponApplied] = useState(false);
 
-    const VALID_COUPON = "addinfi26";
+    const VALID_COUPON = "gmb100";
     const comparisonEntities = useMemo(() =>
         buildComparisonEntities(report, myBusiness?.title),
         [report, myBusiness]);
@@ -1872,37 +1938,17 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                     console.error("JSON Parse Error:", e);
                     throw new Error("AI returned messy text instead of JSON.");
                 }
-            } else {
-                // Scenario C: It is already a perfect Object
-                finalReport = rawData;
-            }
-
-            // 3. Final Validation
-            if (finalReport && (finalReport.audit_score || finalReport.matrix)) {
-                setReport(finalReport);
-                // Save to localStorage for My Reports
-                if (session?.user?.email) {
-                    const newId = saveReport(session.user.email, finalReport, myBusiness);
-                    setSavedReportId(newId);
-                }
-                setIsUnlocked(true); // Payment is done, so unlock immediately
-                // Don't finalize immediately — let the loader animation complete first
-                setReportReady(true);
-            } else {
-                console.error("Invalid AI Structure:", finalReport);
-                throw new Error("The AI report is missing key data (audit_score).");
-            }
-
-        } catch (e: any) {
-            console.error("Analysis Error:", e);
-            setErrorMsg(e.message || "Connection Failed.");
-            setLoading(false);
-        }
     };
 
-    // --- COUPON APPLY HANDLER (in Lead Modal) ---
-    const handleLeadCouponApply = () => {
-        if (leadCouponCode.trim().toLowerCase() === VALID_COUPON.toLowerCase()) {
+    try {
+        // 1. Save Lead (Background)
+        axios.post("https://n8n-pro-775604255858.asia-south1.run.app/webhook/save-lead", payload).catch(err => console.error("Lead Error:", err));
+
+        // 2. COUPON PATH — skip payment entirely
+        if (leadCouponApplied) {
+            setShowLeadModal(false);
+            setIsUnlocked(true);
+            setLeadCouponCode("");
             setLeadCouponApplied(true);
             setLeadCouponError("");
         } else {

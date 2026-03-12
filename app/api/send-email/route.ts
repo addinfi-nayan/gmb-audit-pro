@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
             const resend = new Resend(process.env.RESEND_API_KEY);
 
             const emailData: any = {
-                from: 'add', // Your verified domain
+                from: 'nayan@addinfi.com', // Your verified domain
                 to: [to],
                 subject: subject,
                 html: body,
@@ -88,11 +88,27 @@ export async function POST(request: NextRequest) {
         const webhookUrl = "https://n8n-pro-775604255858.asia-south1.run.app/webhook/send-pdf-email";
         
         const webhookPayload = {
-            to,
-            subject,
-            body,
-            attachment,
-            timestamp: new Date().toISOString(),
+            // Basic email fields
+            recipientEmail: to,
+            emailSubject: subject,
+            emailBody: body,
+            
+            // Attachment fields (n8n format)
+            attachmentName: attachment?.filename || "report.pdf",
+            attachmentData: attachment?.content || "",
+            attachmentType: attachment?.contentType || "application/pdf",
+            
+            // Metadata
+            sentAt: new Date().toISOString(),
+            source: "gmb-audit-app",
+            
+            // Alternative field names for n8n compatibility
+            to: to,
+            subject: subject,
+            body: body,
+            filename: attachment?.filename || "report.pdf",
+            content: attachment?.content || "",
+            contentType: attachment?.contentType || "application/pdf"
         };
 
         console.log('📧 Sending email webhook:', {
