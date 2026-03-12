@@ -16,139 +16,101 @@ const downloadPDF = (pdf: jsPDF, filename: string, userEmail?: string) => {
     // Check if it's a mobile device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/i.test(navigator.userAgent);
     
-    // Email confirmation message
-    const emailMessage = userEmail ? 
-        `\n\n📧 **Email Sent Successfully!**\nYour report has also been sent to: ${userEmail}\nCheck your inbox for a permanent copy of this report.` : 
-        '';
+    // Send PDF via email if user email is provided
+    if (userEmail) {
+        const pdfBlob = pdf.output('blob');
+        sendPDFViaEmail(pdfBlob, filename, userEmail);
+    }
     
     if (isMobile) {
         try {
-            // Enhanced mobile user instructions with email confirmation
-            if (isIOS) {
-                alert(`📱 **iOS Instructions:**\nThe PDF will open in a new tab. Use the share button to save or print the PDF.${emailMessage}\n\n⚠️ **Mobile Rendering Notice:**\nIf you face any rendering issues, don't worry! The complete report has been sent to your email. We're continuously working to improve mobile rendering.`);
-            } else if (isAndroid) {
-                alert(`📱 **Android Instructions:**\nThe PDF will download to your Downloads folder. If it opens in a new tab, use the download button in the browser.${emailMessage}\n\n⚠️ **Mobile Rendering Notice:**\nIf you face any rendering issues, don't worry! The complete report has been sent to your email. We're working to resolve mobile-specific issues.`);
-            } else {
-                alert(`📱 **Mobile Instructions:**\nThe PDF will download to your device. Check your Downloads folder or browser downloads.${emailMessage}\n\n⚠️ **Mobile Rendering Notice:**\nIf you face any rendering issues, don't worry! The complete report has been sent to your email. We're working to improve mobile experience.`);
-            }
-            
             // Generate PDF as blob
             const pdfBlob = pdf.output('blob');
             const url = URL.createObjectURL(pdfBlob);
             
-            // Send PDF via email if user email is provided
-            if (userEmail) {
-                sendPDFViaEmail(pdfBlob, filename, userEmail);
-            }
-            
+            // Theme-based mobile message
             if (isIOS) {
-                // iOS Safari: Use a more reliable approach
-                // Method 1: Try to open in new tab with proper iOS handling
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    if (e.target?.result) {
-                        const dataUrl = e.target.result as string;
-                        // Create a temporary link for iOS
-                        const link = document.createElement('a');
-                        link.href = dataUrl;
-                        link.target = '_blank';
-                        link.download = filename;
-                        
-                        // iOS-specific handling
-                        if (link.download) {
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        } else {
-                            // Fallback for iOS that doesn't support download attribute
-                            window.open(dataUrl, '_blank');
-                        }
-                    }
-                };
-                reader.readAsDataURL(pdfBlob);
-                
-            } else if (isAndroid) {
-                // Android: Try multiple approaches
-                // Method 1: Direct download attempt
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = filename;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                // Method 2: Fallback - open in new tab after delay
-                setTimeout(() => {
-                    const newWindow = window.open(url, '_blank');
-                    if (newWindow) {
-                        // Auto-close after 3 seconds to allow user to download
-                        setTimeout(() => {
-                            if (!newWindow.closed) {
-                                newWindow.close();
-                            }
-                        }, 3000);
-                    }
-                }, 1000);
-                
+                showThemeAlert(userEmail ? '📱 Report generated! PDF opened. Email sent!' : '📱 Report generated! PDF opened.');
             } else {
-                // Other mobile browsers: General approach
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = filename;
-                link.target = '_blank';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                showThemeAlert(userEmail ? '📱 Report generated! PDF downloaded. Email sent!' : '📱 Report generated! PDF downloaded.');
             }
             
-            // Clean up the object URL after a longer delay for mobile
-            setTimeout(() => {
-                URL.revokeObjectURL(url);
-            }, 10000);
+            // Open in new tab for mobile
+            window.open(url, '_blank');
+            
+            // Clean up
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
             
         } catch (error) {
-            console.error('Mobile PDF download error:', error);
-            // Enhanced error message with email fallback
-            const fallbackEmailMessage = userEmail ? 
-                `\n\n📧 **Backup Plan:**\nThe complete report has been sent to your email: ${userEmail}\nYou can access it there anytime!` : 
-                `\n\n💡 **Tip:**\nTry downloading on a desktop computer for the best experience.`;
-            
-            alert(`❌ **Download Issue Detected**\nWe encountered an issue with the mobile download.${fallbackEmailMessage}\n\n🔧 **We're Working On It:**\nOur team is actively improving mobile rendering to provide you with a seamless experience.`);
-            
-            // Final fallback: use data URL approach
-            try {
-                const dataUrl = pdf.output('dataurlstring');
-                window.open(dataUrl, '_blank');
-            } catch (fallbackError) {
-                console.error('All PDF download methods failed:', fallbackError);
-                // Last resort: alert user
-                alert(`❌ **All Download Methods Failed**\nPlease try again on a desktop browser or check your email for the report.${userEmail ? `\n\n📧 Report sent to: ${userEmail}` : ''}`);
-            }
+            console.error('Mobile PDF error:', error);
+            showThemeAlert('📧 Report sent to email!');
         }
     } else {
-        // For desktop, use the standard save method
-        pdf.save(filename);
+        // Desktop: Open in new tab instead of download
+        const pdfBlob = pdf.output('blob');
+        const url = URL.createObjectURL(pdfBlob);
         
-        // Desktop success message with email confirmation
-        if (userEmail) {
-            // Send PDF via email if user email is provided
-            const pdfBlob = pdf.output('blob');
-            sendPDFViaEmail(pdfBlob, filename, userEmail);
-            
-            // Show desktop success message
-            setTimeout(() => {
-                alert(`✅ **Download Successful!**\nYour GMB Audit Report has been downloaded to your computer.\n\n📧 **Email Confirmation:**\nThe complete report has also been sent to: ${userEmail}\nCheck your inbox for a permanent copy.`);
-            }, 1000);
-        } else {
-            // Show desktop success message without email
-            setTimeout(() => {
-                alert(`✅ **Download Successful!**\nYour GMB Audit Report has been downloaded to your computer.\n\n💡 **Tip:**\nSave this report in a safe place for future reference.`);
-            }, 1000);
-        }
+        // Theme-based desktop message
+        showThemeAlert(userEmail ? '💻 Report generated! PDF opened. Email sent!' : '💻 Report generated! PDF opened.');
+        
+        // Open in new tab
+        window.open(url, '_blank');
+        
+        // Clean up
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
     }
+};
+
+// Theme-based alert function
+const showThemeAlert = (message: string) => {
+    // Create theme-styled alert
+    const alertDiv = document.createElement('div');
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #f1f5f9;
+        padding: 16px 24px;
+        border-radius: 12px;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(59, 130, 246, 0.1);
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 9999;
+        backdrop-filter: blur(10px);
+        animation: slideInRight 0.3s ease-out;
+        max-width: 300px;
+    `;
+    alertDiv.innerHTML = message;
+    
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Show alert
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        alertDiv.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => {
+            document.body.removeChild(alertDiv);
+            document.head.removeChild(style);
+        }, 300);
+    }, 3000);
 };
 
 // Function to send PDF via email
@@ -1792,7 +1754,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 if (prev >= LOADING_MESSAGES.length - 1) return prev;
                 return prev + 1;
             });
-        }, 8000); // 8 seconds per message × 15 messages = 120 seconds total (2 minutes)
+        }, 6000); // 6 seconds per message × 15 messages = 90 seconds total (1:30 minutes)
         return () => clearInterval(interval);
     }, [loading]);
 

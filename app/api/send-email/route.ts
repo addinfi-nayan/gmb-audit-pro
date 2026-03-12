@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
             const resend = new Resend(process.env.RESEND_API_KEY);
 
             const emailData: any = {
-                from: 'noreply@whatmyrank.com', // Your verified domain
+                from: 'add', // Your verified domain
                 to: [to],
                 subject: subject,
                 html: body,
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Option 3: Use a webhook to your existing email service
-        // This sends the email data to your n8n webhook
+        // This sends email data to your n8n webhook
         const webhookUrl = "https://n8n-pro-775604255858.asia-south1.run.app/webhook/send-pdf-email";
         
         const webhookPayload = {
@@ -95,6 +95,11 @@ export async function POST(request: NextRequest) {
             timestamp: new Date().toISOString(),
         };
 
+        console.log('📧 Sending email webhook:', {
+            url: webhookUrl,
+            payload: webhookPayload
+        });
+
         const webhookResponse = await fetch(webhookUrl, {
             method: 'POST',
             headers: {
@@ -103,12 +108,18 @@ export async function POST(request: NextRequest) {
             body: JSON.stringify(webhookPayload),
         });
 
+        console.log('📧 Webhook response status:', webhookResponse.status);
+        console.log('📧 Webhook response headers:', Object.fromEntries(webhookResponse.headers.entries()));
+
         if (webhookResponse.ok) {
-            return NextResponse.json({ success: true, message: 'Email sent via webhook' });
+            const responseText = await webhookResponse.text();
+            console.log('📧 Webhook response body:', responseText);
+            return NextResponse.json({ success: true, message: 'Email sent via webhook', response: responseText });
         } else {
-            console.error('Webhook error:', webhookResponse.statusText);
+            console.error('❌ Webhook error:', webhookResponse.statusText);
+            console.error('❌ Webhook status:', webhookResponse.status);
             return NextResponse.json(
-                { error: 'Failed to send email via webhook' },
+                { error: 'Failed to send email via webhook', status: webhookResponse.status, statusText: webhookResponse.statusText },
                 { status: 500 }
             );
         }
