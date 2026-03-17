@@ -125,20 +125,82 @@ const sendPDFViaEmail = async (pdfBlob: Blob, filename: string, userEmail: strin
                 // Send email with PDF attachment
                 const emailPayload = {
                     to: userEmail,
-                    subject: `Your GMB Audit Report - ${filename}`,
+                    subject: `📊 Your GMB Audit Report - ${filename}`,
                     body: `
-                        <h2>Your GMB Audit Report is Ready!</h2>
-                        <p>Hi there,</p>
-                        <p>Your Google My Business audit report has been generated and is attached to this email.</p>
-                        <p><strong>Report Details:</strong></p>
-                        <ul>
-                            <li>Report Name: ${filename}</li>
-                            <li>Generated: ${new Date().toLocaleString()}</li>
-                        </ul>
-                        <p>This report contains detailed insights about your GMB performance, competitor analysis, and actionable recommendations to improve your local SEO ranking.</p>
-                        <p>If you have any questions or need help implementing the recommendations, feel free to reach out to our team.</p>
-                        <br>
-                        <p>Best regards,<br>Team WhatMyRank</p>
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <style>
+                                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+                                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                                .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+                                .logo { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+                                .subtitle { font-size: 16px; opacity: 0.9; }
+                                .title { color: #667eea; font-size: 24px; margin-bottom: 20px; }
+                                .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
+                                .details { list-style: none; padding: 0; }
+                                .details li { padding: 8px 0; border-bottom: 1px solid #eee; }
+                                .details li:last-child { border-bottom: none; }
+                                .cta-button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; margin: 20px 0; font-weight: bold; }
+                                .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
+                                .emoji { font-size: 20px; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <div class="header">
+                                    <div class="logo">🚀 WhatMyRank</div>
+                                    <div class="subtitle">Your GMB Performance Partner</div>
+                                </div>
+                                
+                                <div class="content">
+                                    <h1 class="title">📊 Your GMB Audit Report is Ready!</h1>
+                                    
+                                    <p>Hi there,</p>
+                                    <p>Congratulations! Your comprehensive Google My Business audit report has been generated successfully. This detailed analysis will help you unlock new opportunities for local search visibility and customer engagement.</p>
+                                    
+                                    <div class="info-box">
+                                        <h3 style="margin-top: 0; color: #667eea;">📋 Report Details</h3>
+                                        <ul class="details">
+                                            <li><strong>📄 Report Name:</strong> ${filename}</li>
+                                            <li><strong>📅 Generated:</strong> ${new Date().toLocaleString()}</li>
+                                            <li><strong>📧 Delivered to:</strong> ${userEmail}</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="info-box">
+                                        <h3 style="margin-top: 0; color: #667eea;">🎯 What's Inside Your Report</h3>
+                                        <ul style="color: #555;">
+                                            <li>✨ Complete GMB profile analysis</li>
+                                            <li>🏆 Competitor performance comparison</li>
+                                            <li>📈 Customer sentiment insights</li>
+                                            <li>🎯 Actionable SEO recommendations</li>
+                                            <li>⚡ Quick wins for immediate improvement</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <p><strong>📎 Your detailed PDF report is attached to this email!</strong></p>
+                                    
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <p style="color: #666; font-style: italic;">Open the attachment to discover your path to GMB success! 🌟</p>
+                                    </div>
+                                    
+                                    <div class="footer">
+                                        <p><strong>Need help implementing these strategies?</strong></p>
+                                        <p>Our team is here to support your growth journey. Feel free to reach out with any questions.</p>
+                                        <p><strong>Best regards,<br>The WhatMyRank Team 🚀</strong></p>
+                                        <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                                            This report was generated exclusively for ${userEmail}.<br>
+                                            © 2026 WhatMyRank. All rights reserved.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </body>
+                        </html>
                     `,
                     attachment: {
                         filename: filename,
