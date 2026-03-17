@@ -1,4 +1,4 @@
-"use client";
+        "use client";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -13,53 +13,14 @@ import CookieConsent from "../components/CookieConsent";
 
 // Mobile-friendly PDF download helper
 const downloadPDF = (pdf: jsPDF, filename: string, userEmail?: string) => {
-    // Check if it's a mobile device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    
     // Send PDF via email if user email is provided
     if (userEmail) {
         const pdfBlob = pdf.output('blob');
         sendPDFViaEmail(pdfBlob, filename, userEmail);
     }
     
-    if (isMobile) {
-        try {
-            // Generate PDF as blob
-            const pdfBlob = pdf.output('blob');
-            const url = URL.createObjectURL(pdfBlob);
-            
-            // Theme-based mobile message
-            if (isIOS) {
-                showThemeAlert(userEmail ? '📱 Report generated! PDF opened. Email sent!' : '📱 Report generated! PDF opened.');
-            } else {
-                showThemeAlert(userEmail ? '📱 Report generated! PDF downloaded. Email sent!' : '📱 Report generated! PDF downloaded.');
-            }
-            
-            // Open in new tab for mobile
-            window.open(url, '_blank');
-            
-            // Clean up
-            setTimeout(() => URL.revokeObjectURL(url), 10000);
-            
-        } catch (error) {
-            console.error('Mobile PDF error:', error);
-            showThemeAlert('📧 Report sent to email!');
-        }
-    } else {
-        // Desktop: Open in new tab instead of download
-        const pdfBlob = pdf.output('blob');
-        const url = URL.createObjectURL(pdfBlob);
-        
-        // Theme-based desktop message
-        showThemeAlert(userEmail ? '💻 Report generated! PDF opened. Email sent!' : '💻 Report generated! PDF opened.');
-        
-        // Open in new tab
-        window.open(url, '_blank');
-        
-        // Clean up
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-    }
+    // Don't automatically download/open PDF - let user click download button manually
+    showThemeAlert(userEmail ? '📧 Report sent to your email!' : '📊 Report ready! Click download button to save.');
 };
 
 // Theme-based alert function
