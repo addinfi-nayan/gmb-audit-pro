@@ -23,6 +23,15 @@ const downloadPDF = (pdf: jsPDF, filename: string, userEmail?: string) => {
     showDownloadDialog(pdf, filename, userEmail);
 };
 
+// Mobile-friendly PDF detection
+const isIOS = () => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+    return (
+        /iPad|iPhone|iPod/.test(navigator.platform) ||
+        (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+    );
+};
+
 // Download confirmation dialog function
 const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) => {
     // Create modal overlay
@@ -72,7 +81,7 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
                 Your GMB Audit Report is Ready!
             </h3>
             <p style="color: #94a3b8; margin-bottom: 24px; line-height: 1.5;">
-                Would you like to download the PDF report now?
+                Would you like to ${isIOS() ? 'view or save' : 'download'} the PDF report now?
                 ${userEmail ? '<br><small style="color: #10b981;">✓ Report also sent to your email</small>' : ''}
             </p>
             
@@ -88,7 +97,7 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
                     transition: all 0.2s;
                     font-size: 14px;
                 " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    📥 Download PDF
+                    ${isIOS() ? '📄 View PDF' : '📥 Download PDF'}
                 </button>
                 
                 <button id="download-no" style="
@@ -120,19 +129,25 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
         const pdfBlob = pdf.output('blob');
         const url = URL.createObjectURL(pdfBlob);
         
-        // Create download link
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        if (isIOS()) {
+            // iOS Fix: Open directly in new window instead of creating a hidden link
+            // This prevents the blank page issue on Safari
+            window.open(url, '_blank');
+        } else {
+            // Standard method for desktop/android
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
         
         // Clean up
         setTimeout(() => URL.revokeObjectURL(url), 1000);
         
         // Show success message
-        showThemeAlert('📥 PDF downloaded successfully!');
+        showThemeAlert(isIOS() ? '📄 PDF opened successfully!' : '📥 PDF downloaded successfully!');
         
         // Close dialog
         closeDialog();
