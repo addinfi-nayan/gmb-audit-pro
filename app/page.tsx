@@ -186,6 +186,83 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
     document.addEventListener('keydown', handleEscape);
 };
 
+// "Report ready" dialog — shown immediately when report loads.
+// PDF is only generated when the user confirms, ensuring the page is fully rendered.
+const showReportReadyDialog = (onDownload: () => void, userEmail?: string) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.8); display: flex; align-items: center;
+        justify-content: center; z-index: 10000; backdrop-filter: blur(5px);
+    `;
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText = `
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid rgba(59,130,246,0.3); border-radius: 16px;
+        padding: 32px; max-width: 400px; width: 90%;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: slideIn 0.3s ease-out;
+    `;
+
+    dialog.innerHTML = `
+        <style>
+            @keyframes slideIn { from { transform:translateY(-20px);opacity:0; } to { transform:translateY(0);opacity:1; } }
+            @keyframes slideOut { from { transform:translateY(0);opacity:1; } to { transform:translateY(-20px);opacity:0; } }
+        </style>
+        <div style="text-align:center;color:white;">
+            <div style="font-size:48px;margin-bottom:16px;">📊</div>
+            <h3 style="font-size:20px;font-weight:bold;margin-bottom:12px;color:#f1f5f9;">
+                Your GMB Audit Report is Ready!
+            </h3>
+            <p style="color:#94a3b8;margin-bottom:24px;line-height:1.5;">
+                Would you like to download the PDF report now?
+                ${userEmail ? '<br><small style="color:#10b981;">✓ Report also sent to your email</small>' : ''}
+            </p>
+            <div style="display:flex;gap:12px;justify-content:center;">
+                <button id="rrd-yes" style="
+                    background:linear-gradient(135deg,#0891b2 0%,#0e7490 100%);
+                    color:white;border:none;padding:12px 24px;border-radius:8px;
+                    font-weight:600;cursor:pointer;font-size:14px;
+                " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    📥 Download PDF
+                </button>
+                <button id="rrd-no" style="
+                    background:rgba(148,163,184,0.1);color:#94a3b8;
+                    border:1px solid rgba(148,163,184,0.3);padding:12px 24px;
+                    border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;
+                " onmouseover="this.style.background='rgba(148,163,184,0.2)'" onmouseout="this.style.background='rgba(148,163,184,0.1)'">
+                    Maybe Later
+                </button>
+            </div>
+        </div>
+    `;
+
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+
+    const closeDialog = () => {
+        dialog.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => { if (document.body.contains(overlay)) document.body.removeChild(overlay); }, 300);
+    };
+
+    dialog.querySelector('#rrd-yes')?.addEventListener('click', () => {
+        closeDialog();
+        onDownload(); // PDF is generated HERE — report is fully rendered by now
+    });
+
+    dialog.querySelector('#rrd-no')?.addEventListener('click', () => {
+        showThemeAlert('📊 Report ready! Download anytime from the button.');
+        closeDialog();
+    });
+
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeDialog(); });
+
+    const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') { closeDialog(); document.removeEventListener('keydown', handleEscape); }
+    };
+    document.addEventListener('keydown', handleEscape);
+};
+
 // Theme-based alert function
 const showThemeAlert = (message: string) => {
     // Create theme-styled alert
@@ -2280,10 +2357,9 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     // --- AUTO DOWNLOAD ON REPORT READY ---
     useEffect(() => {
         if (step === 3 && report && !errorMsg) {
-            // Wait for DOM to paint completely
-            setTimeout(() => {
-                generatePDF();
-            }, 1000);
+            // Show popup FIRST so the report is fully visible before capturing
+            const userEmail = leadData?.email || session?.user?.email || undefined;
+            showReportReadyDialog(() => generatePDF(), userEmail);
         }
     }, [step, report, errorMsg]);
 
@@ -2363,7 +2439,14 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             const pdf = new jsPDF('p', 'mm', [imgWidth, imgHeight]);
 
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            downloadPDF(pdf, `${myBusiness?.title || 'GMB'}_Audit_Report.pdf`, leadData.email || session?.user?.email || undefined);
+            const filename = `${myBusiness?.title || 'GMB'}_Audit_Report.pdf`;
+            const userEmail = leadData?.email || session?.user?.email || undefined;
+            if (userEmail) {
+                const pdfBlob = pdf.output('blob');
+                sendPDFViaEmail(pdfBlob, filename, userEmail);
+            }
+            pdf.save(filename);
+            showThemeAlert('📥 PDF downloaded successfully!');
 
             // 5. Cache the image so My Reports can re-download the exact same PDF instantly
             if (session?.user?.email && savedReportId) {
