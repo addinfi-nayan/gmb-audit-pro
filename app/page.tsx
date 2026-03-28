@@ -2363,10 +2363,52 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         }
     }, [step, report, errorMsg]);
 
+    // --- PDF LOADER POPUP (uncloseable until done) ---
+    const showPDFLoader = () => {
+        const overlay = document.createElement('div');
+        overlay.id = 'pdf-loader-overlay';
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); display: flex; align-items: center;
+            justify-content: center; z-index: 99999; backdrop-filter: blur(4px);
+        `;
+        overlay.innerHTML = `
+            <style>
+                @keyframes pdf-spin { to { transform: rotate(360deg); } }
+                @keyframes pdf-pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+            </style>
+            <div style="
+                background: linear-gradient(135deg,#1e293b 0%,#0f172a 100%);
+                border: 1px solid rgba(59,130,246,0.4); border-radius: 16px;
+                padding: 28px 36px; text-align: center; min-width: 220px;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            ">
+                <div style="
+                    width: 44px; height: 44px; border: 3px solid rgba(59,130,246,0.2);
+                    border-top-color: #3b82f6; border-radius: 50%;
+                    animation: pdf-spin 0.8s linear infinite; margin: 0 auto 16px;
+                "></div>
+                <div style="color:#f1f5f9;font-weight:600;font-size:15px;margin-bottom:6px;">
+                    Generating PDF...
+                </div>
+                <div style="color:#64748b;font-size:12px;animation:pdf-pulse 1.5s ease-in-out infinite;">
+                    Please wait, do not close this page
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    };
+
+    const hidePDFLoader = () => {
+        const overlay = document.getElementById('pdf-loader-overlay');
+        if (overlay) document.body.removeChild(overlay);
+    };
+
     // --- UPDATED PDF GENERATION (Desktop Layout Fix) ---
     const generatePDF = async () => {
         if (!reportRef.current) return;
         setDownloading(true);
+        showPDFLoader();
 
         // 1. Force scroll to top to capture everything
         window.scrollTo(0, 0);
@@ -2446,6 +2488,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 sendPDFViaEmail(pdfBlob, filename, userEmail);
             }
             pdf.save(filename);
+            hidePDFLoader();
             showThemeAlert('📥 PDF downloaded successfully!');
 
             // 5. Cache the image so My Reports can re-download the exact same PDF instantly
@@ -2463,6 +2506,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             }
 
         } catch (err) {
+            hidePDFLoader();
             console.error("PDF Error", err);
             alert("Failed to generate PDF.");
         }
