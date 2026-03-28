@@ -27,6 +27,7 @@ const downloadPDF = (pdf: jsPDF, filename: string, userEmail?: string) => {
 const isIOS = () => {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
     return (
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
         /iPad|iPhone|iPod/.test(navigator.platform) ||
         (navigator.userAgent.includes("Mac") && "ontouchend" in document)
     );
@@ -130,9 +131,12 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
         const url = URL.createObjectURL(pdfBlob);
         
         if (isIOS()) {
-            // iOS Fix: Open directly in new window instead of creating a hidden link
-            // This prevents the blank page issue on Safari
-            window.open(url, '_blank');
+            // iOS Fix: Use jsPDF's built-in save() instead of window.open with a blob URL.
+            // window.open(blobUrl, '_blank') on iOS Safari triggers the popup blocker,
+            // which then navigates the CURRENT page to the blob URL → blank page.
+            // After revokeObjectURL → "refuse to connect".
+            URL.revokeObjectURL(url); // release the unused blob URL immediately
+            pdf.save(filename);
         } else {
             // Standard method for desktop/android
             const link = document.createElement('a');
@@ -141,13 +145,12 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            // Give the browser time to start the download before revoking
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
         }
-        
-        // Clean up
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-        
+
         // Show success message
-        showThemeAlert(isIOS() ? '📄 PDF opened successfully!' : '📥 PDF downloaded successfully!');
+        showThemeAlert('📥 PDF downloaded successfully!');
         
         // Close dialog
         closeDialog();
