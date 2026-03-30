@@ -1519,32 +1519,35 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
     };
 
     const handleDownload = async (saved: SavedReport) => {
-        setDownloading(saved.id);
+        const userEmail = session?.user?.email || undefined;
 
-        try {
-            // --- FAST PATH: Use the exact cached PDF image from when user first downloaded ---
-            if (saved.pdfImageData) {
-                const imgData = saved.pdfImageData;
-                const img = new Image();
-                img.src = imgData;
-                await new Promise((res) => { img.onload = res; });
-                const imgWidth = 210;
-                const imgHeight = (img.naturalHeight * imgWidth) / img.naturalWidth;
-                const pdf = new jsPDF("p", "mm", [imgWidth, imgHeight]);
-                pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-                downloadPDF(pdf, `${saved.gmbName}_Audit_Report.pdf`, session?.user?.email || undefined);
+        showReportReadyDialog(async () => {
+            setDownloading(saved.id);
+            try {
+                // --- FAST PATH: Use the exact cached PDF image from when user first downloaded ---
+                if (saved.pdfImageData) {
+                    const imgData = saved.pdfImageData;
+                    const img = new Image();
+                    img.src = imgData;
+                    await new Promise((res) => { img.onload = res; });
+                    const imgWidth = 210;
+                    const imgHeight = (img.naturalHeight * imgWidth) / img.naturalWidth;
+                    const pdf = new jsPDF("p", "mm", [imgWidth, imgHeight]);
+                    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+                    downloadPDF(pdf, `${saved.gmbName}_Audit_Report.pdf`, userEmail);
+                    setDownloading(null);
+                    return;
+                }
+
+                // --- FALLBACK: Render DashboardLogic invisibly in background for exact-match PDF ---
+                onTriggerDownload(saved);
+                setDownloading(null); // spinner kept alive via externalDownloadingId (pendingDownload)
+            } catch (e) {
+                console.error("PDF error", e);
                 setDownloading(null);
-                return;
+                setActiveReport(null);
             }
-
-            // --- FALLBACK: Render DashboardLogic invisibly in background for exact-match PDF ---
-            onTriggerDownload(saved);
-            setDownloading(null); // spinner kept alive via externalDownloadingId (pendingDownload)
-        } catch (e) {
-            console.error("PDF error", e);
-        }
-        setDownloading(null);
-        setActiveReport(null);
+        }, userEmail);
     };
 
     return (
@@ -2347,7 +2350,8 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
     const initiateDownload = () => {
         if (isUnlocked) {
-            generatePDF();
+            const userEmail = leadData?.email || session?.user?.email || undefined;
+            showReportReadyDialog(() => generatePDF(), userEmail);
         } else {
             handleRestrictedAction(); // <--- WAS: setShowPaymentModal(true)
         }

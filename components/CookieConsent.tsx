@@ -1,14 +1,25 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 const CookieConsent: React.FC = () => {
+  const { data: session, status } = useSession();
   const [isVisible, setIsVisible] = useState(false);
   const [hasConsent, setHasConsent] = useState(false);
 
   useEffect(() => {
+    if (status === "loading") return;
+
+    // If user is logged in, auto-accept and never show the banner
+    if (session) {
+      localStorage.setItem('cookie-consent', 'accepted');
+      setHasConsent(true);
+      return;
+    }
+
     // Check if user has already consented
     const consent = localStorage.getItem('cookie-consent');
-    if (consent === 'accepted') {
+    if (consent === 'accepted' || consent === 'declined') {
       setHasConsent(true);
     } else {
       // Show banner after a short delay
@@ -17,7 +28,7 @@ const CookieConsent: React.FC = () => {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [session, status]);
 
   const handleAccept = () => {
     localStorage.setItem('cookie-consent', 'accepted');
