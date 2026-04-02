@@ -33,6 +33,35 @@ const isIOS = () => {
     );
 };
 
+const downloadPdf = (pdf: jsPDF, filename: string, iosWin?: Window | null) => {
+    if (isIOS()) {
+        if (iosWin && !iosWin.closed) {
+            const pdfBlob = pdf.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            iosWin.location.href = pdfUrl;
+            iosWin.focus?.();
+            setTimeout(() => {
+                if (!iosWin.closed) URL.revokeObjectURL(pdfUrl);
+            }, 60000);
+            return;
+        }
+
+        // Fallback when iOS pre-opened window is unavailable.
+        pdf.save(filename);
+        return;
+    }
+
+    const pdfBlob = pdf.output('blob');
+    const link = document.createElement('a');
+    link.style.display = 'none';
+    link.href = URL.createObjectURL(pdfBlob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(link.href), 30000);
+};
+
 // Download confirmation dialog function
 const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) => {
     // Create modal overlay
@@ -126,33 +155,8 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
     const noBtn = dialog.querySelector('#download-no');
     
     yesBtn?.addEventListener('click', () => {
-        // Perform actual download
-        const pdfBlob = pdf.output('blob');
-        const url = URL.createObjectURL(pdfBlob);
-        
-        if (isIOS()) {
-            // iOS Fix: Use jsPDF's built-in save() instead of window.open with a blob URL.
-            // window.open(blobUrl, '_blank') on iOS Safari triggers the popup blocker,
-            // which then navigates the CURRENT page to the blob URL → blank page.
-            // After revokeObjectURL → "refuse to connect".
-            URL.revokeObjectURL(url); // release the unused blob URL immediately
-            pdf.save(filename);
-        } else {
-            // Standard method for desktop/android
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            // Give the browser time to start the download before revoking
-            setTimeout(() => URL.revokeObjectURL(url), 30000);
-        }
-
-        // Show success message
+        downloadPdf(pdf, filename);
         showThemeAlert('📥 PDF downloaded successfully!');
-        
-        // Close dialog
         closeDialog();
     });
     
@@ -250,10 +254,11 @@ const showReportReadyDialog = (onDownload: (iosWin: Window | null) => void, user
         // After PDF is ready we navigate this tab to the blob URL — no popup blocker, no permission prompt.
         let iosWin: Window | null = null;
         if (isIOS()) {
-            iosWin = window.open('', '_blank');
+            iosWin = window.open('about:blank', '_blank');
             if (iosWin) {
                 iosWin.document.write('<html><head><title>PDF</title></head><body style="margin:0;background:#030712;display:flex;align-items:center;justify-content:center;height:100vh"><p style="color:white;font-family:sans-serif;font-size:16px">⏳ Generating your PDF…</p></body></html>');
                 iosWin.document.close();
+                iosWin.focus?.();
             }
         }
         closeDialog();
@@ -1550,22 +1555,7 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
 
                     // Email delivery
                     if (userEmail) sendPDFViaEmail(pdfBlob, filename, userEmail);
-
-                    // iOS: navigate pre-opened tab to blob URL (no popup blocker, no permission prompt).
-                    // Desktop/Android: standard anchor-download.
-                    if (iosWin) {
-                        const pdfUrl = URL.createObjectURL(pdfBlob);
-                        iosWin.location.href = pdfUrl;
-                        setTimeout(() => URL.revokeObjectURL(pdfUrl), 60_000);
-                    } else {
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(pdfBlob);
-                        link.download = filename;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        setTimeout(() => URL.revokeObjectURL(link.href), 30_000);
-                    }
+                    downloadPdf(pdf, filename, iosWin);
 
                     showThemeAlert('📥 PDF downloaded successfully!');
                     setDownloading(null);
@@ -2527,21 +2517,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 sendPDFViaEmail(pdfBlob, filename, userEmail);
             }
 
-            // iOS: navigate the pre-opened tab to the blob URL (no popup blocker, no permission prompt).
-            // Desktop/Android: use standard anchor-download.
-            if (iosWin) {
-                const pdfUrl = URL.createObjectURL(pdfBlob);
-                iosWin.location.href = pdfUrl;
-                setTimeout(() => URL.revokeObjectURL(pdfUrl), 60_000);
-            } else {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(pdfBlob);
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                setTimeout(() => URL.revokeObjectURL(link.href), 30_000);
-            }
+            downloadPdf(pdf, filename, iosWin);
 
             hidePDFLoader();
             showThemeAlert('📥 PDF downloaded successfully!');
