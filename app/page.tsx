@@ -33,33 +33,20 @@ const isIOS = () => {
     );
 };
 
-const downloadPdf = (pdf: jsPDF, filename: string, iosWin?: Window | null) => {
-    if (isIOS()) {
-        if (iosWin && !iosWin.closed) {
-            const pdfBlob = pdf.output('blob');
-            const pdfUrl = URL.createObjectURL(pdfBlob);
-            iosWin.location.href = pdfUrl;
-            iosWin.focus?.();
-            setTimeout(() => {
-                if (!iosWin.closed) URL.revokeObjectURL(pdfUrl);
-            }, 60000);
-            return;
-        }
-
-        // Fallback when iOS pre-opened window is unavailable.
-        pdf.save(filename);
-        return;
-    }
-
+// Single unified download function for all platforms including iOS 13+.
+// Uses <a download> anchor click — saves to Files app on iOS, triggers download on desktop.
+// No new tab, no navigation away from the report page.
+const downloadPdf = (pdf: jsPDF, filename: string) => {
     const pdfBlob = pdf.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
     const link = document.createElement('a');
     link.style.display = 'none';
-    link.href = URL.createObjectURL(pdfBlob);
+    link.href = pdfUrl;
     link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(link.href), 30000);
+    setTimeout(() => URL.revokeObjectURL(pdfUrl), 30000);
 };
 
 // Download confirmation dialog function
@@ -192,7 +179,7 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
 
 // "Report ready" dialog — shown immediately when report loads.
 // PDF is only generated when the user confirms, ensuring the page is fully rendered.
-const showReportReadyDialog = (onDownload: (iosWin: Window | null) => void, userEmail?: string) => {
+const showReportReadyDialog = (onDownload: () => void, userEmail?: string) => {
     const overlay = document.createElement('div');
     overlay.style.cssText = `
         position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -250,19 +237,8 @@ const showReportReadyDialog = (onDownload: (iosWin: Window | null) => void, user
     };
 
     dialog.querySelector('#rrd-yes')?.addEventListener('click', () => {
-        // Pre-open a blank tab for iOS SYNCHRONOUSLY (while still in user-gesture context).
-        // After PDF is ready we navigate this tab to the blob URL — no popup blocker, no permission prompt.
-        let iosWin: Window | null = null;
-        if (isIOS()) {
-            iosWin = window.open('about:blank', '_blank');
-            if (iosWin) {
-                iosWin.document.write('<html><head><title>PDF</title></head><body style="margin:0;background:#030712;display:flex;align-items:center;justify-content:center;height:100vh"><p style="color:white;font-family:sans-serif;font-size:16px">⏳ Generating your PDF…</p></body></html>');
-                iosWin.document.close();
-                iosWin.focus?.();
-            }
-        }
         closeDialog();
-        onDownload(iosWin); // PDF is generated HERE — report is fully rendered by now
+        onDownload(); // PDF is generated HERE — report is fully rendered by now
     });
 
     dialog.querySelector('#rrd-no')?.addEventListener('click', () => {
@@ -1536,7 +1512,7 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
     const handleDownload = async (saved: SavedReport) => {
         const userEmail = session?.user?.email || undefined;
 
-        showReportReadyDialog(async (iosWin) => {
+        showReportReadyDialog(async () => {
             setDownloading(saved.id);
             try {
                 // --- FAST PATH: Use the exact cached PDF image from when user first downloaded ---
@@ -1555,7 +1531,7 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
 
                     // Email delivery
                     if (userEmail) sendPDFViaEmail(pdfBlob, filename, userEmail);
-                    downloadPdf(pdf, filename, iosWin);
+                    downloadPdf(pdf, filename);
 
                     showThemeAlert('📥 PDF downloaded successfully!');
                     setDownloading(null);
@@ -1563,11 +1539,9 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                 }
 
                 // --- FALLBACK: Render DashboardLogic invisibly in background for exact-match PDF ---
-                if (iosWin) iosWin.close(); // fallback path handles its own download
                 onTriggerDownload(saved);
                 setDownloading(null); // spinner kept alive via externalDownloadingId (pendingDownload)
             } catch (e) {
-                if (iosWin) iosWin.close();
                 console.error("PDF error", e);
                 setDownloading(null);
                 setActiveReport(null);
@@ -1970,6 +1944,8 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
     // Flag so auto-download useEffect knows not to cache this (already saved)
     const isPreloaded = useRef<boolean>(!!preloadedData);
+    // Prevents the report-ready dialog from re-showing on back-navigation or re-renders
+    const reportDialogShown = useRef(false);
 
     // --- PERSIST STATE TO SESSION STORAGE ---
     useEffect(() => {
@@ -2376,7 +2352,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     const initiateDownload = () => {
         if (isUnlocked) {
             const userEmail = leadData?.email || session?.user?.email || undefined;
-            showReportReadyDialog((iosWin) => generatePDF(iosWin), userEmail);
+            showReportReadyDialog(() => generatePDF(), userEmail);
         } else {
             handleRestrictedAction(); // <--- WAS: setShowPaymentModal(true)
         }
@@ -2386,9 +2362,20 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     // --- AUTO DOWNLOAD ON REPORT READY ---
     useEffect(() => {
         if (step === 3 && report && !errorMsg) {
-            // Show popup FIRST so the report is fully visible before capturing
+            // Guard: only show the dialog once per report load.
+            // Without this, pressing Back after iOS blob-URL navigation re-triggers the effect.
+            if (reportDialogShown.current) return;
+            reportDialogShown.current = true;
+
+            // Background (My Reports) instance — auto-download without showing the dialog.
+            // generatePDF() handles iOS via the fallback tap-to-open overlay.
+            if (isPreloaded.current) {
+                generatePDF(); // auto-download via anchor, no dialog
+                return;
+            }
+
             const userEmail = leadData?.email || session?.user?.email || undefined;
-            showReportReadyDialog((iosWin) => generatePDF(iosWin), userEmail);
+            showReportReadyDialog(() => generatePDF(), userEmail);
         }
     }, [step, report, errorMsg]);
 
@@ -2434,7 +2421,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     };
 
     // --- UPDATED PDF GENERATION (Desktop Layout Fix) ---
-    const generatePDF = async (iosWin?: Window | null) => {
+    const generatePDF = async () => {
         if (!reportRef.current) return;
         setDownloading(true);
         showPDFLoader();
@@ -2517,7 +2504,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 sendPDFViaEmail(pdfBlob, filename, userEmail);
             }
 
-            downloadPdf(pdf, filename, iosWin);
+            downloadPdf(pdf, filename);
 
             hidePDFLoader();
             showThemeAlert('📥 PDF downloaded successfully!');
@@ -2537,7 +2524,6 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             }
 
         } catch (err) {
-            if (iosWin) iosWin.close();
             hidePDFLoader();
             console.error("PDF Error", err);
             alert("Failed to generate PDF.");
