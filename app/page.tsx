@@ -2392,7 +2392,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         if (isUnlocked) {
             if (isIOS()) {
                 // iOS does not support PDF download — inform the user
-                showThemeAlert('⚠️ PDF download is not supported on iOS devices.');
+                showThemeAlert('⚠️ Download Report (Supported in Android & Desktop Only)');
             } else if (isAndroid()) {
                 // Android: skip dialog, start downloading directly
                 generatePDF();
