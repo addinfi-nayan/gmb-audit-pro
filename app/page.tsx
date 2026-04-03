@@ -33,6 +33,11 @@ const isIOS = () => {
     );
 };
 
+const isAndroid = () => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+    return /Android/i.test(navigator.userAgent);
+};
+
 // Single unified download function for all platforms including iOS 13+.
 // Uses <a download> anchor click — saves to Files app on iOS, triggers download on desktop.
 // No new tab, no navigation away from the report page.
@@ -195,38 +200,68 @@ const showReportReadyDialog = (onDownload: () => void, userEmail?: string) => {
         box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: slideIn 0.3s ease-out;
     `;
 
-    dialog.innerHTML = `
-        <style>
-            @keyframes slideIn { from { transform:translateY(-20px);opacity:0; } to { transform:translateY(0);opacity:1; } }
-            @keyframes slideOut { from { transform:translateY(0);opacity:1; } to { transform:translateY(-20px);opacity:0; } }
-        </style>
-        <div style="text-align:center;color:white;">
-            <div style="font-size:48px;margin-bottom:16px;">📊</div>
-            <h3 style="font-size:20px;font-weight:bold;margin-bottom:12px;color:#f1f5f9;">
-                Your GMB Audit Report is Ready!
-            </h3>
-            <p style="color:#94a3b8;margin-bottom:24px;line-height:1.5;">
-                Would you like to download the PDF report now?
-                ${userEmail ? '<br><small style="color:#10b981;">✓ Report also sent to your email</small>' : ''}
-            </p>
-            <div style="display:flex;gap:12px;justify-content:center;">
-                <button id="rrd-yes" style="
+    const isMobile = isIOS() || isAndroid();
+
+    if (isMobile) {
+        // iOS & Android: just confirm report created, no download option
+        dialog.innerHTML = `
+            <style>
+                @keyframes slideIn { from { transform:translateY(-20px);opacity:0; } to { transform:translateY(0);opacity:1; } }
+                @keyframes slideOut { from { transform:translateY(0);opacity:1; } to { transform:translateY(-20px);opacity:0; } }
+            </style>
+            <div style="text-align:center;color:white;">
+                <div style="font-size:48px;margin-bottom:16px;">✅</div>
+                <h3 style="font-size:20px;font-weight:bold;margin-bottom:12px;color:#f1f5f9;">
+                    Report Created!
+                </h3>
+                <p style="color:#94a3b8;margin-bottom:24px;line-height:1.5;">
+                    Your GMB Audit Report has been generated successfully.
+                    ${userEmail ? '<br><small style="color:#10b981;">✓ Report also sent to your email</small>' : ''}
+                </p>
+                <button id="rrd-ok" style="
                     background:linear-gradient(135deg,#0891b2 0%,#0e7490 100%);
-                    color:white;border:none;padding:12px 24px;border-radius:8px;
+                    color:white;border:none;padding:12px 40px;border-radius:8px;
                     font-weight:600;cursor:pointer;font-size:14px;
                 " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                    📥 Download PDF
-                </button>
-                <button id="rrd-no" style="
-                    background:rgba(148,163,184,0.1);color:#94a3b8;
-                    border:1px solid rgba(148,163,184,0.3);padding:12px 24px;
-                    border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;
-                " onmouseover="this.style.background='rgba(148,163,184,0.2)'" onmouseout="this.style.background='rgba(148,163,184,0.1)'">
-                    Maybe Later
+                    OK
                 </button>
             </div>
-        </div>
-    `;
+        `;
+    } else {
+        // Desktop: prompt to download
+        dialog.innerHTML = `
+            <style>
+                @keyframes slideIn { from { transform:translateY(-20px);opacity:0; } to { transform:translateY(0);opacity:1; } }
+                @keyframes slideOut { from { transform:translateY(0);opacity:1; } to { transform:translateY(-20px);opacity:0; } }
+            </style>
+            <div style="text-align:center;color:white;">
+                <div style="font-size:48px;margin-bottom:16px;">📊</div>
+                <h3 style="font-size:20px;font-weight:bold;margin-bottom:12px;color:#f1f5f9;">
+                    Your GMB Audit Report is Ready!
+                </h3>
+                <p style="color:#94a3b8;margin-bottom:24px;line-height:1.5;">
+                    Would you like to download the PDF report now?
+                    ${userEmail ? '<br><small style="color:#10b981;">✓ Report also sent to your email</small>' : ''}
+                </p>
+                <div style="display:flex;gap:12px;justify-content:center;">
+                    <button id="rrd-yes" style="
+                        background:linear-gradient(135deg,#0891b2 0%,#0e7490 100%);
+                        color:white;border:none;padding:12px 24px;border-radius:8px;
+                        font-weight:600;cursor:pointer;font-size:14px;
+                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        📥 Download PDF
+                    </button>
+                    <button id="rrd-no" style="
+                        background:rgba(148,163,184,0.1);color:#94a3b8;
+                        border:1px solid rgba(148,163,184,0.3);padding:12px 24px;
+                        border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;
+                    " onmouseover="this.style.background='rgba(148,163,184,0.2)'" onmouseout="this.style.background='rgba(148,163,184,0.1)'">
+                        Maybe Later
+                    </button>
+                </div>
+            </div>
+        `;
+    }
 
     overlay.appendChild(dialog);
     document.body.appendChild(overlay);
@@ -236,22 +271,26 @@ const showReportReadyDialog = (onDownload: () => void, userEmail?: string) => {
         setTimeout(() => { if (document.body.contains(overlay)) document.body.removeChild(overlay); }, 300);
     };
 
-    dialog.querySelector('#rrd-yes')?.addEventListener('click', () => {
-        closeDialog();
-        onDownload(); // PDF is generated HERE — report is fully rendered by now
-    });
+    if (isMobile) {
+        dialog.querySelector('#rrd-ok')?.addEventListener('click', closeDialog);
+    } else {
+        dialog.querySelector('#rrd-yes')?.addEventListener('click', () => {
+            closeDialog();
+            onDownload(); // PDF is generated HERE — report is fully rendered by now
+        });
 
-    dialog.querySelector('#rrd-no')?.addEventListener('click', () => {
-        showThemeAlert('📊 Report ready! Download anytime from the button.');
-        closeDialog();
-    });
+        dialog.querySelector('#rrd-no')?.addEventListener('click', () => {
+            showThemeAlert('📊 Report ready! Download anytime from the button.');
+            closeDialog();
+        });
 
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeDialog(); });
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) closeDialog(); });
 
-    const handleEscape = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') { closeDialog(); document.removeEventListener('keydown', handleEscape); }
-    };
-    document.addEventListener('keydown', handleEscape);
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') { closeDialog(); document.removeEventListener('keydown', handleEscape); }
+        };
+        document.addEventListener('keydown', handleEscape);
+    }
 };
 
 // Theme-based alert function
@@ -2351,8 +2390,17 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
     const initiateDownload = () => {
         if (isUnlocked) {
-            const userEmail = leadData?.email || session?.user?.email || undefined;
-            showReportReadyDialog(() => generatePDF(), userEmail);
+            if (isIOS()) {
+                // iOS does not support PDF download — inform the user
+                showThemeAlert('⚠️ PDF download is not supported on iOS devices.');
+            } else if (isAndroid()) {
+                // Android: skip dialog, start downloading directly
+                generatePDF();
+            } else {
+                // Desktop: show download confirmation dialog
+                const userEmail = leadData?.email || session?.user?.email || undefined;
+                showReportReadyDialog(() => generatePDF(), userEmail);
+            }
         } else {
             handleRestrictedAction(); // <--- WAS: setShowPaymentModal(true)
         }
