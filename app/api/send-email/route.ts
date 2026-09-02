@@ -1,149 +1,116 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
+
+interface EmailRequest {
+    to: string;
+    subject: string;
+    body: string;
+    attachment?: {
+        filename: string;
+        content: string; // base64
+        contentType: string;
+    };
+}
+
+async function sendViaResend(email: EmailRequest) {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    const { error } = await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || 'WhatMyRank <onboarding@resend.dev>',
+        to: [email.to],
+        subject: email.subject,
+        html: email.body,
+        attachments: email.attachment
+            ? [{ filename: email.attachment.filename, content: email.attachment.content }]
+            : undefined,
+    });
+
+    if (error) throw new Error(error.message);
+}
+
+function getNodemailerTransporter() {
+    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+        return nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_APP_PASSWORD,
+            },
+        });
+    }
+
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        return nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: Number(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+            },
+        });
+    }
+
+    return null;
+}
+
+async function sendViaNodemailer(email: EmailRequest) {
+    const transporter = getNodemailerTransporter();
+    if (!transporter) return false;
+
+    const mailOptions: nodemailer.SendMailOptions = {
+        from: process.env.GMAIL_USER || process.env.SMTP_FROM || process.env.SMTP_USER,
+        to: email.to,
+        subject: email.subject,
+        html: email.body,
+    };
+
+    if (email.attachment) {
+        mailOptions.attachments = [{
+            filename: email.attachment.filename,
+            content: Buffer.from(email.attachment.content, 'base64'),
+            contentType: email.attachment.contentType,
+        }];
+    }
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent via Nodemailer:', info.messageId);
+    return true;
+}
 
 export async function POST(request: NextRequest) {
     try {
-        const { to, subject, body, attachment } = await request.json();
+        const email: EmailRequest = await request.json();
 
-        // Validate required fields
-        if (!to || !subject || !body) {
+        if (!email.to || !email.subject || !email.body) {
             return NextResponse.json(
                 { error: 'Missing required fields: to, subject, body' },
                 { status: 400 }
             );
         }
 
-        // Option 1: Use Resend (Recommended for production)
-        // You'll need to install: npm install resend
-        // And set up your Resend API key in environment variables
+        // Resend is the preferred path — simplest to set up, best deliverability.
         if (process.env.RESEND_API_KEY) {
-            const Resend = require('resend');
-            const resend = new Resend(process.env.RESEND_API_KEY);
-
-            const emailData: any = {
-                from: 'nayan@addinfi.com', // Your verified domain
-                to: [to],
-                subject: subject,
-                html: body,
-            };
-
-            // Add attachment if provided
-            if (attachment) {
-                emailData.attachments = [{
-                    filename: attachment.filename,
-                    content: attachment.content,
-                    type: attachment.contentType,
-                }];
-            }
-
-            const { data, error } = await resend.emails.send(emailData);
-
-            if (error) {
-                console.error('Resend error:', error);
-                return NextResponse.json(
-                    { error: 'Failed to send email via Resend' },
-                    { status: 500 }
-                );
-            }
-
-            return NextResponse.json({ success: true, data });
+            await sendViaResend(email);
+            return NextResponse.json({ success: true, provider: 'resend' });
         }
 
-        // Option 2: Use Nodemailer with Gmail (Alternative)
-        // You'll need to install: npm install nodemailer
-        if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-            const nodemailer = require('nodemailer');
-
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.GMAIL_USER,
-                    pass: process.env.GMAIL_APP_PASSWORD,
-                },
-            });
-
-            const mailOptions: any = {
-                from: process.env.GMAIL_USER,
-                to: to,
-                subject: subject,
-                html: body,
-            };
-
-            // Add attachment if provided
-            if (attachment) {
-                mailOptions.attachments = [{
-                    filename: attachment.filename,
-                    content: Buffer.from(attachment.content, 'base64'),
-                    contentType: attachment.contentType,
-                }];
-            }
-
-            const info = await transporter.sendMail(mailOptions);
-            console.log('Email sent:', info.messageId);
-
-            return NextResponse.json({ success: true, messageId: info.messageId });
+        // Falls back to Gmail (app password) or generic SMTP if Resend isn't configured.
+        const sent = await sendViaNodemailer(email);
+        if (sent) {
+            return NextResponse.json({ success: true, provider: 'nodemailer' });
         }
 
-        // Option 3: Use a webhook to your existing email service
-        // This sends email data to your n8n webhook
-        const webhookUrl = "https://n8n-pro-775604255858.asia-south1.run.app/webhook/send-pdf-email";
-        
-        const webhookPayload = {
-            // Basic email fields
-            recipientEmail: to,
-            emailSubject: subject,
-            emailBody: body,
-            
-            // Attachment fields (n8n format)
-            attachmentName: attachment?.filename || "report.pdf",
-            attachmentData: attachment?.content || "",
-            attachmentType: attachment?.contentType || "application/pdf",
-            
-            // Metadata
-            sentAt: new Date().toISOString(),
-            source: "gmb-audit-app",
-            
-            // Alternative field names for n8n compatibility
-            to: to,
-            subject: subject,
-            body: body,
-            filename: attachment?.filename || "report.pdf",
-            content: attachment?.content || "",
-            contentType: attachment?.contentType || "application/pdf"
-        };
-
-        console.log('📧 Sending email webhook:', {
-            url: webhookUrl,
-            payload: webhookPayload
-        });
-
-        const webhookResponse = await fetch(webhookUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(webhookPayload),
-        });
-
-        console.log('📧 Webhook response status:', webhookResponse.status);
-        console.log('📧 Webhook response headers:', Object.fromEntries(webhookResponse.headers.entries()));
-
-        if (webhookResponse.ok) {
-            const responseText = await webhookResponse.text();
-            console.log('📧 Webhook response body:', responseText);
-            return NextResponse.json({ success: true, message: 'Email sent via webhook', response: responseText });
-        } else {
-            console.error('❌ Webhook error:', webhookResponse.statusText);
-            console.error('❌ Webhook status:', webhookResponse.status);
-            return NextResponse.json(
-                { error: 'Failed to send email via webhook', status: webhookResponse.status, statusText: webhookResponse.statusText },
-                { status: 500 }
-            );
-        }
-
-    } catch (error) {
+        console.error('Email is not configured: set RESEND_API_KEY, or GMAIL_USER + GMAIL_APP_PASSWORD, or SMTP_HOST + SMTP_USER + SMTP_PASS.');
+        return NextResponse.json(
+            { error: 'Email service is not configured on the server.' },
+            { status: 500 }
+        );
+    } catch (error: any) {
         console.error('Email API error:', error);
         return NextResponse.json(
-            { error: 'Internal server error' },
+            { error: error.message || 'Internal server error' },
             { status: 500 }
         );
     }

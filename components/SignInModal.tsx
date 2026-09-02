@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signInWithGoogle } from "@/lib/auth";
 import Link from "next/link";
 
 interface SignInModalProps {
@@ -20,7 +20,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose, onSuccess })
     
     setIsLoading(true);
     try {
-      await signIn("google", { redirect: false });
+      await signInWithGoogle();
       onSuccess?.();
       onClose();
     } catch (error) {
