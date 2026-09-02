@@ -1,3 +1,5 @@
+import { getSupabaseClient } from "@/lib/supabase/client";
+
 export interface SavedReport {
     id: string;
     gmbName: string;
@@ -7,59 +9,82 @@ export interface SavedReport {
     pdfImageData?: string; // base64 PNG cached when user downloads PDF from Step 3
 }
 
-const STORAGE_KEY_PREFIX = "gmb_reports_";
-
-function getKey(userEmail: string) {
-    return STORAGE_KEY_PREFIX + userEmail;
+interface ReportRow {
+    id: string;
+    gmb_name: string;
+    created_at: string;
+    report_data: any;
+    my_business: any;
+    pdf_image_data: string | null;
 }
 
-export function saveReport(userEmail: string, reportData: any, myBusiness: any): string {
-    if (typeof window === "undefined") return "";
-    const existing = getReports(userEmail);
-    const id = Date.now().toString();
-    const newEntry: SavedReport = {
-        id,
-        gmbName: myBusiness?.title || myBusiness?.name || "Unknown Business",
-        createdAt: new Date().toISOString(),
-        reportData,
-        myBusiness,
+function fromRow(row: ReportRow): SavedReport {
+    return {
+        id: row.id,
+        gmbName: row.gmb_name,
+        createdAt: row.created_at,
+        reportData: row.report_data,
+        myBusiness: row.my_business,
+        pdfImageData: row.pdf_image_data ?? undefined,
     };
-    // Limit to latest 10 reports
-    const updated = [newEntry, ...existing].slice(0, 10);
-    try {
-        localStorage.setItem(getKey(userEmail), JSON.stringify(updated));
-    } catch {
-        console.warn("Could not save report to localStorage.");
+}
+
+/** Saves a report under the signed-in user (Supabase auth user id). Returns the new report's id, or "" on failure. */
+export async function saveReport(userId: string, reportData: any, myBusiness: any): Promise<string> {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase
+        .from("reports")
+        .insert({
+            user_id: userId,
+            gmb_name: myBusiness?.title || myBusiness?.name || "Unknown Business",
+            report_data: reportData,
+            my_business: myBusiness,
+        })
+        .select("id")
+        .single();
+
+    if (error) {
+        console.error("saveReport error:", error.message);
+        return "";
     }
-    return id;
+    return data.id as string;
 }
 
 /** Call this after PDF is generated to cache the canvas image for re-download */
-export function updateReportPdfData(userEmail: string, reportId: string, pdfImageData: string): void {
-    if (typeof window === "undefined") return;
-    try {
-        const existing = getReports(userEmail);
-        const updated = existing.map((r) =>
-            r.id === reportId ? { ...r, pdfImageData } : r
-        );
-        localStorage.setItem(getKey(userEmail), JSON.stringify(updated));
-    } catch {
-        console.warn("Could not cache PDF image data — localStorage may be full.");
+export async function updateReportPdfData(userId: string, reportId: string, pdfImageData: string): Promise<void> {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase
+        .from("reports")
+        .update({ pdf_image_data: pdfImageData })
+        .eq("id", reportId)
+        .eq("user_id", userId);
+
+    if (error) {
+        console.warn("updateReportPdfData error:", error.message);
     }
 }
 
-export function getReports(userEmail: string): SavedReport[] {
-    if (typeof window === "undefined") return [];
-    try {
-        const raw = localStorage.getItem(getKey(userEmail));
-        if (!raw) return [];
-        return JSON.parse(raw) as SavedReport[];
-    } catch {
+/** Latest 10 reports for the signed-in user, most recent first. */
+export async function getReports(userId: string): Promise<SavedReport[]> {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase
+        .from("reports")
+        .select("id, gmb_name, created_at, report_data, my_business, pdf_image_data")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+    if (error) {
+        console.error("getReports error:", error.message);
         return [];
     }
+    return (data as ReportRow[]).map(fromRow);
 }
 
-export function clearReports(userEmail: string): void {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem(getKey(userEmail));
+export async function clearReports(userId: string): Promise<void> {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.from("reports").delete().eq("user_id", userId);
+    if (error) {
+        console.warn("clearReports error:", error.message);
+    }
 }

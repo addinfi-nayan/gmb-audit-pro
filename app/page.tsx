@@ -1,5 +1,5 @@
         "use client";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signOut, useIsAdmin } from "@/lib/auth";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
@@ -8,6 +8,7 @@ import jsPDF from "jspdf";
 import Link from "next/link";
 import Head from "next/head";
 import { saveReport, getReports, updateReportPdfData, type SavedReport } from "./utils/reportStore";
+import { buildReportReadySummaryEmail, buildReportPdfEmail } from "@/lib/emailTemplates";
 import SignInModal from "../components/SignInModal";
 import CookieConsent from "../components/CookieConsent";
 
@@ -352,87 +353,12 @@ const sendPDFViaEmail = async (pdfBlob: Blob, filename: string, userEmail: strin
         reader.onload = async function(e) {
             if (e.target?.result) {
                 const base64Data = e.target.result as string;
-                
-                // Send email with PDF attachment
+                const { subject, html } = buildReportPdfEmail({ userEmail, filename });
+
                 const emailPayload = {
                     to: userEmail,
-                    subject: `📊 Your GMB Audit Report - ${filename}`,
-                    body: `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <style>
-                                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-                                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                                .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-                                .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
-                                .logo { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
-                                .subtitle { font-size: 16px; opacity: 0.9; }
-                                .title { color: #667eea; font-size: 24px; margin-bottom: 20px; }
-                                .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
-                                .details { list-style: none; padding: 0; }
-                                .details li { padding: 8px 0; border-bottom: 1px solid #eee; }
-                                .details li:last-child { border-bottom: none; }
-                                .cta-button { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; margin: 20px 0; font-weight: bold; }
-                                .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
-                                .emoji { font-size: 20px; }
-                            </style>
-                        </head>
-                        <body>
-                            <div class="container">
-                                <div class="header">
-                                    <div class="logo">🚀 WhatMyRank</div>
-                                    <div class="subtitle">Your GMB Performance Partner</div>
-                                </div>
-                                
-                                <div class="content">
-                                    <h1 class="title">📊 Your GMB Audit Report is Ready!</h1>
-                                    
-                                    <p>Hi there,</p>
-                                    <p>Congratulations! Your comprehensive Google My Business audit report has been generated successfully. This detailed analysis will help you unlock new opportunities for local search visibility and customer engagement.</p>
-                                    
-                                    <div class="info-box">
-                                        <h3 style="margin-top: 0; color: #667eea;">📋 Report Details</h3>
-                                        <ul class="details">
-                                            <li><strong>📄 Report Name:</strong> ${filename}</li>
-                                            <li><strong>📅 Generated:</strong> ${new Date().toLocaleString()}</li>
-                                            <li><strong>📧 Delivered to:</strong> ${userEmail}</li>
-                                        </ul>
-                                    </div>
-                                    
-                                    <div class="info-box">
-                                        <h3 style="margin-top: 0; color: #667eea;">🎯 What's Inside Your Report</h3>
-                                        <ul style="color: #555;">
-                                            <li>✨ Complete GMB profile analysis</li>
-                                            <li>🏆 Competitor performance comparison</li>
-                                            <li>📈 Customer sentiment insights</li>
-                                            <li>🎯 Actionable SEO recommendations</li>
-                                            <li>⚡ Quick wins for immediate improvement</li>
-                                        </ul>
-                                    </div>
-                                    
-                                    <p><strong>📎 Your detailed PDF report is attached to this email!</strong></p>
-                                    
-                                    <div style="text-align: center; margin: 30px 0;">
-                                        <p style="color: #666; font-style: italic;">Open the attachment to discover your path to GMB success! 🌟</p>
-                                    </div>
-                                    
-                                    <div class="footer">
-                                        <p><strong>Need help implementing these strategies?</strong></p>
-                                        <p>Our team is here to support your growth journey. Feel free to reach out with any questions.</p>
-                                        <p><strong>Best regards,<br>The WhatMyRank Team 🚀</strong></p>
-                                        <p style="font-size: 12px; color: #999; margin-top: 20px;">
-                                            This report was generated exclusively for ${userEmail}.<br>
-                                            © 2026 WhatMyRank. All rights reserved.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </body>
-                        </html>
-                    `,
+                    subject,
+                    body: html,
                     attachment: {
                         filename: filename,
                         content: base64Data.split(',')[1], // Remove data:application/pdf;base64, prefix
@@ -440,7 +366,6 @@ const sendPDFViaEmail = async (pdfBlob: Blob, filename: string, userEmail: strin
                     }
                 };
 
-                // Send email via your email service (you'll need to set up an email service endpoint)
                 const response = await fetch('/api/send-email', {
                     method: 'POST',
                     headers: {
@@ -457,9 +382,29 @@ const sendPDFViaEmail = async (pdfBlob: Blob, filename: string, userEmail: strin
             }
         };
         reader.readAsDataURL(pdfBlob);
-        
+
     } catch (error) {
         console.error('Error sending PDF via email:', error);
+    }
+};
+
+// Sent automatically right after the AI audit finishes — a themed summary, no attachment yet.
+const sendReportReadySummaryEmail = async (report: any, myBusiness: any, userEmail: string) => {
+    try {
+        const siteUrl = typeof window !== "undefined" ? window.location.origin : undefined;
+        const { subject, html } = buildReportReadySummaryEmail({ userEmail, myBusiness, report, siteUrl });
+
+        const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: userEmail, subject, body: html }),
+        });
+
+        if (!response.ok) {
+            console.error('Failed to send report-ready email:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error sending report-ready email:', error);
     }
 };
 
@@ -485,6 +430,7 @@ const FAQItem = ({ q, a }: { q: string, a: string }) => {
 
 // --- USER MENU COMPONENT ---
 const UserMenu = ({ session }: { session: any }) => {
+    const isAdmin = useIsAdmin();
     const [isOpen, setIsOpen] = useState(false);
     const [imageError, setImageError] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -526,6 +472,17 @@ const UserMenu = ({ session }: { session: any }) => {
                         <p className="text-xs text-gray-500 truncate font-mono">{session?.user?.email}</p>
                     </div>
                     <div className="p-1">
+                        {isAdmin && (
+                            <Link
+                                href="/admin"
+                                className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition rounded-lg flex items-center gap-2 group"
+                            >
+                                <div className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </div>
+                                Admin Panel
+                            </Link>
+                        )}
                         <button
                             onClick={() => signOut()}
                             className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition rounded-lg flex items-center gap-2 group"
@@ -1537,8 +1494,8 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
     const [activeReport, setActiveReport] = useState<SavedReport | null>(null);
 
     useEffect(() => {
-        if (session?.user?.email) {
-            setReports(getReports(session.user.email));
+        if (session?.user?.id) {
+            getReports(session.user.id).then(setReports);
         }
     }, [session]);
 
@@ -2041,8 +1998,18 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     const [leadCouponCode, setLeadCouponCode] = useState("");
     const [leadCouponError, setLeadCouponError] = useState("");
     const [leadCouponApplied, setLeadCouponApplied] = useState(false);
+    const [leadCouponDiscount, setLeadCouponDiscount] = useState<number | null>(null);
 
-    const VALID_COUPON = "first20";
+    // --- PREMIUM (admin-granted, permanent, free) STATE ---
+    const [isPremiumUser, setIsPremiumUser] = useState(false);
+    useEffect(() => {
+        if (!session?.user?.id) { setIsPremiumUser(false); return; }
+        fetch('/api/profile')
+            .then((r) => r.json())
+            .then((d) => setIsPremiumUser(!!d.isPremium))
+            .catch(() => setIsPremiumUser(false));
+    }, [session?.user?.id]);
+
     const comparisonEntities = useMemo(() =>
         buildComparisonEntities(report, myBusiness?.title),
         [report, myBusiness]);
@@ -2051,33 +2018,36 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         COMPARISON_METRICS,
         []);
 
-    // --- LOADER EFFECT ---
+    // --- LOADER EFFECT: cycles messages purely for visual feedback — never gates the reveal ---
     useEffect(() => {
         if (!loading) { setLoadingMsgIndex(0); return; }
         const interval = setInterval(() => {
-            setLoadingMsgIndex((prev) => {
-                // Stop cycling at the last message if API hasn't responded yet
-                if (prev >= LOADING_MESSAGES.length - 1) return prev;
-                return prev + 1;
-            });
-        }, 6000); // 6 seconds per message × 15 messages = 90 seconds total (1:30 minutes)
+            // Keeps incrementing for as long as it takes; text/progress below wrap it safely.
+            setLoadingMsgIndex((prev) => prev + 1);
+        }, 6000);
         return () => clearInterval(interval);
     }, [loading]);
 
-    // --- TRANSITION EFFECT: only show report when loader is done AND API has responded ---
+    // --- TRANSITION EFFECT: reveal the report the instant it's actually ready ---
     useEffect(() => {
-        if (reportReady && loadingMsgIndex >= LOADING_MESSAGES.length - 1) {
-            // Show the last message for 1.5s before transitioning
-            const timer = setTimeout(() => {
-                finalize();
-                setReportReady(false);
-            }, 1500);
-            return () => clearTimeout(timer);
+        if (reportReady) {
+            finalize();
+            setReportReady(false);
         }
-    }, [reportReady, loadingMsgIndex]);
+    }, [reportReady]);
 
     // --- GATEKEEPER LOGIC ---
     const handleRestrictedAction = () => {
+        // Premium users skip the lead/payment modal entirely — straight to the report.
+        if (isPremiumUser) {
+            if (report) {
+                setIsUnlocked(true);
+            } else {
+                setIsUnlocked(true);
+                performAnalysis();
+            }
+            return;
+        }
         // Always show the lead confirmation modal to trigger payment
         setShowLeadModal(true);
     };
@@ -2139,6 +2109,23 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
 
 
+    // The audit call is slow (often 60-90s+ at high reasoning effort) and occasionally
+    // hits a transient upstream error. One silent retry avoids surfacing those as a
+    // hard failure — but only for server/network errors, never for a 4xx (bad input).
+    const analyzeWithRetry = async (payload: any, attempt = 1): Promise<any> => {
+        try {
+            return await axios.post("/api/analyze-gmb", payload);
+        } catch (e: any) {
+            const status = e?.response?.status;
+            const isRetryable = !status || status >= 500;
+            if (isRetryable && attempt < 2) {
+                console.warn(`Analysis attempt ${attempt} failed, retrying once...`, e.message);
+                return analyzeWithRetry(payload, attempt + 1);
+            }
+            throw e;
+        }
+    };
+
     const performAnalysis = async () => {
         setLoading(true);
         setErrorMsg(null);
@@ -2149,21 +2136,18 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         console.log("Starting Analysis with Keyword:", finalKeyword);
 
         try {
-            // 2. Direct Connection to n8n
-            const webhookUrl = "https://n8n-pro-775604255858.asia-south1.run.app/webhook/analyze-gmb";
-
-            const res = await axios.post(webhookUrl, {
+            // 2. Direct Connection to the local AI analysis route
+            const res = await analyzeWithRetry({
                 keyword: finalKeyword,
                 myBusiness: myBusiness,
                 competitors: competitors,
-                action: "analyze"
             });
 
             // --- NEW: THE CLEANING LOGIC ---
             let rawData = res.data;
             let finalReport = null;
 
-            // Scenario A: It came back as an Array (Common with n8n AI Agent)
+            // Scenario A: It came back as an Array (defensive — Claude occasionally wraps content)
             if (Array.isArray(rawData) && rawData[0]?.text) {
                 rawData = rawData[0].text;
             }
@@ -2187,12 +2171,18 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             if (finalReport && (finalReport.audit_score || finalReport.matrix)) {
                 setReport(finalReport);
                 // Save to localStorage for My Reports
-                if (session?.user?.email) {
-                    const newId = saveReport(session.user.email, finalReport, myBusiness);
+                if (session?.user?.id) {
+                    const newId = await saveReport(session.user.id, finalReport, myBusiness);
                     setSavedReportId(newId);
                 }
                 setIsUnlocked(true); // Payment is done, so unlock immediately
-                // Don't finalize immediately — let the loader animation complete first
+
+                // Email a themed summary of the report right away (fire-and-forget)
+                const notifyEmail = leadData?.email || session?.user?.email;
+                if (notifyEmail) {
+                    sendReportReadySummaryEmail(finalReport, myBusiness, notifyEmail);
+                }
+
                 setReportReady(true);
             } else {
                 console.error("Invalid AI Structure:", finalReport);
@@ -2207,13 +2197,26 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     };
 
     // --- COUPON APPLY HANDLER (in Lead Modal) ---
-    const handleLeadCouponApply = () => {
-        if (leadCouponCode.trim().toLowerCase() === VALID_COUPON.toLowerCase()) {
-            setLeadCouponApplied(true);
-            setLeadCouponError("");
-        } else {
-            setLeadCouponError("Invalid coupon code. Please try again.");
+    const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
+    const handleLeadCouponApply = async () => {
+        setIsCheckingCoupon(true);
+        try {
+            const { data } = await axios.post("/api/validate-coupon", { code: leadCouponCode.trim() });
+            if (data.valid) {
+                setLeadCouponApplied(true);
+                setLeadCouponDiscount(data.discountPercent ?? 100);
+                setLeadCouponError("");
+            } else {
+                setLeadCouponError("Invalid, expired, or fully-used coupon code.");
+                setLeadCouponApplied(false);
+                setLeadCouponDiscount(null);
+            }
+        } catch {
+            setLeadCouponError("Couldn't verify coupon. Please try again.");
             setLeadCouponApplied(false);
+            setLeadCouponDiscount(null);
+        } finally {
+            setIsCheckingCoupon(false);
         }
     };
 
@@ -2225,26 +2228,37 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             email: leadData.email,
             phone: leadData.phone,
             business: myBusiness?.title || "Unknown Business",
-            coupon: leadCouponApplied ? VALID_COUPON : "",
+            coupon: leadCouponApplied ? leadCouponCode.trim() : "",
             date: new Date().toLocaleString()
         };
 
+        const activeCouponCode = leadCouponApplied ? leadCouponCode.trim() : "";
+
         try {
             // 1. Save Lead (Background)
-            axios.post("https://n8n-pro-775604255858.asia-south1.run.app/webhook/save-lead", payload).catch(err => console.error("Lead Error:", err));
+            axios.post("/api/save-lead", payload).catch(err => console.error("Lead Error:", err));
 
-            // 2. COUPON PATH — skip payment entirely
-            if (leadCouponApplied) {
+            // 2. COUPON PATH — 100% off skips payment entirely
+            if (leadCouponApplied && leadCouponDiscount === 100) {
+                const { data: redeemData } = await axios.post("/api/redeem-coupon", { code: activeCouponCode });
+                if (!redeemData.redeemed) {
+                    setLeadCouponApplied(false);
+                    setLeadCouponDiscount(null);
+                    setLeadCouponError("This coupon just ran out — please try another code or continue with payment.");
+                    setIsSubmitting(false);
+                    return;
+                }
                 setShowLeadModal(false);
                 setIsUnlocked(true);
                 setLeadCouponCode("");
                 setLeadCouponApplied(false);
+                setLeadCouponDiscount(null);
                 setIsSubmitting(false);
                 performAnalysis();
                 return;
             }
 
-            // 3. PAYMENT PATH — Load Razorpay SDK
+            // 3. PAYMENT PATH — full price, or a partial-discount coupon. Load Razorpay SDK
             const isLoaded = await loadRazorpay();
             if (!isLoaded) {
                 alert("Razorpay SDK failed to load. Please check your internet connection.");
@@ -2252,8 +2266,10 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 return;
             }
 
-            // 4. Create Order
-            const { data: orderData } = await axios.post("/api/razorpay/create-order");
+            // 4. Create Order (discount, if any, is computed and validated server-side)
+            const { data: orderData } = await axios.post("/api/razorpay/create-order", {
+                couponCode: activeCouponCode || undefined,
+            });
 
             if (!orderData || !orderData.id) {
                 alert("Failed to create payment order. Please try again.");
@@ -2275,11 +2291,15 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_signature: response.razorpay_signature,
+                            couponCode: orderData.appliedCoupon || undefined,
                         });
 
                         if (result.data.success) {
                             setShowLeadModal(false);
                             setIsPaymentSuccess(true);
+                            setLeadCouponCode("");
+                            setLeadCouponApplied(false);
+                            setLeadCouponDiscount(null);
                             // Show success modal for 2 seconds, then start analysis
                             setTimeout(() => {
                                 setIsPaymentSuccess(false);
@@ -2320,7 +2340,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         if (myBusiness) return;
         const fetchMyBiz = async () => {
             try {
-                const res = await axios.post("/api/n8n-search", { keyword: debouncedMyQuery });
+                const res = await axios.post("/api/search-places", { keyword: debouncedMyQuery });
                 let rawData: any[] = [];
 
                 // 1. Normalize the response structure
@@ -2348,7 +2368,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         if (debouncedCompQuery.length < 3) return setCompSuggestions([]);
         const fetchComp = async () => {
             try {
-                const res = await axios.post("/api/n8n-search", { keyword: debouncedCompQuery });
+                const res = await axios.post("/api/search-places", { keyword: debouncedCompQuery });
                 let rawData: any[] = [];
 
                 // 1. Normalize the response structure
@@ -2558,11 +2578,11 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             showThemeAlert('📥 PDF downloaded successfully!');
 
             // 5. Cache the image so My Reports can re-download the exact same PDF instantly
-            if (session?.user?.email && savedReportId) {
+            if (session?.user?.id && savedReportId) {
                 try {
-                    updateReportPdfData(session.user.email, savedReportId, imgData);
+                    await updateReportPdfData(session.user.id, savedReportId, imgData);
                 } catch {
-                    // localStorage might be full — non-critical, silently ignore
+                    // non-critical — silently ignore
                 }
             }
 
@@ -4053,8 +4073,11 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                 {/* Glass Body */}
                                 <div className="w-full h-full border-[3px] border-white/20 border-t-0 rounded-b-[3rem] relative overflow-hidden bg-white/5 backdrop-blur-md shadow-[0_0_40px_-10px_rgba(245,158,11,0.3)]">
 
-                                    {/* The Liquid (Coffee/Amber Gradient) */}
-                                    <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-[#451a03] via-[#92400e] to-[#f59e0b] opacity-95 animate-[fill-up_12s_ease-in-out_forwards] flex flex-col justify-start overflow-visible">
+                                    {/* The Liquid (Coffee/Amber Gradient) — fills at the pace of the real wait, not a fixed timer */}
+                                    <div
+                                        className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-[#451a03] via-[#92400e] to-[#f59e0b] opacity-95 transition-all duration-[3000ms] ease-in-out flex flex-col justify-start overflow-visible"
+                                        style={{ height: reportReady ? '100%' : `${Math.min(85, (loadingMsgIndex + 1) * 5)}%` }}
+                                    >
                                         {/* Froth / Foam Layer */}
                                         <div className="w-full h-3 bg-[#fcd34d] absolute top-0 blur-[1px] opacity-80 animate-[wave_2s_linear_infinite]"></div>
 
@@ -4093,15 +4116,18 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                             <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-full inline-block backdrop-blur-md">
                                 <p key={loadingMsgIndex} className="text-amber-200 font-mono text-xs tracking-widest uppercase animate-[fade-in-up_0.4s_ease-out]">
                                     <span className="mr-2 animate-spin inline-block">⏳</span>
-                                    {LOADING_MESSAGES[loadingMsgIndex]}
+                                    {LOADING_MESSAGES[loadingMsgIndex % LOADING_MESSAGES.length]}
                                 </p>
                             </div>
                             <div className="mx-auto h-2 w-64 rounded-full bg-white/10 border border-white/10 overflow-hidden">
                                 <div
                                     className="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-[3000ms] ease-out"
-                                    style={{ width: reportReady ? '100%' : `${Math.min(85, ((loadingMsgIndex + 1) / LOADING_MESSAGES.length) * 85)}%` }}
+                                    style={{ width: reportReady ? '100%' : `${Math.min(90, (loadingMsgIndex + 1) * 6)}%` }}
                                 />
                             </div>
+                            <p className="text-gray-500 text-[11px] max-w-xs mx-auto leading-relaxed">
+                                A deep, personalized audit takes real analysis — this usually takes up to 90 seconds. Please keep this tab open.
+                            </p>
                         </div>
                     </div>
                 )}
@@ -4157,22 +4183,22 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                 }`}
                                             placeholder="Enter coupon code"
                                             value={leadCouponCode}
-                                            onChange={(e) => { setLeadCouponCode(e.target.value); setLeadCouponError(""); setLeadCouponApplied(false); }}
+                                            onChange={(e) => { setLeadCouponCode(e.target.value); setLeadCouponError(""); setLeadCouponApplied(false); setLeadCouponDiscount(null); }}
                                             disabled={leadCouponApplied}
                                         />
                                         <button
                                             type="button"
                                             onClick={handleLeadCouponApply}
-                                            disabled={!leadCouponCode.trim() || leadCouponApplied}
+                                            disabled={!leadCouponCode.trim() || leadCouponApplied || isCheckingCoupon}
                                             className="px-4 py-3 rounded-xl font-bold text-sm transition bg-white/10 hover:bg-white/20 text-white border border-white/10 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                                         >
-                                            {leadCouponApplied ? "✓ Applied" : "Apply"}
+                                            {leadCouponApplied ? "✓ Applied" : isCheckingCoupon ? "Checking…" : "Apply"}
                                         </button>
                                     </div>
                                     {leadCouponApplied && (
                                         <p className="text-green-400 text-xs mt-1.5 flex items-center gap-1">
                                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                            Coupon applied! Payment waived.
+                                            {leadCouponDiscount === 100 ? "Coupon applied! Payment waived." : `Coupon applied! ${leadCouponDiscount}% off.`}
                                         </p>
                                     )}
                                     {leadCouponError && (
@@ -4189,10 +4215,15 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             <span className="text-gray-500 line-through text-xs">₹999</span>
                                         </div>
                                     </div>
-                                ) : (
+                                ) : leadCouponDiscount === 100 ? (
                                     <div className="flex items-center justify-between px-1 pt-1">
                                         <span className="text-green-400 text-xs font-medium">🎉 Coupon applied — Payment waived!</span>
                                         <span className="text-green-400 font-bold text-sm">FREE</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between px-1 pt-1">
+                                        <span className="text-green-400 text-xs font-medium">🎉 Coupon applied — {leadCouponDiscount}% off!</span>
+                                        <span className="text-green-400 font-bold text-sm">-{leadCouponDiscount}%</span>
                                     </div>
                                 )}
 
@@ -4211,13 +4242,17 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            <span>{leadCouponApplied ? "Generating Report..." : "Processing Payment..."}</span>
+                                            <span>{leadCouponApplied && leadCouponDiscount === 100 ? "Generating Report..." : "Processing Payment..."}</span>
                                         </>
                                     ) : (
                                         <div className="flex items-center justify-center gap-2">
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                             <span className="text-base font-bold">
-                                                {leadCouponApplied ? "Generate Report — Free" : "Generate Report @ ₹99"}
+                                                {!leadCouponApplied
+                                                    ? "Generate Report @ ₹99"
+                                                    : leadCouponDiscount === 100
+                                                        ? "Generate Report — Free"
+                                                        : `Generate Report — ${leadCouponDiscount}% Off`}
                                             </span>
                                         </div>
                                     )}

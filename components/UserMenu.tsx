@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { signOut } from "next-auth/react";
+import Link from "next/link";
+import { signOut, useIsAdmin } from "@/lib/auth";
 
 const UserMenu = ({ session }: { session: any }) => {
+    const isAdmin = useIsAdmin();
     const [isOpen, setIsOpen] = useState(false);
     const [imageError, setImageError] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -44,6 +46,17 @@ const UserMenu = ({ session }: { session: any }) => {
                         <p className="text-xs text-gray-500 truncate font-mono">{session?.user?.email}</p>
                     </div>
                     <div className="p-1">
+                        {isAdmin && (
+                            <Link
+                                href="/admin"
+                                className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition rounded-lg flex items-center gap-2 group"
+                            >
+                                <div className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                </div>
+                                Admin Panel
+                            </Link>
+                        )}
                         <button
                             onClick={() => signOut()}
                             className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition rounded-lg flex items-center gap-2 group"
