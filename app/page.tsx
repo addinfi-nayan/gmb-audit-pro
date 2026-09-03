@@ -12,18 +12,6 @@ import { buildReportReadySummaryEmail, buildReportPdfEmail } from "@/lib/emailTe
 import SignInModal from "../components/SignInModal";
 import CookieConsent from "../components/CookieConsent";
 
-// Mobile-friendly PDF download helper
-const downloadPDF = (pdf: jsPDF, filename: string, userEmail?: string) => {
-    // Send PDF via email if user email is provided
-    if (userEmail) {
-        const pdfBlob = pdf.output('blob');
-        sendPDFViaEmail(pdfBlob, filename, userEmail);
-    }
-    
-    // Show download confirmation dialog
-    showDownloadDialog(pdf, filename, userEmail);
-};
-
 // Mobile-friendly PDF detection
 const isIOS = () => {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
@@ -346,38 +334,41 @@ const showThemeAlert = (message: string) => {
 };
 
 // Function to send PDF via email
-const sendPDFViaEmail = async (pdfBlob: Blob, filename: string, userEmail: string) => {
+const sendPDFViaEmail = async (pdfBlob: Blob, filename: string, userEmail: string, reportId?: string) => {
     try {
         // Convert blob to base64
         const reader = new FileReader();
         reader.onload = async function(e) {
             if (e.target?.result) {
-                const base64Data = e.target.result as string;
-                const { subject, html } = buildReportPdfEmail({ userEmail, filename });
+                const base64Data = (e.target.result as string).split(',')[1]; // strip data:application/pdf;base64, prefix
 
-                const emailPayload = {
-                    to: userEmail,
-                    subject,
-                    body: html,
-                    attachment: {
-                        filename: filename,
-                        content: base64Data.split(',')[1], // Remove data:application/pdf;base64, prefix
-                        contentType: 'application/pdf'
-                    }
-                };
+                // Upload once, host it, and link to it — no attachment.
+                const uploadRes = await fetch('/api/upload-report-pdf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pdfBase64: base64Data, reportId }),
+                });
+                const uploadData = await uploadRes.json();
+
+                if (!uploadRes.ok || !uploadData.url) {
+                    console.error('Failed to upload PDF for email link:', uploadData.error);
+                    return;
+                }
+
+                const { subject, html } = buildReportPdfEmail({ userEmail, filename, downloadUrl: uploadData.url });
 
                 const response = await fetch('/api/send-email', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(emailPayload),
+                    body: JSON.stringify({ to: userEmail, subject, body: html }),
                 });
 
                 if (response.ok) {
-                    console.log('PDF sent successfully to:', userEmail);
+                    console.log('PDF link emailed to:', userEmail);
                 } else {
-                    console.error('Failed to send PDF to email:', response.statusText);
+                    console.error('Failed to send PDF email:', response.statusText);
                 }
             }
         };
@@ -1526,7 +1517,7 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                     const pdfBlob = pdf.output('blob');
 
                     // Email delivery
-                    if (userEmail) sendPDFViaEmail(pdfBlob, filename, userEmail);
+                    if (userEmail) sendPDFViaEmail(pdfBlob, filename, userEmail, saved.id);
                     downloadPdf(pdf, filename);
 
                     showThemeAlert('📥 PDF downloaded successfully!');
@@ -2569,7 +2560,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             const userEmail = leadData?.email || session?.user?.email || undefined;
             const pdfBlob = pdf.output('blob');
             if (userEmail) {
-                sendPDFViaEmail(pdfBlob, filename, userEmail);
+                sendPDFViaEmail(pdfBlob, filename, userEmail, savedReportId || undefined);
             }
 
             downloadPdf(pdf, filename);

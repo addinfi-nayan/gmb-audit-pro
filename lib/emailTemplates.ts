@@ -100,30 +100,22 @@ export function buildReportReadySummaryEmail(opts: {
     };
 }
 
-/** Sent when the user downloads the PDF — same theme, PDF attached. */
+/** Sent when the user downloads the PDF — links to the hosted file instead of attaching it. */
 export function buildReportPdfEmail(opts: {
     userEmail: string;
     filename: string;
+    downloadUrl: string;
 }): { subject: string; html: string } {
     const bodyHtml = `
-        <h1>📎 Your GMB Audit Report is Attached</h1>
-        <p>Hi there,</p>
-        <p>Your comprehensive Google My Business audit report is attached to this email as a PDF, ready to save or share.</p>
-
-        <div class="panel">
-            <h3>Report Details</h3>
-            <ul>
-                <li>Report: ${escapeHtml(opts.filename)}</li>
-                <li>Generated: ${escapeHtml(new Date().toLocaleString())}</li>
-                <li>Delivered to: ${escapeHtml(opts.userEmail)}</li>
-            </ul>
+        <h1>📄 Your GMB Audit Report is Ready</h1>
+        <p>Your full PDF report is ready to download below.</p>
+        <div style="text-align:center; margin: 22px 0 8px;">
+            <a class="cta" href="${opts.downloadUrl}">Download PDF</a>
         </div>
-
-        <p style="margin-top:20px;">Open the attachment to dive into your full competitor comparison, gap analysis, and 4-week action plan.</p>
     `;
 
     return {
         subject: `📊 Your GMB Audit Report - ${opts.filename}`,
-        html: shell({ preheader: "Your PDF audit report is attached.", bodyHtml }),
+        html: shell({ preheader: "Your PDF audit report is ready to download.", bodyHtml }),
     };
 }

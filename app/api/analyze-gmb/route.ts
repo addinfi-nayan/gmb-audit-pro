@@ -5,7 +5,13 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5";
 
+// This route regularly runs 60-100s+ at high reasoning effort — request the
+// longest duration most hosting tiers allow so the platform doesn't kill the
+// function before Anthropic responds.
+export const maxDuration = 60;
+
 const MatrixEntrySchema = z.object({
+    title: z.string().describe("Exact business name, taken from the input data."),
     address: z.string(),
     category: z.string(),
     rating: z.number(),
@@ -41,7 +47,7 @@ const AuditReportSchema = z.object({
     competitor_strengths: z.array(z.string()).length(9).describe("Factual wins using real business names, never 'Our/Their'. If My Business wins a metric, list it as My Business's win."),
     matrix: z.object({
         me: MatrixEntrySchema,
-        competitors: z.array(z.string()).max(0).describe("Always an empty array."),
+        competitors: z.array(MatrixEntrySchema).max(2).describe("One full entry per competitor provided in the input (up to 2), same fields as 'me', using each competitor's real business name."),
     }),
     gap_analysis: z.object({
         reputation: z.array(z.string()),
@@ -98,8 +104,8 @@ Your goal is to conduct a brutal, factual comparison between "My Business" and "
 - **Reputation:** Review generation using **Bracket Velocity**.
 - **Missing Accessibility Attributes (if applicable):** Add missing features (e.g., Wheelchair entrance) or payment options (e.g., Digital payments) using **Bracket Velocity** [e.g., Update 1 item per day if applicable].
 
-**5. Matrix Data:** - Fill ALL fields. \`listing_age\` must be REMOVED.
-- Ensure \`suspension_risk\` reflects both Name Policy and Velocity patterns.
+**5. Matrix Data:** - Fill ALL fields for \`matrix.me\` AND every entry in \`matrix.competitors\` (one per competitor provided, up to 2) — this side-by-side data drives the report's comparison charts, so competitor entries must be just as complete as \`me\`, using each competitor's real business name and estimates grounded in their actual input data (rating, reviews, etc.). \`listing_age\` must be REMOVED.
+- Ensure \`suspension_risk\` reflects both Name Policy and Velocity patterns for every entry.
 
 ### 4. INPUT DATA
 I Own: ${JSON.stringify(myBusiness)}
@@ -133,9 +139,9 @@ export async function POST(req: Request) {
         // JSON.parse gamble on a prompt-only "return raw JSON" instruction.
         const response = await client.messages.parse({
             model: MODEL,
-            max_tokens: 8000,
+            max_tokens: 16000,
             output_config: {
-                effort: "high",
+                effort: "medium",
                 format: zodOutputFormat(AuditReportSchema),
             },
             messages: [{ role: "user", content: buildAuditPrompt(myBusiness, competitors) }],
