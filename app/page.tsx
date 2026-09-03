@@ -7,6 +7,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import Link from "next/link";
 import Head from "next/head";
+import NextImage from "next/image";
 import { saveReport, getReports, updateReportPdfData, type SavedReport } from "./utils/reportStore";
 import { buildReportReadySummaryEmail, buildReportPdfEmail } from "@/lib/emailTemplates";
 import SignInModal from "../components/SignInModal";
@@ -379,23 +380,93 @@ const sendPDFViaEmail = async (pdfBlob: Blob, filename: string, userEmail: strin
     }
 };
 
-// Sent automatically right after the AI audit finishes — a themed summary, no attachment yet.
-const sendReportReadySummaryEmail = async (report: any, myBusiness: any, userEmail: string) => {
+// Sent automatically right after the report renders — generates the PDF client-side, uploads
+// it, and emails ONE themed message with a direct "Download PDF" button (no separate email).
+const sendReportReadyEmailWithPdf = async (
+    element: HTMLElement,
+    report: any,
+    myBusiness: any,
+    userEmail: string,
+    reportId?: string
+): Promise<string | null> => {
     try {
+        window.scrollTo(0, 0);
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            scrollY: 0,
+            windowWidth: 1440,
+            width: 1440,
+            backgroundColor: "#030712",
+            onclone: (clonedDoc) => {
+                const clonedElement = clonedDoc.getElementById('report-content');
+                if (clonedElement) {
+                    clonedElement.style.width = '1440px';
+                    clonedElement.style.padding = '40px';
+                    clonedElement.style.fontFamily = 'Arial, sans-serif';
+
+                    const allElements = clonedElement.getElementsByTagName('*');
+                    for (let i = 0; i < allElements.length; i++) {
+                        const el = allElements[i] as HTMLElement;
+                        el.style.fontFamily = 'Arial, sans-serif';
+                        el.style.backdropFilter = 'none';
+                        (el.style as any).webkitBackdropFilter = 'none';
+                        el.style.boxShadow = 'none';
+                        el.style.animation = 'none';
+                        el.style.transition = 'none';
+                        el.style.wordBreak = 'break-word';
+                        el.style.overflowWrap = 'break-word';
+                        el.style.whiteSpace = 'normal';
+                        el.style.overflow = 'visible';
+                        el.classList.remove('truncate', 'line-clamp-1', 'line-clamp-2', 'line-clamp-3');
+                        if (el.style.textOverflow === 'ellipsis') {
+                            el.style.textOverflow = 'unset';
+                        }
+                        if (el.style.filter?.includes('blur') || el.classList.contains('blur-sm') || el.classList.contains('blur-[2px]') || el.classList.contains('blur-[4px]')) {
+                            el.style.filter = 'none';
+                        }
+                        const computedStyle = window.getComputedStyle(el);
+                        if (computedStyle.display === 'grid') {
+                            el.style.gridAutoRows = 'auto';
+                        }
+                    }
+                }
+            },
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 210;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const pdf = new jsPDF('p', 'mm', [imgWidth, imgHeight]);
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        const pdfBase64 = pdf.output('datauristring').split(',')[1];
+        const filename = `${myBusiness?.title || 'GMB'}_Audit_Report.pdf`;
+
         const siteUrl = typeof window !== "undefined" ? window.location.origin : undefined;
-        const { subject, html } = buildReportReadySummaryEmail({ userEmail, myBusiness, report, siteUrl });
+        const { subject, html } = buildReportReadySummaryEmail({ userEmail, myBusiness, report, siteUrl, attachmentIncluded: true });
 
         const response = await fetch('/api/send-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ to: userEmail, subject, body: html }),
+            body: JSON.stringify({
+                to: userEmail,
+                subject,
+                body: html,
+                attachment: { filename, content: pdfBase64, contentType: 'application/pdf' },
+            }),
         });
 
         if (!response.ok) {
             console.error('Failed to send report-ready email:', response.statusText);
         }
+
+        return imgData;
     } catch (error) {
-        console.error('Error sending report-ready email:', error);
+        console.error('Error generating/sending report-ready PDF email:', error);
+        return null;
     }
 };
 
@@ -667,35 +738,50 @@ const LandingPage = ({ onStart, onReports }: { onStart: () => void; onReports?: 
 
             {/* --- HERO SECTION --- */}
             <main className="relative z-10 text-center">
-                <div className="max-w-6xl mx-auto px-4 md:px-6 w-full md:min-h-screen flex flex-col justify-center items-center pt-28 pb-12 md:pt-20 md:pb-0 relative">
+                <div className="max-w-6xl mx-auto px-4 md:px-6 w-full md:min-h-screen flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10 lg:gap-16 pt-28 pb-12 md:pt-20 md:pb-0 relative">
 
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-[10px] md:text-xs font-mono mb-6 backdrop-blur-md">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.6)]"></span>
-                        POWERED BY ADDINFI
+                    {/* Left: copy */}
+                    <div className="w-full lg:w-1/2 flex flex-col items-center lg:order-1">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-[10px] md:text-xs font-mono mb-6 backdrop-blur-md">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.6)]"></span>
+                            POWERED BY ADDINFI
+                        </div>
+
+                        <h1 className="text-4xl md:text-6xl lg:text-6xl font-bold tracking-tighter mb-6 md:mb-8 leading-[1.1] text-white text-center">
+                            Analyze Your <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600">
+                                GMB & Competitors
+                            </span>
+                        </h1>
+
+                        <p className="text-base md:text-lg text-gray-400 mb-8 md:mb-12 font-light leading-relaxed text-center">
+                            Your Google Business Profile plays a major role in how customers find you on Google Search and Maps. Our Google Business Profile audit tool gives you a clear, data-driven view of how your GMB is performing and how it compares to your top local competitors.
+                        </p>
+
+                        <div className="flex justify-center mb-8 md:mb-0">
+                            <button
+                                onClick={onStart}
+                                className="w-full md:w-auto px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center justify-center gap-3 transform hover:scale-105"
+                            >
+                                <span className="flex items-center gap-2">
+                                    {session ? "Get Report At ₹99" : "Sign In & Get Audit At ₹99"}
+                                </span>
+                            </button>
+                        </div>
                     </div>
 
-                    <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter mb-6 md:mb-8 leading-[1.1] text-white max-w-5xl mx-auto">
-                        Analyze Your <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600">
-                            GMB & Competitors
-                        </span>
-                    </h1>
-
-                    <p className="text-base md:text-lg text-gray-400 max-w-3xl mx-auto mb-8 md:mb-12 font-light leading-relaxed">
-                        Your Google Business Profile plays a major role in how customers find you on Google Search and Maps. Our Google Business Profile audit tool gives you a clear, data-driven view of how your GMB is performing and how it compares to your top local competitors.
-                    </p>
-
-
-
-                    <div className="flex justify-center mb-8 md:mb-24">
-                        <button
-                            onClick={onStart}
-                            className="w-full md:w-auto px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center justify-center gap-3 transform hover:scale-105"
-                        >
-                            <span className="flex items-center gap-2">
-                                {session ? "Get Report At ₹99" : "Sign In & Get Audit At ₹99"}
-                            </span>
-                        </button>
+                    {/* Right: hero image */}
+                    <div className="w-full lg:w-1/2 flex justify-center lg:justify-end mb-4 lg:mb-0 lg:order-2">
+                        <div className="relative w-full max-w-sm md:max-w-md">
+                            <NextImage
+                                src="/hero.png"
+                                alt="Google Business Profile Audit"
+                                width={548}
+                                height={456}
+                                priority
+                                className="w-full h-auto drop-shadow-[0_0_60px_rgba(6,182,212,0.3)]"
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -1476,6 +1562,8 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
     const [downloading, setDownloading] = useState<string | null>(null);
     const reportRef = useRef<HTMLDivElement>(null);
     const [activeReport, setActiveReport] = useState<SavedReport | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const filteredReports = reports.filter((r) => r.gmbName?.toLowerCase().includes(searchQuery.trim().toLowerCase()));
 
     useEffect(() => {
         if (session?.user?.id) {
@@ -1567,6 +1655,29 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                     <p className="text-gray-400 mt-3 text-sm md:text-base">All your past GMB audit reports, ready to download.</p>
                 </div>
 
+                {/* Search */}
+                {reports.length > 0 && (
+                    <div className="relative mb-6">
+                        <svg className="w-4 h-4 text-gray-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search reports by business name..."
+                            className="w-full bg-[#0B1120] border border-white/10 focus:border-cyan-500/40 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-gray-500 outline-none transition"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition"
+                                aria-label="Clear search"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        )}
+                    </div>
+                )}
+
                 {/* No Reports Empty State */}
                 {reports.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -1586,9 +1697,14 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                             Get Your First Audit →
                         </button>
                     </div>
+                ) : filteredReports.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <p className="text-gray-400 text-sm">No reports match "<span className="text-white font-semibold">{searchQuery}</span>"</p>
+                        <button onClick={() => setSearchQuery("")} className="mt-4 text-cyan-400 text-xs font-bold hover:underline">Clear search</button>
+                    </div>
                 ) : (
                     <div className="space-y-4">
-                        {reports.map((saved, i) => (
+                        {filteredReports.map((saved, i) => (
                             <div
                                 key={saved.id}
                                 className="group bg-[#0B1120] border border-white/5 hover:border-cyan-500/30 rounded-2xl p-5 md:p-6 transition-all duration-300 flex flex-col md:flex-row md:items-center gap-4 md:gap-6"
@@ -1926,6 +2042,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     const isPreloaded = useRef<boolean>(!!preloadedData);
     // Prevents the report-ready dialog from re-showing on back-navigation or re-renders
     const reportDialogShown = useRef(false);
+    const autoPdfEmailSent = useRef(false);
 
     // --- PERSIST STATE TO SESSION STORAGE ---
     useEffect(() => {
@@ -2160,12 +2277,6 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                     setSavedReportId(newId);
                 }
                 setIsUnlocked(true); // Payment is done, so unlock immediately
-
-                // Email a themed summary of the report right away (fire-and-forget)
-                const notifyEmail = leadData?.email || session?.user?.email;
-                if (notifyEmail) {
-                    sendReportReadySummaryEmail(finalReport, myBusiness, notifyEmail);
-                }
 
                 setReportReady(true);
             } else {
@@ -2427,6 +2538,19 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             }
 
             const userEmail = leadData?.email || session?.user?.email || undefined;
+
+            // Auto-generate the PDF and email it (with the summary, in one message) right
+            // away — independent of whether the user interacts with the dialog below.
+            if (userEmail && reportRef.current && !autoPdfEmailSent.current) {
+                autoPdfEmailSent.current = true;
+                sendReportReadyEmailWithPdf(reportRef.current, report, myBusiness, userEmail, savedReportId || undefined)
+                    .then((imgData) => {
+                        if (imgData && session?.user?.id && savedReportId) {
+                            updateReportPdfData(session.user.id, savedReportId, imgData).catch(() => {});
+                        }
+                    });
+            }
+
             showReportReadyDialog(() => generatePDF(), userEmail);
         }
     }, [step, report, errorMsg]);
