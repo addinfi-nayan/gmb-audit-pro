@@ -57,12 +57,14 @@ function shell(opts: { preheader: string; bodyHtml: string; footerNote?: string 
 </html>`;
 }
 
-/** Sent automatically right after the AI audit finishes — a themed summary, no attachment. */
+/** Sent automatically right after the AI audit finishes — a themed summary with the PDF attached directly. */
 export function buildReportReadySummaryEmail(opts: {
     userEmail: string;
     myBusiness: any;
     report: any;
     siteUrl?: string;
+    downloadUrl?: string;
+    attachmentIncluded?: boolean;
 }): { subject: string; html: string } {
     const businessName = escapeHtml(opts.myBusiness?.title || opts.myBusiness?.name || "Your Business");
     const score = opts.report?.audit_score;
@@ -88,10 +90,25 @@ export function buildReportReadySummaryEmail(opts: {
             <ul>${wins.map((w) => `<li>${escapeHtml(w)}</li>`).join("")}</ul>
         </div>` : ""}
 
+        ${opts.attachmentIncluded ? `
+        <div style="text-align:center; margin: 20px 0 4px;">
+            <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.25); color:#67e8f9; font-size:13px; font-weight:600; padding:10px 18px; border-radius:10px;">
+                📎 Your full PDF report is attached to this email
+            </div>
+        </div>
+        <div style="text-align:center; margin: 18px 0 8px;">
+            <a class="cta" href="${ctaUrl}">Open Full Report</a>
+        </div>` : opts.downloadUrl ? `
+        <div style="text-align:center; margin: 24px 0 8px;">
+            <a class="cta" href="${opts.downloadUrl}">📄 Download PDF Report</a>
+        </div>
+        <p style="text-align:center; margin-top: 10px;">
+            <a href="${ctaUrl}" style="color:#22d3ee; font-size:13px; text-decoration:none;">Or open the full interactive report →</a>
+        </p>` : `
         <p style="margin-top:20px;">Your full report — including the 4-week action plan and downloadable PDF — is waiting in the app.</p>
         <div style="text-align:center; margin: 24px 0 8px;">
             <a class="cta" href="${ctaUrl}">Open Full Report</a>
-        </div>
+        </div>`}
     `;
 
     return {
