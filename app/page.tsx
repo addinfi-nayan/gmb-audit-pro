@@ -1088,7 +1088,6 @@ const ErrorIcon = () => (<svg className="w-12 h-12 text-red-500 mb-4" fill="none
 const LockIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>);
 const ChartIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>);
 const TrophyIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>);
-const ListIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>);
 const BookIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>);
 const WarningIcon = () => (<svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>);
 
@@ -1180,12 +1179,6 @@ const COMPARISON_METRICS = [
         getValue: (entry: any) => (entry?.products_services?.includes("Missing") ? 0 : 1),
         display: (entry: any) => entry?.products_services || "N/A",
         max: 1,
-    },
-    {
-        key: "listing_age",
-        label: "Profile Authority",
-        getValue: (entry: any) => parseNumber(entry?.listing_age),
-        display: (entry: any) => entry?.listing_age || "N/A",
     },
 ];
 
@@ -3024,7 +3017,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                         <div className="max-w-[95rem] mx-auto space-y-20">
 
                             {/* ========================================================== */}
-                            {/* "NEXUS COMMAND" MASTER DASHBOARD (Complete & Optimized)   */}
+                            {/* KEY METRICS & COMPETITIVE COMPARISON                      */}
                             {/* ========================================================== */}
                             <div className="space-y-6 font-sans text-gray-300">
 
@@ -3034,26 +3027,26 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                     {/* LEFT COLUMN: REACTOR & INTELLIGENCE */}
                                     <div className="lg:col-span-4 flex flex-col gap-4 lg:gap-6">
 
-                                        {/* 1. AUDIT REACTOR (ALWAYS VISIBLE) */}
-                                        <div className="bg-[#0B1120] border border-cyan-500/30 rounded-2xl lg:rounded-3xl p-4 lg:p-8 relative overflow-hidden shadow-[0_0_50px_-15px_rgba(6,182,212,0.3)] flex flex-col items-center text-center group">
-                                            <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/10 to-transparent opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                                            <h3 className="text-cyan-400 font-bold tracking-[0.3em] text-[8px] lg:text-[10px] uppercase mb-4 lg:mb-6 z-10">System Integrity Score</h3>
-                                            <div className="relative z-10 mb-4 lg:mb-6">
-                                                <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-full border-4 border-cyan-900/50 flex items-center justify-center relative">
-                                                    <div className="absolute inset-0 rounded-full border-4 border-cyan-500 border-t-transparent border-l-transparent animate-spin-slow opacity-80"></div>
-                                                    <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-cyan-900/20 backdrop-blur-md flex flex-col items-center justify-center shadow-inner border border-white/10 relative overflow-hidden">
-                                                        {report.audit_score && report.audit_score > 0 ? (
-                                                            <span className="text-4xl lg:text-6xl font-black text-white tracking-tighter drop-shadow-[0_0_15px_rgba(6,182,212,0.5)] z-20">{report.audit_score}</span>
-                                                        ) : (
-                                                            <div className="relative z-10 animate-pulse"><svg className="w-8 lg:w-12 h-8 lg:h-12 text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" /></svg></div>
-                                                        )}
-                                                        <div className="mt-1 relative z-10"><span className="text-[8px] lg:text-[10px] font-bold text-cyan-200 uppercase tracking-widest bg-cyan-900/40 px-2 py-0.5 rounded-full border border-cyan-500/20">Health</span></div>
-                                                    </div>
+                                        {/* 1. PERFORMANCE SCORE */}
+                                        <div className="bg-[#0B1120] border border-white/10 rounded-2xl p-6 lg:p-8 flex flex-col items-center text-center">
+                                            <h3 className="text-gray-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-6">Performance Score</h3>
+                                            <div className="relative w-32 h-32 lg:w-36 lg:h-36 mb-6">
+                                                <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                                                    <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
+                                                    <circle
+                                                        cx="60" cy="60" r="52" fill="none" stroke="#22d3ee" strokeWidth="8" strokeLinecap="round"
+                                                        strokeDasharray={2 * Math.PI * 52}
+                                                        strokeDashoffset={2 * Math.PI * 52 * (1 - Math.min(Math.max(report.audit_score || 0, 0), 100) / 100)}
+                                                        className="transition-all duration-1000"
+                                                    />
+                                                </svg>
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span className="text-4xl lg:text-5xl font-black text-white tracking-tighter">{report.audit_score}</span>
                                                 </div>
                                             </div>
-                                            <div className="z-10 flex flex-col gap-2 w-full">
-                                                <div className="flex justify-between items-center text-xs px-2 lg:px-4 py-2 bg-white/5 rounded-lg border border-white/5"><span className="text-gray-400 uppercase font-bold text-[8px] lg:text-[10px]">Audit Gap</span><span className={`font-mono font-bold ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-green-400"}`}>{report.matrix?.me?.audit_gap || "N/A"}</span></div>
-                                                <div className="flex justify-between items-center text-xs px-2 lg:px-4 py-2 bg-white/5 rounded-lg border border-white/5"><span className="text-gray-400 uppercase font-bold text-[8px] lg:text-[10px]">Market Status</span><span className={`font-bold text-[8px] lg:text-[10px] uppercase ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-green-400"}`}>{report.matrix?.me?.audit_gap?.includes("-") ? "CRITICAL LAG" : "MARKET LEADER"}</span></div>
+                                            <div className="flex flex-col gap-2 w-full">
+                                                <div className="flex justify-between items-center text-xs px-3 py-2.5 bg-white/[0.03] rounded-lg border border-white/5"><span className="text-gray-500 uppercase font-bold text-[10px] tracking-wide">Audit Gap</span><span className={`font-mono font-bold ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-emerald-400"}`}>{report.matrix?.me?.audit_gap || "N/A"}</span></div>
+                                                <div className="flex justify-between items-center text-xs px-3 py-2.5 bg-white/[0.03] rounded-lg border border-white/5"><span className="text-gray-500 uppercase font-bold text-[10px] tracking-wide">Market Position</span><span className={`font-bold text-[10px] uppercase ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-emerald-400"}`}>{report.matrix?.me?.audit_gap?.includes("-") ? "Behind Leader" : "Market Leader"}</span></div>
                                             </div>
                                         </div>
 
@@ -3081,324 +3074,94 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                         </div>
                                     </div>
 
-                                    {/* RIGHT: STRATEGIC COMPARISON — ENHANCED MULTI-VIZ */}
-                                    <div className="lg:col-span-8 bg-[#0B1120] border border-white/10 rounded-2xl lg:rounded-3xl overflow-hidden flex flex-col h-full relative">
-                                        {/* Header */}
-                                        <div className="px-4 lg:px-8 py-4 lg:py-6 border-b border-white/10 bg-gradient-to-r from-cyan-900/10 via-purple-900/5 to-indigo-900/10">
-                                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 lg:gap-4">
-                                                <div>
-                                                    <div className="flex items-center gap-2 lg:gap-3 mb-1">
-                                                        <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
-                                                        <h3 className="text-white font-bold uppercase tracking-widest text-xs lg:text-sm">Strategic Comparison</h3>
+                                    {/* RIGHT: COMPETITIVE COMPARISON — VS scoreboard */}
+                                    <div className="lg:col-span-8 bg-[#0B1120] border border-white/10 rounded-2xl overflow-hidden flex flex-col h-full">
+                                        <div className="px-6 py-5 border-b border-white/10">
+                                            <h3 className="text-white font-bold text-sm">Competitive Comparison</h3>
+                                            <p className="text-xs text-gray-500 mt-0.5">Head-to-head, round by round</p>
+                                        </div>
+
+                                        {(() => {
+                                            const glowMap: Record<string, string> = {
+                                                'bg-cyan-500': 'ring-cyan-400/60 shadow-cyan-500/20 bg-cyan-500/10',
+                                                'bg-purple-500': 'ring-purple-400/60 shadow-purple-500/20 bg-purple-500/10',
+                                                'bg-indigo-500': 'ring-indigo-400/60 shadow-indigo-500/20 bg-indigo-500/10',
+                                            };
+                                            const gridStyle = { gridTemplateColumns: `repeat(${comparisonEntities.length}, minmax(0,1fr))` };
+                                            const scoreOf = (entityKey: string) => comparisonMetrics.filter((m) => {
+                                                if (!isUnlocked && (m.key === "post_frequency" || m.key === "products_services")) return false;
+                                                const values = comparisonEntities.map((e) => m.getValue(e.data));
+                                                const best = Math.max(...values);
+                                                const entity = comparisonEntities.find((e) => e.key === entityKey)!;
+                                                return best > 0 && m.getValue(entity.data) === best;
+                                            }).length;
+
+                                            return (
+                                                <>
+                                                    {/* Match score */}
+                                                    <div className="px-6 py-6 border-b border-white/10 grid gap-3" style={gridStyle}>
+                                                        {comparisonEntities.map((entity) => (
+                                                            <div key={entity.key} className="text-center">
+                                                                <div className={`text-4xl lg:text-5xl font-black font-mono ${entity.textClass}`}>{scoreOf(entity.key)}</div>
+                                                                <div className="flex items-center justify-center gap-1.5 mt-1.5">
+                                                                    <span className={`w-1.5 h-1.5 rounded-full ${entity.barClass}`}></span>
+                                                                    <span className="text-[9px] text-gray-500 uppercase tracking-widest font-bold truncate max-w-[7rem]">{entity.label}</span>
+                                                                </div>
+                                                                <div className="text-[9px] text-gray-600 uppercase tracking-widest mt-0.5">metrics won</div>
+                                                            </div>
+                                                        ))}
                                                     </div>
-                                                    <p className="text-[8px] lg:text-[10px] text-gray-500 font-mono ml-5">LIVE METRICS • MULTI-DIMENSIONAL ANALYSIS</p>
-                                                </div>
-                                                <div className="flex flex-wrap gap-2 lg:gap-3">
-                                                    {comparisonEntities.map((entity) => (
-                                                        <div key={entity.key} className="flex items-center gap-1 lg:gap-2 bg-white/5 border border-white/5 px-2 lg:px-3 py-1.5 rounded-full">
-                                                            <div className={`w-2 h-2 lg:w-2.5 lg:h-2.5 rounded-full ${entity.barClass} shadow-lg`}></div>
-                                                            <span className={`text-[8px] lg:text-[10px] font-bold uppercase tracking-wider ${entity.textClass}`}>{entity.label}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
 
-                                        {/* Enhanced Multi-Visualization Grid */}
-                                        <div className="flex-1 p-3 lg:p-6 overflow-y-auto custom-scrollbar" style={{
-                        '@supports (-webkit-touch-callout: none)': {
-                            WebkitOverflowScrolling: 'touch',
-                            maxHeight: 'calc(100vh - 200px)'
-                        }
-                    } as React.CSSProperties}>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-5">
-
-                                                {/* ══════════ 1. REPUTATION SCORE — Star Rating Display ══════════ */}
-                                                {(() => {
-                                                    const metric = comparisonMetrics.find(m => m.key === "rating");
-                                                    if (!metric) return null;
-                                                    return (
-                                                        <div className="bg-[#060D1B] border border-yellow-500/10 rounded-2xl p-5 hover:border-yellow-500/30 transition-all duration-300 group relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
-                                                                <div className="p-2 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
-                                                                    <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Reputation Score</h4>
-                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">Google Star Rating</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="space-y-4 relative z-10">
-                                                                {comparisonEntities.map((entity) => {
-                                                                    const rating = parseNumber(entity.data?.rating);
-                                                                    const fullStars = Math.floor(rating);
-                                                                    const hasHalf = rating % 1 >= 0.3;
-                                                                    return (
-                                                                        <div key={`rating-${entity.key}`} className="flex items-center gap-3">
-                                                                            <span className={`text-[10px] font-bold w-20 truncate ${entity.textClass}`}>{entity.label}</span>
-                                                                            <div className="flex items-center gap-0.5">
-                                                                                {[1, 2, 3, 4, 5].map(i => (
-                                                                                    <svg key={i} className={`w-5 h-5 ${i <= fullStars ? 'text-yellow-400' : (i === fullStars + 1 && hasHalf ? 'text-yellow-400/50' : 'text-gray-700')}`} fill="currentColor" viewBox="0 0 20 20">
-                                                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                                                    </svg>
-                                                                                ))}
-                                                                            </div>
-                                                                            <span className="text-white font-mono font-bold text-sm ml-auto">{metric.display(entity.data)}</span>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })()}
-
-                                                {/* ══════════ 2. REVIEW VOLUME — Vertical Bar Chart ══════════ */}
-                                                {(() => {
-                                                    const metric = comparisonMetrics.find(m => m.key === "reviews");
-                                                    if (!metric) return null;
-                                                    const values = comparisonEntities.map(e => metric.getValue(e.data));
-                                                    const maxVal = Math.max(1, ...values);
-                                                    return (
-                                                        <div className="bg-[#060D1B] border border-blue-500/10 rounded-2xl p-5 hover:border-blue-500/30 transition-all duration-300 group relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
-                                                                <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                                                                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Review Volume</h4>
-                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">Total Google Reviews</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex items-end justify-around gap-4 h-32 relative z-10 px-2">
-                                                                {comparisonEntities.map((entity, idx) => {
-                                                                    const val = values[idx];
-                                                                    const pct = maxVal ? Math.max(10, (val / maxVal) * 100) : 10;
-                                                                    const gradients: Record<string, string> = { 'bg-cyan-500': 'from-cyan-600 to-cyan-400', 'bg-purple-500': 'from-purple-600 to-purple-400', 'bg-indigo-500': 'from-indigo-600 to-indigo-400' };
-                                                                    return (
-                                                                        <div key={`vol-${entity.key}`} className="flex flex-col items-center flex-1">
-                                                                            <span className={`text-xs font-bold mb-2 ${entity.textClass}`}>{metric.display(entity.data)}</span>
-                                                                            <div className="w-full max-w-[50px] h-24 bg-white/5 rounded-xl overflow-hidden flex flex-col justify-end border border-white/5">
-                                                                                <div className={`w-full bg-gradient-to-t ${gradients[entity.barClass] || 'from-gray-600 to-gray-400'} rounded-xl transition-all duration-1000 relative overflow-hidden`} style={{ height: `${pct}%` }}>
-                                                                                    <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/15 to-transparent"></div>
+                                                    {/* Rounds */}
+                                                    <div className="flex-1 p-4 lg:p-6 space-y-3 overflow-y-auto custom-scrollbar">
+                                                        {comparisonMetrics.map((metric) => {
+                                                            const isLockedMetric = !isUnlocked && (metric.key === "post_frequency" || metric.key === "products_services");
+                                                            const values = comparisonEntities.map((e) => metric.getValue(e.data));
+                                                            const best = Math.max(...values);
+                                                            return (
+                                                                <div key={metric.key} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+                                                                    <div className="text-center mb-3">
+                                                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.15em]">{metric.label}</span>
+                                                                    </div>
+                                                                    <div className="grid gap-3" style={gridStyle}>
+                                                                        {comparisonEntities.map((entity, i) => {
+                                                                            const isWinner = !isLockedMetric && best > 0 && values[i] === best;
+                                                                            return (
+                                                                                <div
+                                                                                    key={entity.key}
+                                                                                    onClick={isLockedMetric ? handleRestrictedAction : undefined}
+                                                                                    className={`relative rounded-xl py-3 px-2 text-center border transition-all ${isLockedMetric ? 'border-white/5 bg-white/[0.01] cursor-pointer' : isWinner ? `border-transparent ring-1 ${glowMap[entity.barClass] || 'ring-white/30 bg-white/5'} shadow-lg` : 'border-white/5 bg-white/[0.01]'}`}
+                                                                                >
+                                                                                    {isWinner && <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs">👑</span>}
+                                                                                    {isLockedMetric ? (
+                                                                                        <div className="flex items-center justify-center gap-1.5 text-gray-600">
+                                                                                            <LockIcon />
+                                                                                            <span className="text-xs blur-[3px] select-none">••••</span>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <span className={`font-mono font-bold text-sm lg:text-base ${isWinner ? 'text-white' : 'text-gray-400'}`}>{metric.display(entity.data)}</span>
+                                                                                    )}
                                                                                 </div>
-                                                                            </div>
-                                                                            <span className="text-[8px] text-gray-500 mt-1.5 font-medium truncate max-w-[60px] text-center">{entity.label}</span>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })()}
-
-                                                {/* ══════════ 3. REVIEW VELOCITY — Radial Gauge ══════════ */}
-                                                {(() => {
-                                                    const metric = comparisonMetrics.find(m => m.key === "review_velocity");
-                                                    if (!metric) return null;
-                                                    return (
-                                                        <div className="bg-[#060D1B] border border-emerald-500/10 rounded-2xl p-5 hover:border-emerald-500/30 transition-all duration-300 group relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
-                                                                <div className="p-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-                                                                    <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Review Velocity</h4>
-                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">New Reviews Frequency</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex items-center justify-around gap-2 relative z-10">
-                                                                {comparisonEntities.map((entity) => {
-                                                                    const score = metric.getValue(entity.data);
-                                                                    const pct = Math.min(score, 100);
-                                                                    const circumference = 2 * Math.PI * 32;
-                                                                    const dashoffset = circumference - (pct / 100) * circumference;
-                                                                    const colorMap: Record<string, string> = { 'bg-cyan-500': '#22d3ee', 'bg-purple-500': '#a855f7', 'bg-indigo-500': '#818cf8' };
-                                                                    const strokeColor = colorMap[entity.barClass] || '#6b7280';
-                                                                    return (
-                                                                        <div key={`vel-${entity.key}`} className="flex flex-col items-center">
-                                                                            <div className="relative w-20 h-20">
-                                                                                <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
-                                                                                    <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" />
-                                                                                    <circle cx="40" cy="40" r="32" fill="none" stroke={strokeColor} strokeWidth="6" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={dashoffset} className="transition-all duration-1000" />
-                                                                                </svg>
-                                                                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                                                    <span className={`text-[10px] font-bold ${entity.textClass}`}>{metric.display(entity.data).split('(')[0].trim()}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <span className={`text-[9px] font-bold mt-1 ${entity.textClass} truncate max-w-[70px] text-center`}>{metric.display(entity.data)}</span>
-                                                                            <span className="text-[8px] text-gray-500 font-medium">{entity.label}</span>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })()}
-
-                                                {/* ══════════ 4. RESPONSE SPEED — Horizontal Timer Bars ══════════ */}
-                                                {(() => {
-                                                    const metric = comparisonMetrics.find(m => m.key === "review_response");
-                                                    if (!metric) return null;
-                                                    const values = comparisonEntities.map(e => metric.getValue(e.data));
-                                                    const maxVal = Math.max(1, ...values);
-                                                    return (
-                                                        <div className="bg-[#060D1B] border border-orange-500/10 rounded-2xl p-5 hover:border-orange-500/30 transition-all duration-300 group relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
-                                                                <div className="p-2 bg-orange-500/10 rounded-xl border border-orange-500/20">
-                                                                    <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Response Speed</h4>
-                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">Owner Reply Time</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="space-y-4 relative z-10">
-                                                                {comparisonEntities.map((entity, idx) => {
-                                                                    const val = values[idx];
-                                                                    const pct = maxVal ? Math.min((val / maxVal) * 100, 100) : 0;
-                                                                    const colorMap: Record<string, string> = { 'bg-cyan-500': 'from-cyan-500 to-cyan-300', 'bg-purple-500': 'from-purple-500 to-purple-300', 'bg-indigo-500': 'from-indigo-500 to-indigo-300' };
-                                                                    return (
-                                                                        <div key={`resp-${entity.key}`}>
-                                                                            <div className="flex items-center justify-between mb-1.5">
-                                                                                <span className={`text-[10px] font-bold ${entity.textClass}`}>{entity.label}</span>
-                                                                                <div className="flex items-center gap-1.5">
-                                                                                    <svg className="w-3 h-3 text-orange-400/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                                                                    <span className="text-[10px] text-gray-400 font-mono">{metric.display(entity.data)}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                                                                <div className={`h-full bg-gradient-to-r ${colorMap[entity.barClass] || 'from-gray-500 to-gray-300'} rounded-full transition-all duration-1000 relative`} style={{ width: `${pct}%` }}>
-                                                                                    <div className="absolute right-0 top-0 w-1.5 h-full bg-white/40 rounded-full"></div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })()}
-
-                                                {/* ══════════ 5. CONTENT ENGINE — Activity Heatmap Dots ══════════ */}
-                                                {(() => {
-                                                    const metric = comparisonMetrics.find(m => m.key === "post_frequency");
-                                                    if (!metric) return null;
-                                                    return (
-                                                        <div className="bg-[#060D1B] border border-pink-500/10 rounded-2xl p-5 hover:border-pink-500/30 transition-all duration-300 group relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
-                                                                <div className="p-2 bg-pink-500/10 rounded-xl border border-pink-500/20">
-                                                                    <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Content Engine</h4>
-                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">GMB Post Frequency</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className={`space-y-4 relative z-10 ${!isUnlocked ? 'blur-sm opacity-40 grayscale select-none pointer-events-none' : ''}`}>
-                                                                {comparisonEntities.map((entity) => {
-                                                                    const displayVal = metric.display(entity.data).toLowerCase();
-                                                                    const activeDots = displayVal.includes('bi-weekly') || displayVal.includes('2-3x') ? 2 : 1;
-                                                                    const colorMap: Record<string, string> = { 'bg-cyan-500': 'bg-cyan-400', 'bg-purple-500': 'bg-purple-400', 'bg-indigo-500': 'bg-indigo-400' };
-                                                                    const dotColor = colorMap[entity.barClass] || 'bg-gray-400';
-                                                                    return (
-                                                                        <div key={`content-${entity.key}`} className="flex items-center gap-3">
-                                                                            <span className={`text-[10px] font-bold w-20 truncate ${entity.textClass}`}>{entity.label}</span>
-                                                                            <div className="flex gap-1.5 flex-1">
-                                                                                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
-                                                                                    <div key={i} className="flex flex-col items-center gap-1">
-                                                                                        <div className={`w-4 h-4 rounded-md transition-all ${i < activeDots ? `${dotColor} shadow-lg shadow-current/20` : 'bg-white/5 border border-white/5'}`}></div>
-                                                                                        <span className="text-[7px] text-gray-600">{day}</span>
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-                                                                            <span className="text-[9px] text-gray-400 font-mono w-16 text-right truncate">{metric.display(entity.data)}</span>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                            {/* Lock Overlay */}
-                                                            {!isUnlocked && (
-                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={handleRestrictedAction}>
-                                                                    <div className="absolute inset-0 bg-gradient-to-t from-[#060D1B] via-[#060D1B]/80 to-transparent"></div>
-                                                                    <div className="relative z-10 flex flex-col items-center gap-2">
-                                                                        <div className="w-10 h-10 rounded-full bg-pink-500/10 border border-pink-500/30 flex items-center justify-center text-pink-400 group-hover/lock:scale-110 transition-transform shadow-[0_0_15px_rgba(236,72,153,0.3)]">
-                                                                            <LockIcon />
-                                                                        </div>
-                                                                        <span className="text-[10px] font-bold text-pink-400 uppercase tracking-widest group-hover/lock:underline">Unlock Details</span>
-                                                                        <span className="text-[9px] text-pink-300 font-semibold opacity-0 group-hover/lock:opacity-100 transition-opacity">@ ₹99</span>
+                                                                            );
+                                                                        })}
                                                                     </div>
                                                                 </div>
-                                                            )}
+                                                            );
+                                                        })}
+                                                    </div>
+
+                                                    {!isUnlocked && (
+                                                        <div className="px-6 py-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-between gap-3">
+                                                            <span className="text-xs text-gray-400">Content Engine & Products rounds are locked</span>
+                                                            <button onClick={handleRestrictedAction} className="text-xs font-bold text-cyan-400 hover:underline shrink-0">Unlock @ ₹99</button>
                                                         </div>
-                                                    );
-                                                })()}
-
-                                                {/* ══════════ 6. PRODUCTS — Status Badge Cards ══════════ */}
-                                                {(() => {
-                                                    const metric = comparisonMetrics.find(m => m.key === "products_services");
-                                                    if (!metric) return null;
-                                                    return (
-                                                        <div className="bg-[#060D1B] border border-violet-500/10 rounded-2xl p-5 hover:border-violet-500/30 transition-all duration-300 group relative overflow-hidden">
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                                                            <div className="flex items-center gap-3 mb-5 relative z-10">
-                                                                <div className="p-2 bg-violet-500/10 rounded-xl border border-violet-500/20">
-                                                                    <svg className="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                                                                </div>
-                                                                <div>
-                                                                    <h4 className="text-white font-bold text-sm tracking-wide">Products & Services</h4>
-                                                                    <p className="text-[9px] text-gray-500 font-mono uppercase">GMB Product Listings</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className={`space-y-3 relative z-10 ${!isUnlocked ? 'blur-sm opacity-40 grayscale select-none pointer-events-none' : ''}`}>
-                                                                {comparisonEntities.map((entity) => {
-                                                                    const val = metric.getValue(entity.data);
-                                                                    const isOptimized = val > 0;
-                                                                    return (
-                                                                        <div key={`prod-${entity.key}`} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${isOptimized ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
-                                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isOptimized ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
-                                                                                {isOptimized ? (
-                                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
-                                                                                ) : (
-                                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
-                                                                                )}
-                                                                            </div>
-                                                                            <span className={`text-[10px] font-bold ${entity.textClass} flex-1`}>{entity.label}</span>
-                                                                            <span className={`text-[9px] font-mono font-bold px-2 py-1 rounded-md ${isOptimized ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>{metric.display(entity.data)}</span>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                            {/* Lock Overlay */}
-                                                            {!isUnlocked && (
-                                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center cursor-pointer group/lock" onClick={handleRestrictedAction}>
-                                                                    <div className="absolute inset-0 bg-gradient-to-t from-[#060D1B] via-[#060D1B]/80 to-transparent"></div>
-                                                                    <div className="relative z-10 flex flex-col items-center gap-2">
-                                                                        <div className="w-10 h-10 rounded-full bg-violet-500/10 border border-violet-500/30 flex items-center justify-center text-violet-400 group-hover/lock:scale-110 transition-transform shadow-[0_0_15px_rgba(139,92,246,0.3)]">
-                                                                            <LockIcon />
-                                                                        </div>
-                                                                        <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest group-hover/lock:underline">Unlock Details</span>
-                                                                        <span className="text-[9px] text-violet-300 font-semibold opacity-0 group-hover/lock:opacity-100 transition-opacity">@ ₹99</span>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })()}
-
-
-
-                                            </div>
-                                        </div>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                     </div>
 
                                 </div>
-
-
                             </div>
 
                             {/* EXECUTIVE SUMMARY */}
@@ -3411,7 +3174,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                                         if (days > 28) {
                                             return (
-                                                <div className="mb-8 bg-red-900/10 border border-red-500/50 rounded-xl p-6 flex items-start gap-4 animate-pulse">
+                                                <div className="mb-8 bg-red-900/10 border border-red-500/50 rounded-xl p-6 flex items-start gap-4">
                                                     <div className="p-3 bg-red-500/20 rounded-lg shrink-0 border border-red-500/30">
                                                         <WarningIcon />
                                                     </div>
@@ -3433,12 +3196,12 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                         return null;
                                     })()}
 
-                                    <div className="bg-[#0B1120] p-8 rounded-xl shadow-2xl border-t-4 border-blue-600 border-x border-b border-white/5">
+                                    <div className="bg-[#0B1120] p-8 rounded-2xl border border-white/10">
                                         <div className="flex items-center gap-3 mb-4">
-                                            <span className="bg-blue-900/30 text-blue-400 p-2 rounded-lg border border-blue-500/20"><SearchIcon /></span>
-                                            <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Executive Summary</h3>
+                                            <span className="bg-cyan-500/10 text-cyan-400 p-2 rounded-lg border border-cyan-500/20"><SearchIcon /></span>
+                                            <h3 className="font-bold text-white text-lg">Executive Summary</h3>
                                         </div>
-                                        <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-7 text-base font-medium">
+                                        <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-7 text-base">
                                             {executiveSummaryPoints.map((point: string, index: number) => (
                                                 <li key={index}>{point}</li>
                                             ))}
@@ -3554,16 +3317,12 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                 <div className="space-y-8 mt-12">
 
                                     {/* Section Header */}
-                                    <div className="flex items-center justify-center gap-4 mb-8">
-                                        <div className="h-px w-16 bg-gradient-to-r from-transparent to-white/20"></div>
-                                        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                                            <span className="text-xs font-bold text-gray-300 tracking-[0.2em] uppercase">Optimization Protocols</span>
-                                        </div>
-                                        <div className="h-px w-16 bg-gradient-to-l from-transparent to-white/20"></div>
+                                    <div className="text-center mb-8">
+                                        <h3 className="text-xl font-bold text-white">How to Close the Gap</h3>
+                                        <p className="text-sm text-gray-500 mt-1">Fixes grouped by area, safest first</p>
                                     </div>
 
-                                    <div className="grid md:grid-cols-3 gap-6">
+                                    <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
 
                                         {/* 1. REPUTATION MODULE */}
                                         <div className="bg-[#0B1120] rounded-2xl border border-blue-500/20 overflow-hidden relative group hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.2)] transition-all duration-500">
@@ -3575,11 +3334,10 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                         <StarIcon />
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-bold text-white text-sm tracking-wide">REPUTATION</h3>
+                                                        <h3 className="font-bold text-white text-sm tracking-wide">Reputation</h3>
                                                         <p className="text-[10px] text-blue-400/70 font-mono uppercase">Priority: High</p>
                                                     </div>
                                                 </div>
-                                                <div className="text-[10px] font-mono text-gray-600 border border-white/5 px-2 py-1 rounded">SYS_01</div>
                                             </div>
 
                                             {/* Content List */}
@@ -3643,11 +3401,10 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-bold text-white text-sm tracking-wide">ENGAGEMENT</h3>
+                                                        <h3 className="font-bold text-white text-sm tracking-wide">Engagement</h3>
                                                         <p className="text-[10px] text-purple-400/70 font-mono uppercase">Priority: Medium</p>
                                                     </div>
                                                 </div>
-                                                <div className="text-[10px] font-mono text-gray-600 border border-white/5 px-2 py-1 rounded">SYS_02</div>
                                             </div>
 
                                             <div className="p-5 space-y-6 relative">
@@ -3707,11 +3464,10 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                         <MapPinIcon />
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-bold text-white text-sm tracking-wide">RELEVANCE</h3>
+                                                        <h3 className="font-bold text-white text-sm tracking-wide">Relevance</h3>
                                                         <p className="text-[10px] text-green-400/70 font-mono uppercase">Priority: Critical</p>
                                                     </div>
                                                 </div>
-                                                <div className="text-[10px] font-mono text-gray-600 border border-white/5 px-2 py-1 rounded">SYS_03</div>
                                             </div>
 
                                             <div className="p-5 space-y-6 relative">
@@ -3762,235 +3518,129 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             </div>
                                         </div>
 
-                                    </div>
-                                </div>
-                            )}
-                            {/* 4-WEEK PLAN - "EXECUTION PHASE" REDESIGN */}
-                            {report.four_week_plan && (
-                                <div className="mt-16 space-y-8">
-
-                                    {/* Header */}
-                                    <div className="flex items-center justify-between px-2">
-                                        <div className="flex items-center gap-4">
-                                            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]">
-                                                <ListIcon />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-bold text-white tracking-wide">EXECUTION ROADMAP</h3>
-                                                <p className="text-xs text-blue-400/60 font-mono uppercase tracking-widest mt-1">4-Phase Deployment Cycle</p>
-                                            </div>
-                                        </div>
-                                        {/* Duration Badge */}
-                                        <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                                            <span className="text-xs font-mono text-gray-300">EST. DURATION: 30 DAYS</span>
-                                        </div>
-                                    </div>
-
-                                    {/* VERTICAL TIMELINE LAYOUT WITH ILLUSTRATIONS */}
-                                    <div className="space-y-0 relative">
-                                        {/* Central Timeline Line */}
-                                        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-blue-500/30 via-cyan-500/20 to-purple-500/30 hidden md:block"></div>
-
-                                        {report.four_week_plan.map((week: any, i: number) => {
-                                            const isWeekLocked = !isUnlocked && i > 0;
-                                            const isCurrent = !isUnlocked && i === 0;
-                                            const weekColors = [
-                                                { border: 'border-blue-500/40', glow: 'shadow-[0_0_40px_-10px_rgba(59,130,246,0.15)]', accent: 'from-blue-600 to-cyan-400', tag: 'bg-blue-500/10 text-blue-400 border-blue-500/20', dot: 'bg-blue-500', text: 'text-blue-400' },
-                                                { border: 'border-purple-500/40', glow: 'shadow-[0_0_40px_-10px_rgba(168,85,247,0.15)]', accent: 'from-purple-600 to-pink-400', tag: 'bg-purple-500/10 text-purple-400 border-purple-500/20', dot: 'bg-purple-500', text: 'text-purple-400' },
-                                                { border: 'border-emerald-500/40', glow: 'shadow-[0_0_40px_-10px_rgba(16,185,129,0.15)]', accent: 'from-emerald-600 to-teal-400', tag: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-500', text: 'text-emerald-400' },
-                                                { border: 'border-amber-500/40', glow: 'shadow-[0_0_40px_-10px_rgba(245,158,11,0.15)]', accent: 'from-amber-600 to-orange-400', tag: 'bg-amber-500/10 text-amber-400 border-amber-500/20', dot: 'bg-amber-500', text: 'text-amber-400' },
-                                            ];
-                                            const color = weekColors[i] || weekColors[0];
-
-                                            // SVG Illustration data for all 4 weeks
-                                            const illustrations = [
-                                                {
-                                                    title: "Phase 1: Foundation",
-                                                    subtitle: "Strategic Audit",
-                                                    icon: (
-                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad1)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M22 38V26l10-6 10 6v12l-10 6-10-6z" stroke="url(#grad1)" strokeWidth="1.5" fill="rgba(59,130,246,0.1)" /><path d="M32 20v24M22 26l10 6 10-6" stroke="url(#grad1)" strokeWidth="1.5" strokeLinecap="round" /><circle cx="32" cy="16" r="3" fill="url(#grad1)" className="animate-pulse" /><defs><linearGradient id="grad1" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#3b82f6" /><stop offset="1" stopColor="#22d3ee" /></linearGradient></defs></svg>
-                                                    )
-                                                },
-                                                {
-                                                    title: "Phase 2: Growth",
-                                                    subtitle: "Content Engine",
-                                                    icon: (
-                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad2)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M20 44l8-12 8 6 8-18" stroke="url(#grad2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><circle cx="44" cy="20" r="4" fill="url(#grad2)" className="animate-pulse" /><rect x="18" y="46" width="4" height="6" rx="1" fill="rgba(168,85,247,0.3)" /><rect x="24" y="42" width="4" height="10" rx="1" fill="rgba(168,85,247,0.5)" /><rect x="30" y="38" width="4" height="14" rx="1" fill="rgba(168,85,247,0.7)" /><defs><linearGradient id="grad2" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#a855f7" /><stop offset="1" stopColor="#ec4899" /></linearGradient></defs></svg>
-                                                    )
-                                                },
-                                                {
-                                                    title: "Phase 3: Authority",
-                                                    subtitle: "Social Trust",
-                                                    icon: (
-                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad3)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M32 14v8M26 18l6-4 6 4" stroke="url(#grad3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M24 28h16v16c0 2-2 4-4 4h-8c-2 0-4-2-4-4V28z" stroke="url(#grad3)" strokeWidth="1.5" fill="rgba(16,185,129,0.1)" /><circle cx="32" cy="36" r="3" fill="url(#grad3)" className="animate-pulse" /><defs><linearGradient id="grad3" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#10b981" /><stop offset="1" stopColor="#14b8a6" /></linearGradient></defs></svg>
-                                                    )
-                                                },
-                                                {
-                                                    title: "Phase 4: Scaling",
-                                                    subtitle: "Dominance",
-                                                    icon: (
-                                                        <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="url(#grad4)" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" /><path d="M16 48h32M32 48V16M32 16l-8 8M32 16l8 8" stroke="url(#grad4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /><circle cx="32" cy="40" r="4" fill="url(#grad4)" className="animate-pulse" /><defs><linearGradient id="grad4" x1="0" y1="0" x2="64" y2="64"><stop stopColor="#f59e0b" /><stop offset="1" stopColor="#fbbf24" /></linearGradient></defs></svg>
-                                                    )
-                                                },
-                                            ];
-
-                                            return (
-                                                <div key={i}>
-                                                    {/* Week Card - alternating alignment */}
-                                                    <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 relative ${i % 2 === 0 ? '' : 'md:direction-rtl'}`}>
-                                                        {/* Timeline Dot */}
-                                                        <div className="hidden md:block absolute left-1/2 top-8 -translate-x-1/2 z-20">
-                                                            <div className={`w-4 h-4 rounded-full ${isWeekLocked ? 'bg-gray-600 border-gray-500' : color.dot} border-2 border-[#030712] shadow-lg ${!isWeekLocked ? 'animate-pulse' : ''}`}></div>
+                                        {/* 4. ACCESSIBILITY MODULE */}
+                                        {report.gap_analysis.accessibility && report.gap_analysis.accessibility.length > 0 && (
+                                            <div className="bg-[#0B1120] rounded-2xl border border-amber-500/20 overflow-hidden relative group hover:shadow-[0_0_30px_-10px_rgba(245,158,11,0.2)] transition-all duration-500">
+                                                <div className="h-1 bg-gradient-to-r from-amber-600 to-yellow-400"></div>
+                                                <div className="p-5 border-b border-white/5 bg-amber-900/5 flex justify-between items-center">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M12 3a4 4 0 110 8 4 4 0 010-8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg>
                                                         </div>
+                                                        <div>
+                                                            <h3 className="font-bold text-white text-sm tracking-wide">Accessibility</h3>
+                                                            <p className="text-[10px] text-amber-400/70 font-mono uppercase">Priority: Medium</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
-                                                        {/* Week Card - placed on alternating sides */}
-                                                        {i % 2 === 0 ? (
-                                                            <>
-                                                                <div className={`relative bg-[#0B1120] rounded-2xl border transition-all duration-500 group overflow-hidden ${isWeekLocked
-                                                                    ? 'border-white/5 opacity-60'
-                                                                    : isCurrent ? `${color.border} ${color.glow}` : 'border-white/10 hover:border-blue-500/30'
-                                                                    }`}>
-                                                                    <div className="absolute -right-4 -top-4 text-[120px] font-black text-white/[0.02] select-none leading-none z-0">0{i + 1}</div>
-                                                                    <div className={`h-1 bg-gradient-to-r ${color.accent}`}></div>
-                                                                    <div className="relative z-10 p-6 border-b border-white/5 bg-gradient-to-b from-white/5 to-transparent">
-                                                                        <div className="flex justify-between items-start mb-3">
-                                                                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border ${isWeekLocked ? 'bg-gray-800 text-gray-500 border-gray-700' : color.tag}`}>
-                                                                                {isWeekLocked ? 'LOCKED' : 'PHASE ' + (i + 1)}
-                                                                            </span>
-                                                                            <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1 bg-black/40 px-2 py-1 rounded">
-                                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                                                                {week.time_est}
-                                                                            </span>
-                                                                        </div>
-                                                                        <h4 className="text-xl font-bold text-white mb-1">{week.week}</h4>
-                                                                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide truncate opacity-80">{week.focus}</p>
-                                                                    </div>
-                                                                    <div className="relative z-10 p-6 min-h-[220px]">
-                                                                        <ul className="space-y-4">
-                                                                            {!isUnlocked && i === 0 ? (
-                                                                                <>
-                                                                                    {week.tasks?.slice(0, Math.ceil(week.tasks.length / 2)).map((task: string, k: number) => (
-                                                                                        <li key={k} className="flex items-start gap-3">
-                                                                                            <div className={`mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full ${color.dot} shadow-[0_0_8px_rgba(59,130,246,0.8)]`}></div>
-                                                                                            <span className="text-sm text-gray-300 leading-snug">{task}</span>
-                                                                                        </li>
-                                                                                    ))}
-                                                                                    <div className="absolute inset-x-0 bottom-0 pt-20 pb-6 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/95 to-transparent flex flex-col items-center justify-end cursor-pointer group/btn" onClick={handleRestrictedAction}>
-                                                                                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600/20 border border-blue-500/50 text-blue-400 text-xs font-bold uppercase tracking-wider group-hover/btn:bg-blue-600 group-hover/btn:text-white transition-all shadow-lg">
-                                                                                            <LockIcon /><span>Unlock Full Plan</span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </>
-                                                                            ) : isWeekLocked ? (
-                                                                                <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={handleRestrictedAction}>
-                                                                                    <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-gray-500 group-hover:text-blue-400 group-hover:border-blue-500/30 transition-all"><LockIcon /></div>
-                                                                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest group-hover:text-blue-400">Awaiting Clearance</span>
-                                                                                </div>
-                                                                            ) : (
-                                                                                week.tasks?.map((task: string, k: number) => (
-                                                                                    <li key={k} className="flex items-start gap-3 group/item">
-                                                                                        <div className={`mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full ${color.dot}/50 group-hover/item:${color.dot} transition-colors`}></div>
-                                                                                        <span className="text-sm text-gray-300 leading-snug group-hover/item:text-white transition-colors">{task}</span>
-                                                                                    </li>
-                                                                                ))
-                                                                            )}
-                                                                        </ul>
-                                                                    </div>
-                                                                    <div className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ${isWeekLocked ? 'w-0' : `w-full bg-gradient-to-r ${color.accent}`}`}></div>
-                                                                </div>
-                                                                {/* Empty side for alternating layout */}
-                                                                <div className="hidden md:flex items-center justify-center p-6">
-                                                                    <div className="text-center space-y-4">
-                                                                        <div className="relative flex items-center justify-center">
-                                                                            <div className="absolute inset-0 blur-2xl opacity-20 scale-150">{illustrations[i]?.icon}</div>
-                                                                            <div className="relative z-10 w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm overflow-hidden group">
-                                                                                <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity flex items-center justify-center">{illustrations[i]?.icon}</div>
-                                                                                <span className={`text-5xl font-black ${color.text} relative z-10 drop-shadow-lg`}>0{i + 1}</span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <p className="text-[11px] text-white font-bold uppercase tracking-[0.2em] max-w-[200px] leading-relaxed drop-shadow-sm">{week.focus}</p>
-                                                                    </div>
-                                                                </div>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                {/* Empty side for alternating layout */}
-                                                                <div className="hidden md:flex items-center justify-center p-6">
-                                                                    <div className="text-center space-y-4">
-                                                                        <div className="relative flex items-center justify-center">
-                                                                            <div className="absolute inset-0 blur-2xl opacity-20 scale-150">{illustrations[i]?.icon}</div>
-                                                                            <div className="relative z-10 w-24 h-24 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm overflow-hidden group">
-                                                                                <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity flex items-center justify-center">{illustrations[i]?.icon}</div>
-                                                                                <span className={`text-5xl font-black ${color.text} relative z-10 drop-shadow-lg`}>0{i + 1}</span>
-                                                                            </div>
-                                                                        </div>
-                                                                        <p className="text-[11px] text-white font-bold uppercase tracking-[0.2em] max-w-[200px] leading-relaxed drop-shadow-sm">{week.focus}</p>
-                                                                    </div>
-                                                                </div>
-                                                                <div className={`relative bg-[#0B1120] rounded-2xl border transition-all duration-500 group overflow-hidden ${isWeekLocked
-                                                                    ? 'border-white/5 opacity-60'
-                                                                    : isCurrent ? `${color.border} ${color.glow}` : 'border-white/10 hover:border-blue-500/30'
-                                                                    }`}>
-                                                                    <div className="absolute -right-4 -top-4 text-[120px] font-black text-white/[0.02] select-none leading-none z-0">0{i + 1}</div>
-                                                                    <div className={`h-1 bg-gradient-to-r ${color.accent}`}></div>
-                                                                    <div className="relative z-10 p-6 border-b border-white/5 bg-gradient-to-b from-white/5 to-transparent">
-                                                                        <div className="flex justify-between items-start mb-3">
-                                                                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border ${isWeekLocked ? 'bg-gray-800 text-gray-500 border-gray-700' : color.tag}`}>
-                                                                                {isWeekLocked ? 'LOCKED' : 'PHASE ' + (i + 1)}
-                                                                            </span>
-                                                                            <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1 bg-black/40 px-2 py-1 rounded">
-                                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                                                                {week.time_est}
-                                                                            </span>
-                                                                        </div>
-                                                                        <h4 className="text-xl font-bold text-white mb-1">{week.week}</h4>
-                                                                        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide truncate opacity-80">{week.focus}</p>
-                                                                    </div>
-                                                                    <div className="relative z-10 p-6 min-h-[220px]">
-                                                                        <ul className="space-y-4">
-                                                                            {isWeekLocked ? (
-                                                                                <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={handleRestrictedAction}>
-                                                                                    <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-gray-500 group-hover:text-blue-400 group-hover:border-blue-500/30 transition-all"><LockIcon /></div>
-                                                                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest group-hover:text-blue-400">Awaiting Clearance</span>
-                                                                                </div>
-                                                                            ) : (
-                                                                                week.tasks?.map((task: string, k: number) => (
-                                                                                    <li key={k} className="flex items-start gap-3 group/item">
-                                                                                        <div className={`mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full ${color.dot}/50 group-hover/item:${color.dot} transition-colors`}></div>
-                                                                                        <span className="text-sm text-gray-300 leading-snug group-hover/item:text-white transition-colors">{task}</span>
-                                                                                    </li>
-                                                                                ))
-                                                                            )}
-                                                                        </ul>
-                                                                    </div>
-                                                                    <div className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ${isWeekLocked ? 'w-0' : `w-full bg-gradient-to-r ${color.accent}`}`}></div>
-                                                                </div>
-                                                            </>
-                                                        )}
+                                                <div className="p-5 space-y-6 relative">
+                                                    <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-amber-500/30 to-transparent"></div>
+
+                                                    {/* STEP 1 */}
+                                                    <div className="relative flex gap-4">
+                                                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-amber-500 text-amber-500 flex items-center justify-center z-10 shadow-[0_0_10px_rgba(245,158,11,0.4)] group-hover:scale-110 transition-transform">
+                                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-amber-400 text-xs font-bold uppercase mb-1">First Fix</h4>
+                                                            <p className="text-gray-400 text-sm leading-relaxed">{report.gap_analysis.accessibility[0]}</p>
+                                                        </div>
                                                     </div>
 
-                                                    {/* Central Illustration between weeks */}
-                                                    {i < illustrations.length && (
-                                                        <div className="flex items-center justify-center py-8 relative">
-                                                            {/* Connecting dots */}
-                                                            <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px border-l border-dashed border-white/10"></div>
-
-                                                            <div className="relative z-10 flex flex-col items-center gap-3 bg-[#030712] px-6 py-4 rounded-2xl border border-white/5">
-                                                                <div className="p-3 rounded-2xl bg-white/[0.03] border border-white/5">
-                                                                    {illustrations[i].icon}
+                                                    {/* LOCKED / UNLOCKED */}
+                                                    {isUnlocked ? (
+                                                        report.gap_analysis.accessibility.slice(1).map((fix: string, i: number) => (
+                                                            <div key={i} className="relative flex gap-4 animate-[fadeIn_0.5s_ease-out]">
+                                                                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-amber-500/50 text-amber-400/80 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
+                                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12l5 5L20 7" /></svg>
                                                                 </div>
-                                                                <div className="text-center">
-                                                                    <p className="text-xs font-bold text-gray-300 uppercase tracking-widest">{illustrations[i].title}</p>
-                                                                    <p className="text-[9px] text-gray-600 font-mono mt-0.5">{illustrations[i].subtitle}</p>
+                                                                <div>
+                                                                    <h4 className="text-amber-400/80 text-xs font-bold uppercase mb-1">Follow-up Fix</h4>
+                                                                    <p className="text-gray-400 text-sm leading-relaxed">{fix}</p>
                                                                 </div>
-                                                                {/* Animated connector arrow */}
-                                                                <svg className="w-6 h-6 text-gray-600 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                                                                </svg>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div className="relative mt-4 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/90 z-0"></div>
+                                                            <div className="relative z-10 flex flex-col items-center justify-center py-6 text-center space-y-3">
+                                                                <div className="w-10 h-10 rounded-full bg-black/60 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)] group-hover/lock:scale-110 transition-transform">
+                                                                    <LockIcon />
+                                                                </div>
+                                                                <div className="text-xs font-medium text-gray-500 group-hover/lock:text-amber-400 transition-colors">
+                                                                    More Fixes Hidden <br />
+                                                                    <span className="font-bold underline decoration-amber-500/50 underline-offset-2">Tap to Unlock</span>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                    </div>
+                                </div>
+                            )}
+                            {/* 4-WEEK ACTION PLAN */}
+                            {report.four_week_plan && (
+                                <div className="mt-16 space-y-8">
+                                    <div className="flex items-center justify-between px-2">
+                                        <div>
+                                            <h3 className="text-xl font-bold text-white tracking-wide">Your 4-Week Action Plan</h3>
+                                            <p className="text-sm text-gray-500 mt-1">Step-by-step, safest changes first</p>
+                                        </div>
+                                        <div className="hidden md:flex items-center px-4 py-2 rounded-full bg-white/5 border border-white/10">
+                                            <span className="text-xs font-mono text-gray-400">~30 days total</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        {report.four_week_plan.map((week: any, i: number) => {
+                                            const isWeekLocked = !isUnlocked && i > 0;
+                                            const isPartial = !isUnlocked && i === 0;
+                                            const tasks = isPartial ? week.tasks?.slice(0, Math.ceil((week.tasks?.length || 0) / 2)) : week.tasks;
+
+                                            return (
+                                                <div key={i} className={`relative bg-[#0B1120] rounded-2xl border overflow-hidden ${isWeekLocked ? 'border-white/5 opacity-60' : 'border-white/10'}`}>
+                                                    <div className="p-6 border-b border-white/5">
+                                                        <div className="flex justify-between items-start mb-3">
+                                                            <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border border-cyan-500/20 bg-cyan-500/10 text-cyan-400">
+                                                                Week {i + 1}
+                                                            </span>
+                                                            <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1">
+                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                {week.time_est}
+                                                            </span>
+                                                        </div>
+                                                        <h4 className="text-lg font-bold text-white mb-1">{week.week}</h4>
+                                                        <p className="text-xs text-gray-400 uppercase tracking-wide">{week.focus}</p>
+                                                    </div>
+
+                                                    <div className="relative p-6 min-h-[180px]">
+                                                        {isWeekLocked ? (
+                                                            <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer py-6" onClick={handleRestrictedAction}>
+                                                                <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-3 text-gray-500"><LockIcon /></div>
+                                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Locked</span>
+                                                            </div>
+                                                        ) : (
+                                                            <ul className="space-y-3">
+                                                                {tasks?.map((task: string, k: number) => (
+                                                                    <li key={k} className="flex items-start gap-3">
+                                                                        <div className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-cyan-500"></div>
+                                                                        <span className="text-sm text-gray-300 leading-snug">{task}</span>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
+                                                        {isPartial && (
+                                                            <div className="absolute inset-x-0 bottom-0 pt-16 pb-6 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/95 to-transparent flex items-end justify-center cursor-pointer" onClick={handleRestrictedAction}>
+                                                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-600/20 border border-cyan-500/40 text-cyan-400 text-xs font-bold uppercase tracking-wider hover:bg-cyan-600 hover:text-white transition-all">
+                                                                    <LockIcon /><span>Unlock Full Plan</span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             );
                                         })}
