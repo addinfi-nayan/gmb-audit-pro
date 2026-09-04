@@ -3,11 +3,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-5";
+// Sonnet, not Opus — Opus (even at low effort) regularly exceeded Vercel Hobby's
+// 60s function-duration cap on multi-competitor reports, causing 504s. Sonnet is
+// Anthropic's faster model and reliably finishes this report well under 60s.
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
 
-// This route regularly runs 60-100s+ at high reasoning effort — request the
-// longest duration most hosting tiers allow so the platform doesn't kill the
-// function before Anthropic responds.
+// Request the longest duration most hosting tiers allow so the platform doesn't
+// kill the function before Anthropic responds.
 export const maxDuration = 60;
 
 const MatrixEntrySchema = z.object({

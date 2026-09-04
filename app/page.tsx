@@ -2210,17 +2210,18 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
 
 
-    // The audit call is slow (often 60-90s+ at high reasoning effort) and occasionally
-    // hits a transient upstream error. One silent retry avoids surfacing those as a
-    // hard failure — but only for server/network errors, never for a 4xx (bad input).
+    // The audit call is slow and occasionally hits Vercel's function-duration cap (504) —
+    // a transient failure, not a real error. Keep the loading screen up and retry silently
+    // several times before ever surfacing a hard failure — never for a 4xx (bad input).
+    const MAX_ANALYZE_ATTEMPTS = 4;
     const analyzeWithRetry = async (payload: any, attempt = 1): Promise<any> => {
         try {
             return await axios.post("/api/analyze-gmb", payload);
         } catch (e: any) {
             const status = e?.response?.status;
             const isRetryable = !status || status >= 500;
-            if (isRetryable && attempt < 2) {
-                console.warn(`Analysis attempt ${attempt} failed, retrying once...`, e.message);
+            if (isRetryable && attempt < MAX_ANALYZE_ATTEMPTS) {
+                console.warn(`Analysis attempt ${attempt} failed, retrying (${attempt + 1}/${MAX_ANALYZE_ATTEMPTS})...`, e.message);
                 return analyzeWithRetry(payload, attempt + 1);
             }
             throw e;
@@ -2387,6 +2388,9 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_signature: response.razorpay_signature,
                             couponCode: orderData.appliedCoupon || undefined,
+                            userId: session?.user?.id || undefined,
+                            userEmail: leadData?.email || session?.user?.email || undefined,
+                            gmbName: myBusiness?.title || undefined,
                         });
 
                         if (result.data.success) {
