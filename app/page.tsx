@@ -450,11 +450,13 @@ const sendReportReadyEmailWithPdf = async (
             },
         });
 
-        const imgData = canvas.toDataURL('image/png');
+        // JPEG, not PNG — this dark, gradient-heavy report compresses ~10-20x smaller as
+        // JPEG, which is what keeps a long report's PDF under Storage's/email's size caps.
+        const imgData = canvas.toDataURL('image/jpeg', 0.85);
         const imgWidth = 210;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         const pdf = new jsPDF('p', 'mm', [imgWidth, imgHeight]);
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
         const pdfBlob = pdf.output('blob');
         const filename = `${myBusiness?.title || 'GMB'}_Audit_Report.pdf`;
 
@@ -1209,6 +1211,9 @@ function useDebounce(value: string, delay: number) {
     return debouncedValue;
 }
 
+/** jsPDF needs the format name to match the actual encoding of a data URL. */
+const pdfImageFormat = (dataUrl: string): "JPEG" | "PNG" => (dataUrl.startsWith("data:image/jpeg") ? "JPEG" : "PNG");
+
 const parseNumber = (value: string | number | undefined) => {
     if (typeof value === "number") return value;
     if (!value) return 0;
@@ -1614,7 +1619,7 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                     const imgWidth = 210;
                     const imgHeight = (img.naturalHeight * imgWidth) / img.naturalWidth;
                     const pdf = new jsPDF("p", "mm", [imgWidth, imgHeight]);
-                    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+                    pdf.addImage(imgData, pdfImageFormat(imgData), 0, 0, imgWidth, imgHeight);
 
                     const filename = `${saved.gmbName}_Audit_Report.pdf`;
                     const pdfBlob = pdf.output('blob');
@@ -2689,7 +2694,9 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             });
 
             // 3. Calculate PDF dimensions (Dynamic Height to fit content)
-            const imgData = canvas.toDataURL('image/png');
+            // JPEG, not PNG — this dark, gradient-heavy report compresses ~10-20x smaller
+            // as JPEG, which is what keeps a long report's PDF under Storage's/email's caps.
+            const imgData = canvas.toDataURL('image/jpeg', 0.85);
             const imgWidth = 210; // A4 Width in mm
             const pageHeight = 295; // A4 Height in mm
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
@@ -2698,7 +2705,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             // If content is very long, this creates a long scrolling PDF (User friendly)
             const pdf = new jsPDF('p', 'mm', [imgWidth, imgHeight]);
 
-            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
             const filename = `${myBusiness?.title || 'GMB'}_Audit_Report.pdf`;
             const userEmail = leadData?.email || session?.user?.email || undefined;
             const pdfBlob = pdf.output('blob');
