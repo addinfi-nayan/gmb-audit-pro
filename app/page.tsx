@@ -10,6 +10,7 @@ import Head from "next/head";
 import NextImage from "next/image";
 import { saveReport, getReports, updateReportPdfData, type SavedReport } from "./utils/reportStore";
 import { buildReportReadySummaryEmail, buildReportPdfEmail } from "@/lib/emailTemplates";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import SignInModal from "../components/SignInModal";
 import CookieConsent from "../components/CookieConsent";
 
@@ -334,47 +335,59 @@ const showThemeAlert = (message: string) => {
     }, 3000);
 };
 
-// Function to send PDF via email
+// Uploads a PDF blob straight to Supabase Storage from the browser via a signed
+// upload URL — the bytes never pass through our own serverless functions, so a
+// large full-report PDF can't hit Vercel's ~4.5MB request-body cap.
+const uploadPdfAndGetUrl = async (blob: Blob, reportId?: string): Promise<string | null> => {
+    try {
+        const initRes = await fetch('/api/upload-report-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reportId }),
+        });
+        const initData = await initRes.json();
+        if (!initRes.ok || !initData.path || !initData.token) {
+            console.error('Failed to get signed upload URL:', initData.error);
+            return null;
+        }
+
+        const supabase = getSupabaseClient();
+        const { error: uploadError } = await supabase.storage
+            .from('report-pdfs')
+            .uploadToSignedUrl(initData.path, initData.token, blob, { contentType: 'application/pdf' });
+        if (uploadError) {
+            console.error('Failed to upload PDF to storage:', uploadError.message);
+            return null;
+        }
+
+        const { data } = supabase.storage.from('report-pdfs').getPublicUrl(initData.path);
+        return data.publicUrl;
+    } catch (error) {
+        console.error('Error uploading PDF:', error);
+        return null;
+    }
+};
+
+// Function to send PDF via email — links to the hosted file (used for the manual
+// re-download-and-email action, distinct from the automatic report-ready email below).
 const sendPDFViaEmail = async (pdfBlob: Blob, filename: string, userEmail: string, reportId?: string) => {
     try {
-        // Convert blob to base64
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            if (e.target?.result) {
-                const base64Data = (e.target.result as string).split(',')[1]; // strip data:application/pdf;base64, prefix
+        const url = await uploadPdfAndGetUrl(pdfBlob, reportId);
+        if (!url) return;
 
-                // Upload once, host it, and link to it — no attachment.
-                const uploadRes = await fetch('/api/upload-report-pdf', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pdfBase64: base64Data, reportId }),
-                });
-                const uploadData = await uploadRes.json();
+        const { subject, html } = buildReportPdfEmail({ userEmail, filename, downloadUrl: url });
 
-                if (!uploadRes.ok || !uploadData.url) {
-                    console.error('Failed to upload PDF for email link:', uploadData.error);
-                    return;
-                }
+        const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: userEmail, subject, body: html }),
+        });
 
-                const { subject, html } = buildReportPdfEmail({ userEmail, filename, downloadUrl: uploadData.url });
-
-                const response = await fetch('/api/send-email', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ to: userEmail, subject, body: html }),
-                });
-
-                if (response.ok) {
-                    console.log('PDF link emailed to:', userEmail);
-                } else {
-                    console.error('Failed to send PDF email:', response.statusText);
-                }
-            }
-        };
-        reader.readAsDataURL(pdfBlob);
-
+        if (response.ok) {
+            console.log('PDF link emailed to:', userEmail);
+        } else {
+            console.error('Failed to send PDF email:', response.statusText);
+        }
     } catch (error) {
         console.error('Error sending PDF via email:', error);
     }
@@ -442,8 +455,16 @@ const sendReportReadyEmailWithPdf = async (
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         const pdf = new jsPDF('p', 'mm', [imgWidth, imgHeight]);
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-        const pdfBase64 = pdf.output('datauristring').split(',')[1];
+        const pdfBlob = pdf.output('blob');
         const filename = `${myBusiness?.title || 'GMB'}_Audit_Report.pdf`;
+
+        // Upload directly to Storage (bypasses our own function's request-body cap —
+        // this PDF can easily be several MB for a long report) then attach it server-side.
+        const pdfUrl = await uploadPdfAndGetUrl(pdfBlob, reportId);
+        if (!pdfUrl) {
+            console.error('Report-ready email: PDF upload failed, aborting email send.');
+            return imgData;
+        }
 
         const siteUrl = typeof window !== "undefined" ? window.location.origin : undefined;
         const { subject, html } = buildReportReadySummaryEmail({ userEmail, myBusiness, report, siteUrl, attachmentIncluded: true });
@@ -455,12 +476,13 @@ const sendReportReadyEmailWithPdf = async (
                 to: userEmail,
                 subject,
                 body: html,
-                attachment: { filename, content: pdfBase64, contentType: 'application/pdf' },
+                attachFromUrl: pdfUrl,
+                attachmentFilename: filename,
             }),
         });
 
         if (!response.ok) {
-            console.error('Failed to send report-ready email:', response.statusText);
+            console.error('Failed to send report-ready email:', response.statusText, await response.text().catch(() => ""));
         }
 
         return imgData;

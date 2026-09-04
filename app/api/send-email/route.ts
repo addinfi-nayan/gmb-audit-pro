@@ -11,6 +11,25 @@ interface EmailRequest {
         content: string; // base64
         contentType: string;
     };
+    // Alternative to `attachment` for large files (e.g. a full-report PDF) — the file
+    // is fetched server-to-server instead of riding in this request's JSON body, which
+    // Vercel caps at ~4.5MB.
+    attachFromUrl?: string;
+    attachmentFilename?: string;
+}
+
+async function resolveAttachment(email: EmailRequest): Promise<EmailRequest["attachment"]> {
+    if (email.attachment) return email.attachment;
+    if (!email.attachFromUrl) return undefined;
+
+    const res = await fetch(email.attachFromUrl);
+    if (!res.ok) throw new Error(`Failed to fetch attachment from URL: ${res.status}`);
+    const buffer = Buffer.from(await res.arrayBuffer());
+    return {
+        filename: email.attachmentFilename || "attachment.pdf",
+        content: buffer.toString("base64"),
+        contentType: res.headers.get("content-type") || "application/pdf",
+    };
 }
 
 async function sendViaResend(email: EmailRequest) {
@@ -88,6 +107,16 @@ export async function POST(request: NextRequest) {
                 { error: 'Missing required fields: to, subject, body' },
                 { status: 400 }
             );
+        }
+
+        // Normalize attachFromUrl into `attachment` once, up front, so both send
+        // paths below can stay agnostic to how the attachment arrived.
+        if (email.attachFromUrl) {
+            try {
+                email.attachment = await resolveAttachment(email);
+            } catch (e: any) {
+                console.error('Failed to resolve email attachment:', e.message);
+            }
         }
 
         // Resend is the preferred path — simplest to set up, best deliverability.
