@@ -141,7 +141,7 @@ export async function POST(req: Request) {
             model: MODEL,
             max_tokens: 16000,
             output_config: {
-                effort: "medium",
+                effort: "low",
                 format: zodOutputFormat(AuditReportSchema),
             },
             messages: [{ role: "user", content: buildAuditPrompt(myBusiness, competitors) }],
