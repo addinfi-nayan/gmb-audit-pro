@@ -1,31 +1,30 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
-/** Uploads a generated report PDF to public storage and returns its URL — used to link the PDF from an email instead of attaching it. */
+/**
+ * Issues a signed upload slot for the browser to upload a PDF DIRECTLY to Supabase
+ * Storage — the PDF bytes never pass through this function's request body. A
+ * full-report screenshot PDF can easily exceed Vercel's ~4.5MB serverless request
+ * body cap, which silently failed uploads when the bytes were sent as base64 here.
+ */
 export async function POST(req: Request) {
     try {
-        const { pdfBase64, reportId } = await req.json();
-        if (!pdfBase64 || typeof pdfBase64 !== "string") {
-            return NextResponse.json({ error: "pdfBase64 is required" }, { status: 400 });
-        }
-
+        const { reportId } = await req.json().catch(() => ({}) as any);
         const path = `${reportId || crypto.randomUUID()}.pdf`;
-        const buffer = Buffer.from(pdfBase64, "base64");
 
         const supabase = getSupabaseAdminClient();
-        const { error } = await supabase.storage
+        const { data, error } = await supabase.storage
             .from("report-pdfs")
-            .upload(path, buffer, { contentType: "application/pdf", upsert: true });
+            .createSignedUploadUrl(path, { upsert: true });
 
-        if (error) {
-            console.error("upload-report-pdf error:", error);
-            return NextResponse.json({ error: "Failed to upload PDF" }, { status: 500 });
+        if (error || !data) {
+            console.error("upload-report-pdf signed-url error:", error);
+            return NextResponse.json({ error: "Failed to create upload URL" }, { status: 500 });
         }
 
-        const { data } = supabase.storage.from("report-pdfs").getPublicUrl(path);
-        return NextResponse.json({ url: data.publicUrl });
+        return NextResponse.json({ path: data.path, token: data.token });
     } catch (error) {
         console.error("upload-report-pdf error:", error);
-        return NextResponse.json({ error: "Failed to upload PDF" }, { status: 500 });
+        return NextResponse.json({ error: "Failed to create upload URL" }, { status: 500 });
     }
 }
