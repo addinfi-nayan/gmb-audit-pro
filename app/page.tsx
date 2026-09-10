@@ -585,19 +585,6 @@ const UserMenu = ({ session }: { session: any }) => {
     );
 };
 
-const TESTIMONIALS = [
-    { name: "Rahul S", role: "Cafe Owner", text: "Honestly, I was skeptical at first, but the gap analysis opened my eyes. I didn't realize how much traffic I was losing to the guy across the street just because he replied to reviews faster. My weekend footfall is up by 40% now!" },
-    { name: "Priya M", role: "Clinic Manager", text: "We were stuck on page 2 for months. This tool pointed out exactly which keywords we were missing in our services section. Updated it, and within 3 weeks, we started popping up in the top 3 pack for 'dentist near me'." },
-    { name: "Amit V", role: "Retail Store", text: "Bhai, pehle lagta tha GMB bas set karke chhod dena hai. Is audit ne bataya ki 'Updates' na dalne se ranking gir rahi thi. Ab regular post kar raha hu aur customers khud call kar rahe hain store open hone se pehle!" }, // Hinglish
-    { name: "Arjun K", role: "Real Estate", text: "In my line of work, trust is everything. Seeing the 'Reputation Score' drop was a wake-up call. I followed the suggestions to get more detailed reviews from clients, and the difference in lead quality is night and day." },
-    { name: "Sneha R", role: "Salon Owner", text: "Mere competitor ke paas 500 reviews the, mere paas bas 50. Mujhe laga kabhi beat nahi kar paungi. But this tool showed me that 'Review Velocity' matters more. Focused on getting 2 reviews every day, and now I'm ranking higher than them!" }, // Hinglish
-    { name: "Vikram D", role: "Restaurant", text: "I spent thousands on ads with no luck. This ₹99 report showed me that my menu photos were outdated and categories were wrong. Fixed those basic things, and now Friday nights are fully booked without spending a rupee on ads." },
-    { name: "Rohan M", role: "Gym Owner", text: "Simple aur effective tool hai. Sabse best cheez yeh hai ki yeh bata deta hai ki competitor kya kar raha hai jo hum nahi kar rahe. 'Suspension Risk' check karke maine apna profile safe kar liya warna mehnat bekaar jaati." }, // Hinglish
-    { name: "Anjali S", role: "Bakery", text: "I used to ignore customer questions on my profile. The audit highlighted 'Response Time' as a critical failure. I started replying within an hour, and suddenly Google started showing my bakery to way more people in the area." },
-    { name: "Kabir K", role: "Car Dealer", text: "Seedha report milti hai, koi technical jargon nahi. Mujhe pata chala ki 'Products' section khali hone se mein customers loose kar raha tha. Photos daali aur enquiries double ho gayi. Highly recommended for local businesses." }, // Hinglish
-    { name: "Neha G", role: "Dentist", text: "Pehle pata nahi tha kya fix karna hai, bas randomly changes karti thi. Ab step-by-step clear hai. 'Profile Strength' 100% hone ke baad se new patient appointments apne aap badh gaye hain. Best investment for my clinic." } // Hinglish
-];
-
 interface LandingProps {
     onStart: () => void;
     onReports?: () => void;
@@ -624,8 +611,8 @@ const LandingPage = ({ onStart, onReports }: { onStart: () => void; onReports?: 
     }, []);
 
     // --- LIVE STATS COUNTER (Fixed Hydration Error) ---
-    const [profileCount, setProfileCount] = useState(35454);
-    const [issueCount, setIssueCount] = useState(128450);
+    const [profileCount, setProfileCount] = useState(100);
+    const [issueCount, setIssueCount] = useState(1145);
     const [mounted, setMounted] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { data: session } = useSession();
@@ -635,8 +622,8 @@ const LandingPage = ({ onStart, onReports }: { onStart: () => void; onReports?: 
         // 1. Initial wait, then add small "Daily Batch"
         const initialBatchTimer = setTimeout(() => {
             const randomIncrease = Math.floor(Math.random() * 3) + 2; // +2 to +4
-            // Cap at small increment per session (max +10 total)
-            setProfileCount(prev => Math.min(prev + randomIncrease, 35454 + 8));
+            // Cap at small increment per session (max +8 total)
+            setProfileCount(prev => Math.min(prev + randomIncrease, 100 + 8));
             setIssueCount(prev => prev + (randomIncrease * 4));
         }, 3500);
 
@@ -644,7 +631,7 @@ const LandingPage = ({ onStart, onReports }: { onStart: () => void; onReports?: 
         const liveDripInterval = setInterval(() => {
             // Cap at +8 max increment total
             setProfileCount(prev => {
-                if (prev >= 35454 + 8) return prev;
+                if (prev >= 100 + 8) return prev;
                 return prev + 1;
             });
             setIssueCount(prev => prev + Math.floor(Math.random() * 3));
@@ -808,40 +795,6 @@ const LandingPage = ({ onStart, onReports }: { onStart: () => void; onReports?: 
                         </div>
                     </div>
                 </div>
-
-                {/* --- TESTIMONIALS SECTION --- */}
-                <section className="py-10 md:py-20 border-t border-white/5 bg-[#0B1120]/30 overflow-hidden mb-12">
-                    <div className="text-center mb-12">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-[10px] md:text-xs font-mono mb-6 backdrop-blur-md">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.6)]"></span>
-                            TRUSTED BY 5000+ BUSINESSES
-                        </div>
-                        <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Real Results from <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">Local Businesses</span></h2>
-                    </div>
-
-                    {/* Infinite Marquee */}
-                    <div className="relative w-full flex overflow-hidden group">
-                        <div className="flex animate-marquee whitespace-nowrap gap-6 py-4 px-4 hover:[animation-play-state:paused]">
-                            {[...TESTIMONIALS, ...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
-                                <div key={i} className="inline-block w-[350px] bg-[#030712] border border-white/10 p-6 rounded-2xl whitespace-normal hover:border-blue-500/30 transition group hover:-translate-y-1 duration-300">
-                                    <div className="flex items-center gap-4 mb-4">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                                            {t.name.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <div className="text-white font-bold">{t.name}</div>
-                                            <div className="text-xs text-blue-400 uppercase tracking-wider font-mono">{t.role}</div>
-                                        </div>
-                                    </div>
-                                    <p className="text-gray-400 text-sm leading-relaxed italic">"{t.text}"</p>
-                                </div>
-                            ))}
-                        </div>
-                        {/* Gradient Fade Edges */}
-                        <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-[#030712] to-transparent z-10"></div>
-                        <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-[#030712] to-transparent z-10"></div>
-                    </div>
-                </section>
 
                 {/* --- LIVE STATS GRID (Below Fold) --- */}
                 <div className="w-full max-w-7xl mx-auto px-4 md:px-6 mb-12 md:mb-32">
@@ -1340,97 +1293,8 @@ export default function Page() {
         }
     }, [view]);
 
-    // --- GLOBAL RECENT ACTIVITY NOTIFICATIONS ---
-    const [recentActivity, setRecentActivity] = useState<{ name: string, time: string, action: string } | null>(null);
     const [pendingDownload, setPendingDownload] = useState<SavedReport | null>(null);
     const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null); // gmbName after success
-
-    useEffect(() => {
-        // Only run notifications on landing (home) view
-        if (view !== "landing") return;
-
-        // Random Data Pools
-        const names = [
-            "Mohan", "Simran", "Rahul", "Vikram", "Neha", "Kabir", "Anjali", "Priya", "Suresh", "Rajesh", "Amit", "Divya", "Arjun", "Sneha",
-            "Aarav", "Advik", "Akash", "Akshay", "Aman", "Ananya", "Aniket", "Anish", "Ankit", "Anmol", "Anup", "Anurag", "Aryan", "Ashish",
-            "Avinash", "Ayush", "Bhavya", "Chirag", "Deep", "Deepak", "Dev", "Diya", "Gaurav", "Harsh", "Himanshu", "Ishaan", "Ishani",
-            "Jatin", "Jyoti", "Karan", "Karthik", "Kavya", "Kiran", "Kritika", "Kunal", "Lakshya", "Madhav", "Manish", "Manvi", "Mayank",
-            "Megha", "Nakul", "Naman", "Nayan", "Nikhil", "Nishi", "Nitin", "Om", "Pankaj", "Parth", "Payal", "Piyush", "Pranav", "Pranay",
-            "Prateek", "Prerna", "Puneet", "Raghav", "Raj", "Rajat", "Rakesh", "Ram", "Rhea", "Riddhima", "Rishi", "Ritika", "Ritu",
-            "Ritvik", "Rohan", "Rohit", "Roshni", "Rudra", "Sahil", "Sakshi", "Sameer", "Sandeep", "Sanjay", "Sanjana", "Sanya", "Saransh",
-            "Saurabh", "Shaurya", "Shivam", "Shreya", "Shubham", "Siddharth", "Smriti", "Somesh", "Sonali", "Sumit", "Sunny", "Tanmay",
-            "Tanishq", "Tanvi", "Tarun", "Tushar", "Uday", "Utkarsh", "Vaibhav", "Vanshika", "Varun", "Vedant", "Vidhi", "Vinay", "Vishal",
-            "Yash", "Yogesh", "Abhay", "Aditi", "Aishwarya", "Alok", "Amrita", "Anant", "Ansh", "Archana", "Bala", "Bhuvnesh", "Daksh",
-            "Daman", "Ekta", "Falguni", "Ganesh", "Gayatri", "Gopal", "Gunjita", "Hemant", "Inder", "Indu", "Jagdish", "Janvi", "Jaspreet",
-            "Kailash", "Kalpana", "Kamlesh", "Kanchan", "Komal", "Lalit", "Lata", "Leela", "Manoj", "Meenakshi", "Mridul", "Mukesh",
-            "Nanda", "Narendra", "Navdeep", "Naveen", "Nilam", "Nirmal", "Pallavi", "Pawan", "Poonam", "Prabha", "Pramod", "Prashant",
-            "Radha", "Rajni", "Rani", "Ratna", "Rekha", "Reena", "Richa", "Sagar", "Sangeeta", "Santosh", "Sarita", "Seema", "Shalini",
-            "Shanti", "Sharda", "Shashi", "Shikha", "Shilpa", "Shivani", "Shobha", "Shruti", "Suman", "Sunita", "Sushma", "Swati", "Trupti",
-            "Uma", "Urmila", "Usha", "Vandana", "Varsha", "Veena", "Vimala", "Vineeta", "Brijesh", "Dinesh", "Girdhari", "Hariram", "Jaipal",
-            "Kishan", "Laxman", "Mahender", "Murari", "Narayan", "Omkar", "Prabhu", "Radhe", "Shyamlal", "Tarachand", "Upendra", "Vasu",
-            "Yadram", "Zeeshan", "Afzal", "Imran", "Javed", "Khalid", "Mansoor", "Nasir", "Parvez", "Qasim", "Rashid", "Sajid", "Tahir",
-            "Usman", "Waseem", "Yasin", "Zahid", "Ayesha", "Farida", "Ghazala", "Hamida", "Irat", "Jabeen", "Kehkashan", "Lubna", "Mumtaz",
-            "Nargis", "Parveen", "Qamar", "Razia", "Sultana", "Tasnim", "Uzma", "Wahida", "Yasmin", "Zeba"
-        ];
-        const actions = [
-            "just generated an audit report",
-            "downloaded their GMB report",
-            "unlocked competitor insights",
-            "analyzed their local ranking",
-            "is optimizing their profile",
-            "fixed a GMB listing error",
-            "scanned 2 local competitors",
-            "just saved 90% on an audit",
-            "unlocked full SEO metrics",
-            "ran a real-time gap analysis",
-            "found missing keywords",
-            "evaluated their reputation",
-            "checked for GMB suspension risk",
-            "compared with top rivals",
-            "generated a citations report",
-            "audited their map visibility"
-        ];
-        const times = [
-            "just now", "just now", "2 sec ago", "5 sec ago", "8 sec ago", "12 sec ago", "15 sec ago", "20 sec ago",
-            "25 sec ago", "30 sec ago", "45 sec ago", "55 sec ago", "1 min ago", "1 min ago", "2 min ago", "3 min ago",
-            "5 min ago", "8 min ago", "10 min ago"
-        ];
-
-        const showRandomToast = () => {
-            // Random selection
-            const rawName = names[Math.floor(Math.random() * names.length)];
-            const action = actions[Math.floor(Math.random() * actions.length)];
-            const time = times[Math.floor(Math.random() * times.length)];
-
-            // Mask name: "Moh***"
-            const maskedName = rawName.substring(0, 3) + "***";
-
-            // Set Toast
-            setRecentActivity({ name: maskedName, time, action });
-
-            // Hide after 3 seconds for snappier feel
-            setTimeout(() => setRecentActivity(null), 3000);
-        };
-
-        // 1. Initial Toast (Fast)
-        const initialTimer = setTimeout(showRandomToast, 2000);
-
-        // 2. Ultra-Fast Random Interval Loop (4s - 4.5s total cycle, ~1-1.5s gap)
-        const loop = () => {
-            const delay = Math.floor(Math.random() * 500) + 4000;
-            return setTimeout(() => {
-                showRandomToast();
-                loopId = loop(); // Recurse
-            }, delay);
-        };
-
-        let loopId = loop();
-
-        return () => {
-            clearTimeout(initialTimer);
-            clearTimeout(loopId);
-        };
-    }, [view]);
 
     // 1. Fix "Invalid Hook Call": Ensure no hooks are outside this function
     if (status === "loading") return <div className="min-h-screen bg-[#030712]" />;
@@ -1459,24 +1323,6 @@ export default function Page() {
                 <link rel="stylesheet" href="/ios-fixes.css" />
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
             </Head>
-            {/* --- GLOBAL TOAST OVERLAY --- */}
-            {recentActivity && view === "landing" && (
-                <div className="fixed bottom-6 left-6 z-[9999] bg-[#0B1120]/90 border border-cyan-500/30 backdrop-blur-md rounded-xl p-4 shadow-[0_0_20px_rgba(6,182,212,0.2)] animate-[slide-up_0.3s_ease-out] flex items-center gap-3 hover:scale-105 transition cursor-default pointer-events-none">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-xs shadow-inner">
-                        {recentActivity.name.charAt(0)}
-                    </div>
-                    <div>
-                        <div className="text-sm text-white font-bold tracking-wide">
-                            {recentActivity.name} <span className="font-normal text-gray-400 text-xs ml-1">{recentActivity.action}</span>
-                        </div>
-                        <div className="text-[10px] text-cyan-400 font-mono mt-0.5 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                            {recentActivity.time}
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {/* --- PDF GENERATION LOADER OVERLAY --- */}
             {pendingDownload && (
                 <div className="fixed bottom-6 right-6 z-[9999] pointer-events-none">
