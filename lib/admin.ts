@@ -8,9 +8,12 @@ function getAdminEmails(): string[] {
 }
 
 /**
- * Returns the current user if their email is on the ADMIN_EMAILS allowlist,
- * otherwise null. Use in every /api/admin/* route before touching the
- * service-role client.
+ * Returns the current user if they're an admin, otherwise null. Use in every
+ * /api/admin/* route before touching the service-role client.
+ *
+ * Two independent ways in: the ADMIN_EMAILS env var (a permanent bootstrap
+ * allowlist — always works, requires a deploy to change) OR profiles.is_admin
+ * (grantable from the admin panel itself, no deploy needed).
  *
  * Uses getUser() rather than getSession() — getSession() trusts whatever
  * claims are in the cookie without re-checking them against Supabase's auth
@@ -22,8 +25,15 @@ export async function requireAdmin() {
     const { data: { user }, error } = await supabase.auth.getUser();
 
     const email = user?.email?.toLowerCase();
-    if (error || !user || !email || !getAdminEmails().includes(email)) {
-        return null;
-    }
-    return user;
+    if (error || !user || !email) return null;
+
+    if (getAdminEmails().includes(email)) return user;
+
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .maybeSingle();
+
+    return (profile as any)?.is_admin ? user : null;
 }
