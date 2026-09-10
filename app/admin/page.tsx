@@ -12,6 +12,7 @@ interface AdminUser {
     email: string;
     isPremium: boolean;
     premiumGrantedAt: string | null;
+    isAdmin: boolean;
     createdAt: string;
     reportCount: number;
 }
@@ -261,6 +262,27 @@ export default function AdminPage() {
             setGrantMsg(e.message || "Something went wrong.");
         } finally {
             setGrantBusy(false);
+        }
+    };
+
+    const [adminBusyEmail, setAdminBusyEmail] = useState<string | null>(null);
+    const [adminMsg, setAdminMsg] = useState<string | null>(null);
+    const handleGrantAdmin = async (email: string, isAdmin: boolean) => {
+        setAdminBusyEmail(email);
+        setAdminMsg(null);
+        try {
+            const res = await fetch("/api/admin/users/admin", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, isAdmin }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed");
+            await loadAll();
+        } catch (e: any) {
+            setAdminMsg(e.message || "Something went wrong.");
+        } finally {
+            setAdminBusyEmail(null);
         }
     };
 
@@ -627,6 +649,10 @@ export default function AdminPage() {
                                 <p className="text-[11px] text-gray-500 mt-2">Works even if this person hasn't signed in yet — they'll be premium automatically the moment they do.</p>
                             </div>
 
+                            {adminMsg && (
+                                <p className="text-xs text-red-400 bg-red-500/5 border border-red-500/20 rounded-xl px-4 py-3">{adminMsg}</p>
+                            )}
+
                             <div className="bg-[#0B1120] border border-white/10 rounded-2xl overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
@@ -634,6 +660,7 @@ export default function AdminPage() {
                                             <tr className="text-left text-gray-500 text-xs uppercase tracking-wider border-b border-white/5">
                                                 <th className="p-4">Email</th>
                                                 <th className="p-4">Status</th>
+                                                <th className="p-4">Admin</th>
                                                 <th className="p-4">Reports</th>
                                                 <th className="p-4">Joined</th>
                                                 <th className="p-4"></th>
@@ -650,9 +677,16 @@ export default function AdminPage() {
                                                             <span className="px-2 py-1 rounded-full bg-white/5 text-gray-400 border border-white/10 text-xs font-bold">Guest</span>
                                                         )}
                                                     </td>
+                                                    <td className="p-4">
+                                                        {u.isAdmin ? (
+                                                            <span className="px-2 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30 text-xs font-bold">Admin</span>
+                                                        ) : (
+                                                            <span className="text-gray-600 text-xs">—</span>
+                                                        )}
+                                                    </td>
                                                     <td className="p-4 text-gray-400">{u.reportCount}</td>
                                                     <td className="p-4 text-gray-500 text-xs">{formatDate(u.createdAt)}</td>
-                                                    <td className="p-4 text-right">
+                                                    <td className="p-4 text-right whitespace-nowrap">
                                                         <button
                                                             onClick={() => handleGrantPremium(u.email, !u.isPremium)}
                                                             disabled={grantBusy}
@@ -663,11 +697,21 @@ export default function AdminPage() {
                                                         >
                                                             {u.isPremium ? "Revoke" : "Make Premium"}
                                                         </button>
+                                                        <button
+                                                            onClick={() => handleGrantAdmin(u.email, !u.isAdmin)}
+                                                            disabled={adminBusyEmail === u.email}
+                                                            className={`text-xs font-bold px-3 py-1.5 rounded-lg transition disabled:opacity-40 ${u.isAdmin
+                                                                ? "text-red-400 hover:bg-red-500/10"
+                                                                : "text-purple-400 hover:bg-purple-500/10"
+                                                                }`}
+                                                        >
+                                                            {adminBusyEmail === u.email ? "…" : u.isAdmin ? "Revoke Admin" : "Make Admin"}
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             ))}
                                             {filteredUsers.length === 0 && (
-                                                <tr><td colSpan={5} className="p-8 text-center text-gray-500">{search ? "No users match your search." : "No users yet."}</td></tr>
+                                                <tr><td colSpan={6} className="p-8 text-center text-gray-500">{search ? "No users match your search." : "No users yet."}</td></tr>
                                             )}
                                         </tbody>
                                     </table>

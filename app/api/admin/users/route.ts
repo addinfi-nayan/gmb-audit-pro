@@ -10,7 +10,7 @@ export async function GET() {
 
     const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("id, email, is_premium, premium_granted_at, created_at")
+        .select("id, email, is_premium, premium_granted_at, is_admin, created_at")
         .order("created_at", { ascending: false });
 
     if (error) {
@@ -34,6 +34,7 @@ export async function GET() {
         email: p.email,
         isPremium: p.is_premium,
         premiumGrantedAt: p.premium_granted_at,
+        isAdmin: !!p.is_admin,
         createdAt: p.created_at,
         reportCount: countByUser.get(p.id) || 0,
     }));
