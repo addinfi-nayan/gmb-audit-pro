@@ -3,8 +3,8 @@ import { useSession, signOut, useIsAdmin } from "@/lib/auth";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import type html2canvas from "html2canvas";
+import type jsPDF from "jspdf";
 import Link from "next/link";
 import Head from "next/head";
 import NextImage from "next/image";
@@ -13,6 +13,17 @@ import { buildReportReadySummaryEmail, buildReportPdfEmail } from "@/lib/emailTe
 import { getSupabaseClient } from "@/lib/supabase/client";
 import SignInModal from "../components/SignInModal";
 import CookieConsent from "../components/CookieConsent";
+
+// html2canvas/jsPDF are only needed when a PDF is actually generated (a specific user
+// action), not on initial page load — load their code on demand instead of bundling
+// ~600KB into every visitor's first load.
+let _html2canvas: typeof html2canvas | null = null;
+let _jsPDF: typeof jsPDF | null = null;
+const loadPdfLibs = async () => {
+    if (!_html2canvas) _html2canvas = (await import("html2canvas")).default;
+    if (!_jsPDF) _jsPDF = (await import("jspdf")).default;
+    return { html2canvas: _html2canvas, jsPDF: _jsPDF };
+};
 
 // Mobile-friendly PDF detection
 const isIOS = () => {
@@ -403,6 +414,7 @@ const sendReportReadyEmailWithPdf = async (
     reportId?: string
 ): Promise<string | null> => {
     try {
+        const { html2canvas, jsPDF } = await loadPdfLibs();
         window.scrollTo(0, 0);
         await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -1458,6 +1470,7 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
             try {
                 // --- FAST PATH: Use the exact cached PDF image from when user first downloaded ---
                 if (saved.pdfImageData) {
+                    const { jsPDF } = await loadPdfLibs();
                     const imgData = saved.pdfImageData;
                     const img = new Image();
                     img.src = imgData;
@@ -2484,6 +2497,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         try {
+            const { html2canvas, jsPDF } = await loadPdfLibs();
             const element = reportRef.current;
 
             // 2. Capture with forced Desktop Width (1440px)
