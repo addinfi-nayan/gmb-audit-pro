@@ -33,15 +33,15 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose, onSuccess })
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-[#0B1120] border border-white/10 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
+      <div className="bg-white border border-slate-200 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2">Sign In Required</h2>
-          <p className="text-gray-400">Sign in to access the GMB audit tool and generate your report.</p>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Sign In Required</h2>
+          <p className="text-slate-600">Sign in to access the GMB audit tool and generate your report.</p>
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -49,13 +49,13 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose, onSuccess })
                 onChange={(e) => setAgreeToTerms(e.target.checked)}
                 className="mt-1 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
               />
-              <span className="text-sm text-gray-300 leading-relaxed">
+              <span className="text-sm text-slate-700 leading-relaxed">
                 I agree to the{" "}
-                <Link href="/terms-and-conditions" target="_blank" className="text-blue-400 hover:text-blue-300 underline">
+                <Link href="/terms-and-conditions" target="_blank" className="text-blue-600 hover:text-blue-700 underline">
                   Terms & Conditions
                 </Link>{" "}
                 and{" "}
-                <Link href="/privacy-policy" target="_blank" className="text-blue-400 hover:text-blue-300 underline">
+                <Link href="/privacy-policy" target="_blank" className="text-blue-600 hover:text-blue-700 underline">
                   Privacy Policy
                 </Link>
               </span>
@@ -65,7 +65,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose, onSuccess })
           <button
             onClick={handleSignIn}
             disabled={!agreeToTerms || isLoading}
-            className="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-xl font-bold transition shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center justify-center gap-3"
+            className="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-xl font-bold transition shadow-sm hover:shadow-sm flex items-center justify-center gap-3"
           >
             {isLoading ? (
               <>
@@ -87,7 +87,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose, onSuccess })
 
           <button
             onClick={onClose}
-            className="w-full py-2 text-gray-400 hover:text-gray-300 transition text-sm"
+            className="w-full py-2 text-slate-600 hover:text-slate-700 transition text-sm"
           >
             Cancel
           </button>

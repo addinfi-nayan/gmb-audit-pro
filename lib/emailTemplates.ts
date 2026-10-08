@@ -7,7 +7,7 @@ function escapeHtml(value: unknown): string {
         .replace(/>/g, "&gt;");
 }
 
-const BRAND_HEADER_STYLE = `background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%); color: #ffffff; padding: 32px 24px; text-align: center; border-radius: 16px 16px 0 0;`;
+const BRAND_HEADER_STYLE = `background: linear-gradient(135deg, #3666a3 0%, #0891b2 100%); color: #ffffff; padding: 32px 24px; text-align: center; border-radius: 16px 16px 0 0;`;
 
 function shell(opts: { preheader: string; bodyHtml: string; footerNote?: string }): string {
     return `<!DOCTYPE html>
@@ -31,7 +31,7 @@ function shell(opts: { preheader: string; bodyHtml: string; footerNote?: string 
     .panel h3 { margin: 0 0 10px; color: #67e8f9; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
     .panel ul { margin: 0; padding-left: 18px; }
     .panel li { color: #d1d5db; font-size: 13px; padding: 4px 0; }
-    .cta { display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%); color: #ffffff !important; text-decoration: none; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 999px; margin-top: 8px; }
+    .cta { display: inline-block; background: linear-gradient(135deg, #3666a3 0%, #0891b2 100%); color: #ffffff !important; text-decoration: none; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 999px; margin-top: 8px; }
     .footer { text-align: center; padding: 20px 24px 28px; color: #6b7280; font-size: 12px; }
     .footer a { color: #22d3ee; text-decoration: none; }
 </style>

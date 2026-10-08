@@ -1,7 +1,7 @@
         "use client";
 import { useSession, signOut, useIsAdmin } from "@/lib/auth";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import axios from "axios";
 import type html2canvas from "html2canvas";
 import type jsPDF from "jspdf";
@@ -13,6 +13,57 @@ import { buildReportReadySummaryEmail, buildReportPdfEmail } from "@/lib/emailTe
 import { getSupabaseClient } from "@/lib/supabase/client";
 import SignInModal from "../components/SignInModal";
 import CookieConsent from "../components/CookieConsent";
+import Navbar, { scrollToSection } from "../components/Navbar";
+import SiteFooter from "../components/SiteFooter";
+import { Hero, IndustryStrip, StatsBand, InsideReport, MetricsAndSteps, Offer, Audience, AuditGuide, FinalCta } from "../components/LandingSections";
+import { AUDIT_PRICE, FAQS, SEO_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
+
+// Structured data for the landing page: who publishes the tool, what it is and costs, and the FAQ shown on the page.
+const LANDING_JSON_LD = {
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "Organization",
+            "@id": "https://addinfi.com/#organization",
+            name: "Addinfi Digitech Pvt. Ltd.",
+            alternateName: "Addinfi",
+            url: "https://addinfi.com",
+            email: "info@addinfi.com",
+        },
+        {
+            "@type": "WebSite",
+            "@id": `${SITE_URL}/#website`,
+            url: SITE_URL,
+            name: SITE_NAME,
+            inLanguage: "en-IN",
+            publisher: { "@id": "https://addinfi.com/#organization" },
+        },
+        {
+            "@type": "WebApplication",
+            "@id": `${SITE_URL}/#app`,
+            name: "WhatMyRank GMB Audit Tool",
+            url: SITE_URL,
+            description: SEO_DESCRIPTION,
+            applicationCategory: "BusinessApplication",
+            operatingSystem: "Web",
+            publisher: { "@id": "https://addinfi.com/#organization" },
+            offers: { "@type": "Offer", price: String(AUDIT_PRICE), priceCurrency: "INR", availability: "https://schema.org/InStock", url: SITE_URL },
+            featureList: [
+                "Google Business Profile audit score out of 100",
+                "Competitor comparison with up to 2 local competitors",
+                "14 local ranking signals per profile",
+                "Gap analysis across Reputation, Engagement, Relevance and Accessibility",
+                "4-week action plan",
+                "PDF report sent by email",
+            ],
+        },
+        {
+            "@type": "FAQPage",
+            "@id": `${SITE_URL}/#faq`,
+            mainEntity: FAQS.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+        },
+    ],
+};
 
 // html2canvas/jsPDF are only needed when a PDF is actually generated (a specific user
 // action), not on initial page load — load their code on demand instead of bundling
@@ -66,7 +117,7 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(15, 23, 42, 0.45);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -77,13 +128,13 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
     // Create dialog box
     const dialog = document.createElement('div');
     dialog.style.cssText = `
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border: 1px solid rgba(59, 130, 246, 0.3);
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
         border-radius: 16px;
         padding: 32px;
         max-width: 400px;
         width: 90%;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
         animation: slideIn 0.3s ease-out;
     `;
     
@@ -99,19 +150,19 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
             }
         </style>
         
-        <div style="text-align: center; color: white;">
+        <div style="text-align: center; color: #0f172a;">
             <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
-            <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 12px; color: #f1f5f9;">
+            <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 12px; color: #0f172a;">
                 Your GMB Audit Report is Ready!
             </h3>
-            <p style="color: #94a3b8; margin-bottom: 24px; line-height: 1.5;">
+            <p style="color: #475569; margin-bottom: 24px; line-height: 1.5;">
                 Would you like to ${isIOS() ? 'view or save' : 'download'} the PDF report now?
-                ${userEmail ? '<br><small style="color: #10b981;">✓ Report also sent to your email</small>' : ''}
+                ${userEmail ? '<br><small style="color: #059669;">✓ Report also sent to your email</small>' : ''}
             </p>
             
             <div style="display: flex; gap: 12px; justify-content: center;">
                 <button id="download-yes" style="
-                    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+                    background: #3666a3;
                     color: white;
                     border: none;
                     padding: 12px 24px;
@@ -125,16 +176,16 @@ const showDownloadDialog = (pdf: jsPDF, filename: string, userEmail?: string) =>
                 </button>
                 
                 <button id="download-no" style="
-                    background: rgba(148, 163, 184, 0.1);
-                    color: #94a3b8;
-                    border: 1px solid rgba(148, 163, 184, 0.3);
+                    background: #ffffff;
+                    color: #334155;
+                    border: 1px solid #cbd5e1;
                     padding: 12px 24px;
                     border-radius: 8px;
                     font-weight: 600;
                     cursor: pointer;
                     transition: all 0.2s;
                     font-size: 14px;
-                " onmouseover="this.style.background='rgba(148, 163, 184, 0.2)'" onmouseout="this.style.background='rgba(148, 163, 184, 0.1)'">
+                " onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
                     Maybe Later
                 </button>
             </div>
@@ -190,16 +241,16 @@ const showReportReadyDialog = (onDownload: () => void, userEmail?: string) => {
     const overlay = document.createElement('div');
     overlay.style.cssText = `
         position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.8); display: flex; align-items: center;
+        background: rgba(15, 23, 42, 0.45); display: flex; align-items: center;
         justify-content: center; z-index: 10000; backdrop-filter: blur(5px);
     `;
 
     const dialog = document.createElement('div');
     dialog.style.cssText = `
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        border: 1px solid rgba(59,130,246,0.3); border-radius: 16px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0; border-radius: 16px;
         padding: 32px; max-width: 400px; width: 90%;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: slideIn 0.3s ease-out;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12); animation: slideIn 0.3s ease-out;
     `;
 
     const isMobile = isIOS() || isAndroid();
@@ -211,17 +262,17 @@ const showReportReadyDialog = (onDownload: () => void, userEmail?: string) => {
                 @keyframes slideIn { from { transform:translateY(-20px);opacity:0; } to { transform:translateY(0);opacity:1; } }
                 @keyframes slideOut { from { transform:translateY(0);opacity:1; } to { transform:translateY(-20px);opacity:0; } }
             </style>
-            <div style="text-align:center;color:white;">
+            <div style="text-align: center; color: #0f172a;">
                 <div style="font-size:48px;margin-bottom:16px;">✅</div>
-                <h3 style="font-size:20px;font-weight:bold;margin-bottom:12px;color:#f1f5f9;">
+                <h3 style="font-size:20px;font-weight:bold;margin-bottom:12px;color: #0f172a;">
                     Report Created!
                 </h3>
-                <p style="color:#94a3b8;margin-bottom:24px;line-height:1.5;">
+                <p style="color: #475569;margin-bottom:24px;line-height:1.5;">
                     Your GMB Audit Report has been generated successfully.
-                    ${userEmail ? '<br><small style="color:#10b981;">✓ Report also sent to your email</small>' : ''}
+                    ${userEmail ? '<br><small style="color: #059669;">✓ Report also sent to your email</small>' : ''}
                 </p>
                 <button id="rrd-ok" style="
-                    background:linear-gradient(135deg,#0891b2 0%,#0e7490 100%);
+                    background:#3666a3;
                     color:white;border:none;padding:12px 40px;border-radius:8px;
                     font-weight:600;cursor:pointer;font-size:14px;
                 " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
@@ -236,28 +287,28 @@ const showReportReadyDialog = (onDownload: () => void, userEmail?: string) => {
                 @keyframes slideIn { from { transform:translateY(-20px);opacity:0; } to { transform:translateY(0);opacity:1; } }
                 @keyframes slideOut { from { transform:translateY(0);opacity:1; } to { transform:translateY(-20px);opacity:0; } }
             </style>
-            <div style="text-align:center;color:white;">
+            <div style="text-align: center; color: #0f172a;">
                 <div style="font-size:48px;margin-bottom:16px;">📊</div>
-                <h3 style="font-size:20px;font-weight:bold;margin-bottom:12px;color:#f1f5f9;">
+                <h3 style="font-size:20px;font-weight:bold;margin-bottom:12px;color: #0f172a;">
                     Your GMB Audit Report is Ready!
                 </h3>
-                <p style="color:#94a3b8;margin-bottom:24px;line-height:1.5;">
+                <p style="color: #475569;margin-bottom:24px;line-height:1.5;">
                     Would you like to download the PDF report now?
-                    ${userEmail ? '<br><small style="color:#10b981;">✓ Report also sent to your email</small>' : ''}
+                    ${userEmail ? '<br><small style="color: #059669;">✓ Report also sent to your email</small>' : ''}
                 </p>
                 <div style="display:flex;gap:12px;justify-content:center;">
                     <button id="rrd-yes" style="
-                        background:linear-gradient(135deg,#0891b2 0%,#0e7490 100%);
+                        background:#3666a3;
                         color:white;border:none;padding:12px 24px;border-radius:8px;
                         font-weight:600;cursor:pointer;font-size:14px;
                     " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                         📥 Download PDF
                     </button>
                     <button id="rrd-no" style="
-                        background:rgba(148,163,184,0.1);color:#94a3b8;
-                        border:1px solid rgba(148,163,184,0.3);padding:12px 24px;
+                        background:#ffffff;color: #334155;
+                        border:1px solid #cbd5e1;padding:12px 24px;
                         border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;
-                    " onmouseover="this.style.background='rgba(148,163,184,0.2)'" onmouseout="this.style.background='rgba(148,163,184,0.1)'">
+                    " onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
                         Maybe Later
                     </button>
                 </div>
@@ -303,12 +354,13 @@ const showThemeAlert = (message: string) => {
         position: fixed;
         top: 20px;
         right: 20px;
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        color: #f1f5f9;
+        background: #ffffff;
+        color: #0f172a;
         padding: 16px 24px;
         border-radius: 12px;
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(59, 130, 246, 0.1);
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid #3666a3;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
         font-family: system-ui, -apple-system, sans-serif;
         font-size: 14px;
         font-weight: 500;
@@ -425,7 +477,7 @@ const sendReportReadyEmailWithPdf = async (
             scrollY: 0,
             windowWidth: 1440,
             width: 1440,
-            backgroundColor: "#030712",
+            backgroundColor: "#ffffff",
             onclone: (clonedDoc) => {
                 const clonedElement = clonedDoc.getElementById('report-content');
                 if (clonedElement) {
@@ -511,96 +563,20 @@ const sendReportReadyEmailWithPdf = async (
 const FAQItem = ({ q, a }: { q: string, a: string }) => {
     const [isOpen, setIsOpen] = useState(false);
     return (
-        <div className="bg-[#0B1120] border border-white/5 rounded-xl overflow-hidden hover:border-white/10 transition">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-slate-200 transition">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex items-center justify-between p-4 text-left focus:outline-none"
             >
-                <h3 className="text-base font-bold text-gray-200 pr-8">{q}</h3>
-                <svg className={`w-5 h-5 text-blue-500 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                <h3 className="text-base font-bold text-slate-800 pr-8">{q}</h3>
+                <svg className={`w-5 h-5 text-blue-600 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
-            <div className={`px-4 text-gray-400 text-sm leading-relaxed transition-all duration-300 overflow-hidden ${isOpen ? 'max-h-96 pb-4 opacity-100' : 'max-h-0 opacity-0'}`}>
+            <div className={`px-4 text-slate-600 text-sm leading-relaxed transition-all duration-300 overflow-hidden ${isOpen ? 'max-h-96 pb-4 opacity-100' : 'max-h-0 opacity-0'}`}>
                 {a}
             </div>
         </div>
     );
 };
-
-// --- USER MENU COMPONENT ---
-const UserMenu = ({ session }: { session: any }) => {
-    const isAdmin = useIsAdmin();
-    const [isOpen, setIsOpen] = useState(false);
-    const [imageError, setImageError] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    return (
-        <div className="relative" ref={menuRef}>
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border border-white/10 hover:border-white/30 transition focus:outline-none ring-2 ring-transparent focus:ring-blue-500/50 p-0"
-            >
-                {session?.user?.image && !imageError ? (
-                    <img
-                        src={session.user.image}
-                        alt="User"
-                        className="w-full h-full object-cover"
-                        onError={() => setImageError(true)}
-                    />
-                ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-sm">
-                        {session?.user?.name?.charAt(0) || "U"}
-                    </div>
-                )}
-            </button>
-
-            {isOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-[#0B1120] border border-white/10 rounded-xl shadow-2xl py-1 z-50 animate-[fadeIn_0.1s_ease-out] backdrop-blur-xl">
-                    <div className="px-4 py-3 border-b border-white/5 bg-white/5">
-                        <p className="text-sm text-white font-bold truncate">{session?.user?.name}</p>
-                        <p className="text-xs text-gray-500 truncate font-mono">{session?.user?.email}</p>
-                    </div>
-                    <div className="p-1">
-                        {isAdmin && (
-                            <Link
-                                href="/admin"
-                                className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition rounded-lg flex items-center gap-2 group"
-                            >
-                                <div className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                </div>
-                                Admin Panel
-                            </Link>
-                        )}
-                        <button
-                            onClick={() => signOut()}
-                            className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition rounded-lg flex items-center gap-2 group"
-                        >
-                            <div className="w-6 h-6 rounded-md bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                            </div>
-                            Sign Out
-                        </button>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-interface LandingProps {
-    onStart: () => void;
-    onReports?: () => void;
-}
 
 const LandingPage = ({ onStart, onReports }: { onStart: () => void; onReports?: () => void }) => {
 
@@ -625,12 +601,9 @@ const LandingPage = ({ onStart, onReports }: { onStart: () => void; onReports?: 
     // --- LIVE STATS COUNTER (Fixed Hydration Error) ---
     const [profileCount, setProfileCount] = useState(100);
     const [issueCount, setIssueCount] = useState(1145);
-    const [mounted, setMounted] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { data: session } = useSession();
 
     useEffect(() => {
-        setMounted(true);
         // 1. Initial wait, then add small "Daily Batch"
         const initialBatchTimer = setTimeout(() => {
             const randomIncrease = Math.floor(Math.random() * 3) + 2; // +2 to +4
@@ -655,459 +628,58 @@ const LandingPage = ({ onStart, onReports }: { onStart: () => void; onReports?: 
         };
     }, []);
 
-    if (!mounted) return null; // Prevent hydration mismatch
+    // Arriving from another page via /#section — scroll once the landing content exists.
+    useEffect(() => {
+        if (window.location.hash) scrollToSection(window.location.hash.slice(1));
+    }, []);
+
     return (
-        <div className="min-h-screen bg-[#030712] text-white font-sans selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden relative flex flex-col justify-between">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-800 overflow-x-clip relative flex flex-col">
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(LANDING_JSON_LD) }} />
+            <Navbar onStart={onStart} onReports={onReports} />
 
-            {/* --- GLOBAL BACKGROUND --- */}
-            <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_200px,#030712,transparent)]"></div>
-            </div>
+            <main className="relative z-10 flex-1">
+                <Hero onStart={onStart} signedIn={!!session} />
+                <IndustryStrip />
+                <StatsBand profileCount={profileCount} issueCount={issueCount} />
+                <InsideReport />
+                <MetricsAndSteps metrics={METRIC_DEFINITIONS.filter((m) => m.label !== "Listing Age")} />
+                <Offer onStart={onStart} signedIn={!!session} />
+                <Audience />
+                <AuditGuide onStart={onStart} signedIn={!!session} />
 
-            {/* --- NAVBAR --- */}
-            <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
-                <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">What<span className="text-blue-500">My</span>Rank<span className="hidden md:inline"> - GMB</span></span>
-                    </div>
-                    <div className="flex items-center gap-4 md:gap-8 relative">
-
-                        <div className="hidden md:flex items-center gap-8 text-xs font-medium text-gray-400 uppercase tracking-widest">
-                            <Link href="/terms-and-conditions" className="hover:text-cyan-400 transition cursor-pointer">Terms</Link>
-                            <Link href="/privacy-policy" className="hover:text-cyan-400 transition cursor-pointer">Privacy</Link>
-                            <Link href="/refund-policy" className="hover:text-cyan-400 transition cursor-pointer">Refund Policy</Link>
-                            {onReports && (
-                                <button onClick={onReports} className="hover:text-cyan-400 transition cursor-pointer flex items-center gap-1">
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                    My Reports
-                                </button>
-                            )}
-                        </div>
-
-
-                        <button
-                            onClick={onStart}
-                            className="px-6 py-2 bg-white text-black rounded-full font-bold text-sm transition hover:scale-105"
-                        >
-                            {session ? "Get Audit" : "Sign In"}
-                        </button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        {session && (
-                            <div className="hidden md:block">
-                                <UserMenu session={session} />
+                <section id="faq" className="py-16 md:py-28 border-t border-slate-200 bg-white">
+                    <div className="max-w-7xl mx-auto px-4 md:px-6 grid lg:grid-cols-[0.8fr_1.2fr] gap-10 lg:gap-16">
+                        <div className="lg:sticky lg:top-28 lg:self-start">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold tracking-wide uppercase mb-5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> FAQ
                             </div>
-                        )}
-
-                        {/* Mobile Menu Toggle */}
-                        <button
-                            className="md:hidden text-gray-300 hover:text-white focus:outline-none"
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        >
-                            {isMobileMenuOpen ? (
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                            ) : (
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                            )}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Mobile Menu Dropdown */}
-                {isMobileMenuOpen && (
-                    <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col items-center text-center">
-                        <Link href="/terms-and-conditions" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">Terms</Link>
-                        <Link href="/privacy-policy" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">Privacy</Link>
-                        <Link href="/refund-policy" onClick={() => setIsMobileMenuOpen(false)} className="block text-sm font-medium text-gray-400 uppercase tracking-widest hover:text-cyan-400 transition">Refund Policy</Link>
-
-                        {onReports && (
-                            <button
-                                onClick={() => { setIsMobileMenuOpen(false); onReports(); }}
-                                className="block text-sm font-medium text-cyan-400 uppercase tracking-widest hover:text-white transition"
-                            >
-                                📄 My Reports
-                            </button>
-                        )}
-
-                        {session && (
-                            <button
-                                onClick={() => { setIsMobileMenuOpen(false); signOut(); }}
-                                className="w-full text-sm font-semibold text-gray-300 hover:text-white transition py-3 border-t border-white/10"
-                            >
-                                Sign Out
-                            </button>
-                        )}
-
-
-                    </div>
-                )}
-            </nav>
-
-            {/* --- HERO SECTION --- */}
-            <main className="relative z-10 text-center">
-                <div className="max-w-6xl mx-auto px-4 md:px-6 w-full md:min-h-screen flex flex-col lg:flex-row lg:items-center lg:justify-between gap-10 lg:gap-16 pt-28 pb-12 md:pt-20 md:pb-0 relative">
-
-                    {/* Left: copy */}
-                    <div className="w-full lg:w-1/2 flex flex-col items-center lg:order-1">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-[10px] md:text-xs font-mono mb-6 backdrop-blur-md">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.6)]"></span>
-                            POWERED BY ADDINFI
-                        </div>
-
-                        <h1 className="text-4xl md:text-6xl lg:text-6xl font-bold tracking-tighter mb-6 md:mb-8 leading-[1.1] text-white text-center">
-                            Analyze Your <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600">
-                                GMB & Competitors
-                            </span>
-                        </h1>
-
-                        <p className="text-base md:text-lg text-gray-400 mb-8 md:mb-12 font-light leading-relaxed text-center">
-                            Your Google Business Profile plays a major role in how customers find you on Google Search and Maps. Our Google Business Profile audit tool gives you a clear, data-driven view of how your GMB is performing and how it compares to your top local competitors.
-                        </p>
-
-                        <div className="flex justify-center mb-8 md:mb-0">
-                            <button
-                                onClick={onStart}
-                                className="w-full md:w-auto px-8 md:px-12 py-4 md:py-5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center justify-center gap-3 transform hover:scale-105"
-                            >
-                                <span className="flex items-center gap-2">
-                                    {session ? "Get Report At ₹99" : "Sign In & Get Audit At ₹99"}
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Right: hero image */}
-                    <div className="w-full lg:w-1/2 flex justify-center lg:justify-end mb-4 lg:mb-0 lg:order-2">
-                        <div className="relative w-full max-w-sm md:max-w-md">
-                            <NextImage
-                                src="/hero.png"
-                                alt="Google Business Profile Audit"
-                                width={548}
-                                height={456}
-                                priority
-                                className="w-full h-auto drop-shadow-[0_0_60px_rgba(6,182,212,0.3)]"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* --- LIVE STATS GRID (Below Fold) --- */}
-                <div className="w-full max-w-7xl mx-auto px-4 md:px-6 mb-12 md:mb-32">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                        {/* Card 1 */}
-                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-blue-500/30 transition group flex flex-col items-center justify-center text-center">
-                            <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Profiles Analyzed</p>
-                            <div className="flex items-baseline justify-center gap-1 mb-2">
-                                <span className="text-3xl md:text-4xl font-bold text-white tabular-nums leading-none">{profileCount.toLocaleString()}</span>
-                                <span className="text-blue-500 font-bold text-xl leading-none">+</span>
-                            </div>
-                            <div className="hidden md:flex items-center justify-center gap-2 text-xs text-blue-400">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                                <span>Real-time processing</span>
-                            </div>
-                        </div>
-                        {/* ... other cards (same structure) ... */}
-                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-purple-500/30 transition group flex flex-col items-center justify-center text-center">
-                            <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Issues Detected</p>
-                            <div className="flex items-baseline justify-center gap-1 mb-2">
-                                <span className="text-3xl md:text-4xl font-bold text-white tabular-nums leading-none">{issueCount.toLocaleString()}</span>
-                                <span className="text-purple-500 font-bold text-xl leading-none">+</span>
-                            </div>
-                            <div className="hidden md:flex items-center justify-center gap-2 text-xs text-purple-400">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <span>Critical gaps found</span>
-                            </div>
-                        </div>
-                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-green-500/30 transition group flex flex-col items-center justify-center text-center">
-                            <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Accuracy Rate</p>
-                            <div className="flex items-baseline justify-center gap-1 mb-2">
-                                <span className="text-3xl md:text-4xl font-bold text-white leading-none">99.8</span>
-                                <span className="text-green-500 font-bold text-xl leading-none">%</span>
-                            </div>
-                            <div className="hidden md:flex items-center justify-center gap-2 text-xs text-green-400">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <span>Verified data sources</span>
-                            </div>
-                        </div>
-                        <div className="bg-[#0B1120] border border-white/10 p-4 md:p-6 rounded-xl hover:border-cyan-500/30 transition group flex flex-col items-center justify-center text-center">
-                            <p className="text-gray-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-2">Hrs Saved</p>
-                            <div className="flex items-baseline justify-center gap-1 mb-2">
-                                <span className="text-3xl md:text-4xl font-bold text-white leading-none">4.5</span>
-                                <span className="text-cyan-500 font-bold text-xl leading-none">hrs</span>
-                            </div>
-                            <div className="hidden md:flex items-center justify-center gap-2 text-xs text-cyan-400">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <span>vs Manual Auditing</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* --- BENEFITS & PROTOCOL SECTIONS --- */}
-                <section id="benefits" className="py-10 md:py-32 relative border-t border-white/5 overflow-hidden">
-                    {/* Background Tech Elements */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
-                        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
-                        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl"></div>
-                    </div>
-
-                    <div className="max-w-7xl mx-auto px-6 relative z-10">
-                        <div className="text-center mb-10 md:mb-20">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-xs font-mono mb-6">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-                                COMPREHENSIVE ANALYSIS
-                            </div>
-                            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">What You Get in Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">GBP Audit Report</span></h2>
-                            <p className="text-gray-400 max-w-2xl mx-auto text-lg">Receive a detailed breakdown of your profile's health and competitive standing.</p>
-                        </div>
-
-                        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center">
-                            {/* Left Column - Features */}
-                            <div className="flex-1 space-y-6 w-full">
-                                {[
-                                    { title: "Executive Performance Summary", desc: "Current ranking potential score.", icon: "🧠", color: "text-pink-400", border: "group-hover:border-pink-500/30" },
-                                    { title: "Competitor Comparison Insights", desc: "Why competitors win in local search.", icon: "⚔️", color: "text-red-400", border: "group-hover:border-red-500/30" },
-                                    { title: "Review & Reputation Gaps", desc: "Trust growth opportunities.", icon: "📈", color: "text-purple-400", border: "group-hover:border-purple-500/30" },
-                                ].map((item, i) => (
-                                    <div key={i} className={`bg-[#0B1120]/80 backdrop-blur-sm p-6 rounded-xl border border-white/5 transition-all group hover:translate-x-2 ${item.border}`}>
-                                        <div className="flex flex-col items-center text-center gap-4">
-                                            <div className={`p-3 rounded-lg bg-white/5 border border-white/10 text-2xl ${item.color}`}>{item.icon}</div>
-                                            <div>
-                                                <h3 className="text-lg font-bold text-gray-100 mb-1 group-hover:text-white transition">{item.title}</h3>
-                                                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Center - Rocket Animation */}
-                            <div className="relative w-full max-w-sm flex justify-center py-10 lg:py-0">
-                                <div className="relative w-64 h-64 md:w-80 md:h-80 border border-white/10 rounded-full flex items-center justify-center bg-[#0B1120]/50 backdrop-blur-md shadow-[0_0_50px_-10px_rgba(6,182,212,0.2)]">
-                                    <div className="absolute inset-0 border border-dashed border-white/20 rounded-full animate-[spin_10s_linear_infinite]"></div>
-                                    <div className="absolute inset-4 border border-white/5 rounded-full"></div>
-
-                                    {/* Rocket Container */}
-                                    <div className="relative z-10 animate-[bounce_3s_infinite]">
-                                        <div className="text-7xl md:text-8xl filter drop-shadow-[0_0_20px_rgba(59,130,246,0.5)] transform -rotate-45">🚀</div>
-                                        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-8 h-16 bg-gradient-to-t from-transparent to-orange-500/80 blur-md rounded-full"></div>
-                                    </div>
-
-                                    {/* Orbiting Elements */}
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#030712] px-3 py-1 rounded-full border border-cyan-500/30 text-cyan-400 text-[10px] font-mono shadow-lg tracking-widest">SCANNING</div>
-                                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 bg-[#030712] px-3 py-1 rounded-full border border-green-500/30 text-green-400 text-[10px] font-mono shadow-lg tracking-widest">OPTIMIZING</div>
+                            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 leading-[1.1]">GMB audit <span className="text-blue-600">FAQs</span></h2>
+                            <p className="mt-5 text-slate-600 text-base md:text-lg">Everything you need to know before running your first Google Business Profile audit.</p>
+                            <a href="mailto:info@addinfi.com" className="mt-8 flex items-center gap-4 bg-slate-50 border border-slate-200 p-4 rounded-xl hover:border-blue-200 transition group max-w-sm">
+                                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                                 </div>
-                            </div>
-
-                            {/* Right Column - Features */}
-                            <div className="flex-1 space-y-6 w-full">
-                                {[
-                                    { title: "Optimization & Visibility Issues", desc: "Hidden ranking blockers.", icon: "📍", color: "text-yellow-400", border: "group-hover:border-yellow-500/30" },
-                                    { title: "Priority Areas for Improvement", desc: "Fastest impact actions.", icon: "💎", color: "text-cyan-400", border: "group-hover:border-cyan-500/30" },
-                                    { title: "Keyword Ranking Opportunities", desc: "Discover high-value search terms you're missing.", icon: "🔍", color: "text-green-400", border: "group-hover:border-green-500/30" }
-                                ].map((item, i) => (
-                                    <div key={i} className={`bg-[#0B1120]/80 backdrop-blur-sm p-6 rounded-xl border border-white/5 transition-all group lg:hover:-translate-x-2 hover:translate-x-2 ${item.border}`}>
-                                        <div className="flex flex-col items-center text-center gap-4">
-                                            <div className={`p-3 rounded-lg bg-white/5 border border-white/10 text-2xl ${item.color}`}>{item.icon}</div>
-                                            <div>
-                                                <h3 className="text-lg font-bold text-gray-100 mb-1 group-hover:text-white transition">{item.title}</h3>
-                                                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* --- INTERMEDIATE CTA --- */}
-                <div className="flex justify-center py-12 border-t border-white/5 bg-[#0B1120]/30">
-                    <button
-                        onClick={onStart}
-                        className="w-auto px-8 md:px-12 py-4 md:py-5 bg-white text-black hover:bg-gray-100 rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] flex items-center justify-center gap-3 transform hover:scale-105"
-                    >
-                        <span className="flex items-center gap-2">
-                            {session ? "Get Audit At ₹99" : "Sign In & Get Audit At ₹99"}
-                        </span>
-                    </button>
-                </div>
-
-                <section id="protocol" className="py-10 md:py-32 bg-[#0B1120]/30 border-t border-white/5">
-                    <div className="max-w-7xl mx-auto px-6">
-                        <div className="flex flex-col md:flex-row gap-12 items-center">
-                            <div className="flex-1">
-                                <div className="inline-block text-cyan-500 font-mono text-xs tracking-widest mb-4 border border-cyan-500/20 px-2 py-1 rounded bg-cyan-500/10">AUDIT PROCESS</div>
-                                <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-white">How the GBP <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">Audit Tool Works</span></h2>
-                                <p className="text-gray-400 mb-8 text-lg">Detailed analysis in 3 simple steps.</p>
-
-                                <div className="space-y-8">
-                                    {[
-                                        { step: "01", title: "Enter Your Business Details", desc: "Provide your business name with a maximum of 2 competitors." },
-                                        { step: "02", title: "Competitor & Profile Analysis", desc: "The tool analyzes your profile alongside top competitors using key local ranking factors." },
-                                        { step: "03", title: "Get Your Audit Report", desc: "Receive a clear audit highlighting gaps, strengths, and opportunities." }
-                                    ].map((s, i) => (
-                                        <div key={i} className="flex gap-6 items-start text-left">
-                                            <div className="min-w-[40px] font-mono text-blue-500 font-bold text-xl opacity-50 leading-none mt-1">{s.step}</div>
-                                            <div>
-                                                <h4 className="text-white font-bold text-lg mb-2">{s.title}</h4>
-                                                <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
-                                            </div>
-                                        </div>
-                                    ))}
+                                <div className="text-left">
+                                    <div className="text-xs font-semibold text-slate-500">Still have questions?</div>
+                                    <div className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition">info@addinfi.com</div>
                                 </div>
-                            </div>
-                            <div className="flex-1 relative w-full">
-                                {/* Abstract Visual - Modern Replacement */}
-                                <div className="relative z-10 bg-[#0B1120] border border-white/10 rounded-2xl p-8 shadow-2xl backdrop-blur-xl">
-                                    <div className="flex items-center justify-between mb-8">
-                                        <div>
-                                            <div className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-1">System Active</div>
-                                            <div className="text-xl font-bold text-white">Audit Protocol</div>
-                                        </div>
-                                        <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 animate-pulse">
-                                            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-6">
-                                        {/* Step 1 Visual */}
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/30 text-green-400">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-green-500 w-full"></div>
-                                                </div>
-                                                <div className="flex justify-between mt-1">
-                                                    <span className="text-xs text-gray-400">Target Identification</span>
-                                                    <span className="text-xs text-green-400">Complete</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Step 2 Visual */}
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30 text-blue-400">
-                                                <div className="w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-blue-500 w-[70%] animate-[shimmer_2s_infinite]"></div>
-                                                </div>
-                                                <div className="flex justify-between mt-1">
-                                                    <span className="text-xs text-gray-400">Deep Scan Analysis</span>
-                                                    <span className="text-xs text-blue-400">Processing...</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Step 3 Visual */}
-                                        <div className="flex items-center gap-4 opacity-50">
-                                            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10 text-gray-500">
-                                                <span className="text-xs font-bold">03</span>
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="h-2 bg-white/5 rounded-full"></div>
-                                                <div className="flex justify-between mt-1">
-                                                    <span className="text-xs text-gray-500">Strategy Deployment</span>
-                                                    <span className="text-xs text-gray-600">Pending</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="absolute -top-10 -right-10 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] -z-10"></div>
-                            </div>
+                            </a>
                         </div>
-                    </div>
-                </section>
-
-
-
-                <section id="faq" className="py-10 md:py-32 border-t border-white/5">
-                    <div className="max-w-4xl mx-auto px-6">
-                        <h2 className="text-3xl md:text-5xl font-bold mb-12 text-center text-white">Frequently Asked <span className="text-blue-500">Questions</span></h2>
-                        <div className="space-y-4">
-                            {[
-                                { q: "What is a GBP audit tool?", a: "A GBP audit tool analyzes how well your GMB listing is optimized for local search. It evaluates key factors such as reviews, categories, profile completeness, activity, and competitor performance to identify gaps that may be affecting your Google Maps rankings." },
-                                { q: "How does this GMB audit tool compare my business with competitors?", a: "The tool analyzes your GBP alongside top local competitors competing for the same searches. It highlights differences in reviews, optimization strength, and visibility signals, helping you understand why certain competitors rank higher in local results." },
-                                { q: "Is this GBP audit suitable for all types of businesses?", a: "Yes. The audit tool is designed for any business that relies on local visibility, including service providers, clinics, retail stores, agencies, and multi-location brands. The analysis adapts to your local market and competitive landscape." },
-                                { q: "Does this tool help improve Google Maps rankings?", a: "The audit itself does not change rankings, but it clearly identifies the issues that influence Google Maps visibility. By addressing the gaps highlighted in the audit, businesses can improve relevance, trust, and competitive positioning in local search results." },
-                                { q: "How long does it take to generate a Google Business Profile audit report?", a: "The audit process is quick and requires no technical setup. Once you enter your business details, the tool analyzes your profile and competitors and generates a report within minutes." },
-                                { q: "Do I need technical SEO knowledge to understand the audit report?", a: "No. The audit report is designed to be clear and decision-focused. It explains performance and gaps in simple terms so business owners, marketers, and consultants can easily understand what needs attention." }
-                            ].map((item, i) => (
-                                <FAQItem key={i} q={item.q} a={item.a} />
+                        <div className="space-y-3">
+                            {FAQS.map((item) => (
+                                <FAQItem key={item.q} q={item.q} a={item.a} />
                             ))}
                         </div>
-
-                        {/* Contact Section */}
-                        <div className="mt-16 pt-10 border-t border-white/5">
-                            <div className="text-center mb-8">
-                                <h3 className="text-xl font-bold text-white">Still have questions?</h3>
-                                <p className="text-gray-400 text-sm mt-2">Our support team is ready to help you optimize your local presence.</p>
-                            </div>
-                            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
-                                <a href="mailto:info@addinfi.com" className="flex items-center gap-4 bg-[#0B1120] border border-white/5 p-4 rounded-xl hover:border-cyan-500/30 transition group min-w-[250px]">
-                                    <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                                    </div>
-                                    <div className="text-left">
-                                        <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Email Support</div>
-                                        <div className="text-sm font-bold text-gray-200 group-hover:text-cyan-400 transition">info@addinfi.com</div>
-                                    </div>
-                                </a>
-
-
-                            </div>
-                        </div>
                     </div>
                 </section>
 
-                {/* --- FINAL CTA --- */}
-                <div className="max-w-3xl mx-auto px-6 text-center mb-10">
-                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 md:mb-8">Start Your GBP Audit Today</h2>
-                    <p className="text-gray-400 mb-8 md:mb-10 text-sm md:text-base">If you want better local rankings, more visibility, and a clear understanding of how you compare to competitors, this audit is the right place to start.</p>
-                    <button
-                        onClick={onStart}
-                        className="w-full md:w-auto px-16 py-5 bg-white text-black rounded-xl font-bold text-lg hover:scale-105 transition shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)]"
-                    >
-                        {session ? "Get Audit At ₹99" : "Sign In & Get Audit At ₹99"}
-                    </button>
+                <div className="pt-16 md:pt-24 bg-white">
+                    <FinalCta onStart={onStart} signedIn={!!session} />
                 </div>
-
             </main>
 
-            <footer className="border-t border-white/5 py-12 text-center relative z-10 bg-[#02040a]">
-                <div className="flex items-center justify-center gap-2 mb-4 opacity-50">
-                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                    <span className="text-[10px] md:text-xs font-mono text-gray-400">ALL SYSTEMS OPERATIONAL</span>
-                </div>
-                <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-6">
-                    <Link href="/terms-and-conditions" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Terms & Conditions</Link>
-                    <Link href="/privacy-policy" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Privacy Policy</Link>
-                    <Link href="/refund-policy" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Refund Policy</Link>
-                </div>
-                <p className="text-gray-600 text-[10px] md:text-xs font-mono">&copy; {new Date().getFullYear()} ADDINFI DIGITECH PVT. LTD. // SECURE CONNECTION</p>
-            </footer>
+            <SiteFooter />
         </div>
     );
 };
@@ -1156,15 +728,15 @@ const LOADING_MESSAGES = [
 ];
 
 // --- ICONS ---
-const SearchIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>);
-const MapPinIcon = () => (<svg className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>);
-const StarIcon = () => (<svg className="w-3 h-3 text-yellow-500 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>);
-const ErrorIcon = () => (<svg className="w-12 h-12 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>);
+const SearchIcon = () => (<svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>);
+const MapPinIcon = () => (<svg className="w-5 h-5 text-slate-600 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>);
+const StarIcon = () => (<svg className="w-3 h-3 text-amber-600 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>);
+const ErrorIcon = () => (<svg className="w-12 h-12 text-red-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>);
 const LockIcon = () => (<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>);
-const ChartIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>);
-const TrophyIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>);
-const BookIcon = () => (<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>);
-const WarningIcon = () => (<svg className="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>);
+const ChartIcon = () => (<svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"></path></svg>);
+const TrophyIcon = () => (<svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>);
+const BookIcon = () => (<svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>);
+const WarningIcon = () => (<svg className="w-12 h-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>);
 
 // --- HOOK: DEBOUNCE ---
 function useDebounce(value: string, delay: number) {
@@ -1268,14 +840,14 @@ const buildComparisonEntities = (report: any, userBusinessName?: string) => {
             key: "me",
             label: userBusinessName || report?.matrix?.me?.title || report?.matrix?.me?.name || report?.matrix?.me?.business_name || "Your Business",
             data: report?.matrix?.me,
-            textClass: "text-cyan-400",
+            textClass: "text-blue-600",
             barClass: "bg-cyan-500",
         },
         ...comparisonCompetitors.map((competitor: any, index: number) => ({
             key: `competitor-${index}`,
             label: competitor?.title || competitor?.name || competitor?.business_name || `Competitor ${index + 1}`,
             data: competitor,
-            textClass: index === 0 ? "text-purple-400" : "text-indigo-400",
+            textClass: index === 0 ? "text-violet-600" : "text-indigo-600",
             barClass: index === 0 ? "bg-purple-500" : "bg-indigo-500",
         })),
     ];
@@ -1285,31 +857,42 @@ const buildComparisonEntities = (report: any, userBusinessName?: string) => {
 export default function Page() {
     const { data: session, status } = useSession();
     const pathname = usePathname();
-    const [view, setView] = useState<"landing" | "dashboard" | "reports">(() => {
-        if (typeof window !== 'undefined') {
-            const saved = sessionStorage.getItem('gmb_view');
-            if (saved === 'dashboard' || saved === 'reports') return saved;
-        }
-        return 'landing';
-    });
+    // Always start on "landing" so the server-rendered HTML (what search engines index) contains
+    // the full landing page; a returning visitor's saved view is restored before first paint.
+    const [view, setView] = useState<"landing" | "dashboard" | "reports">("landing");
+    const [viewRestored, setViewRestored] = useState(false);
+    useLayoutEffect(() => {
+        const saved = sessionStorage.getItem('gmb_view');
+        if (saved === 'dashboard' || saved === 'reports') setView(saved);
+        setViewRestored(true);
+    }, []);
     const [showSignInModal, setShowSignInModal] = useState(false);
+
+    // Other pages send visitors to "/?signin=1" from their Sign In button.
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("signin") === "1") {
+            setShowSignInModal(true);
+            window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+        }
+    }, []);
 
     // Persist view to sessionStorage whenever it changes
     useEffect(() => {
-        if (typeof window !== 'undefined') {
+        if (viewRestored) {
             if (view === 'dashboard' || view === 'reports') {
                 sessionStorage.setItem('gmb_view', view);
             } else {
                 sessionStorage.removeItem('gmb_view');
             }
         }
-    }, [view]);
+    }, [view, viewRestored]);
 
     const [pendingDownload, setPendingDownload] = useState<SavedReport | null>(null);
     const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null); // gmbName after success
 
     // 1. Fix "Invalid Hook Call": Ensure no hooks are outside this function
-    if (status === "loading") return <div className="min-h-screen bg-[#030712]" />;
+    if (status === "loading" && view !== "landing") return <div className="min-h-screen bg-slate-50" />;
 
     const handleStartAction = () => {
         if (!session) {
@@ -1338,20 +921,20 @@ export default function Page() {
             {/* --- PDF GENERATION LOADER OVERLAY --- */}
             {pendingDownload && (
                 <div className="fixed bottom-6 right-6 z-[9999] pointer-events-none">
-                    <div className="bg-[#0B1120]/95 border border-cyan-500/40 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-[0_0_40px_rgba(6,182,212,0.25)] flex items-center gap-4 min-w-[280px]">
+                    <div className="bg-white/95 border border-blue-300 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-sm flex items-center gap-4 min-w-[280px]">
                         {/* Spinning ring */}
                         <div className="relative w-10 h-10 shrink-0">
-                            <div className="absolute inset-0 rounded-full border-2 border-cyan-500/20" />
+                            <div className="absolute inset-0 rounded-full border-2 border-blue-200" />
                             <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-cyan-400 animate-spin" />
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                             </div>
                         </div>
                         <div>
-                            <div className="text-white font-bold text-sm tracking-wide">Generating PDF</div>
-                            <div className="text-cyan-400 text-[11px] font-mono mt-0.5 flex items-center gap-1">
+                            <div className="text-slate-900 font-bold text-sm tracking-wide">Generating PDF</div>
+                            <div className="text-blue-600 text-[11px] font-mono mt-0.5 flex items-center gap-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                                 This may take a moment...
                             </div>
@@ -1363,16 +946,16 @@ export default function Page() {
             {/* --- PDF SUCCESS TOAST --- */}
             {downloadSuccess && !pendingDownload && (
                 <div className="fixed bottom-6 right-6 z-[9999] pointer-events-none">
-                    <div className="bg-[#0B1120]/95 border border-green-500/40 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-[0_0_40px_rgba(34,197,94,0.2)] flex items-center gap-4 min-w-[280px]">
+                    <div className="bg-white/95 border border-emerald-300 backdrop-blur-xl rounded-2xl px-5 py-4 shadow-sm flex items-center gap-4 min-w-[280px]">
                         {/* Checkmark */}
-                        <div className="w-10 h-10 rounded-full bg-green-500/15 border border-green-500/40 flex items-center justify-center shrink-0">
-                            <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-300 flex items-center justify-center shrink-0">
+                            <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                             </svg>
                         </div>
                         <div>
-                            <div className="text-white font-bold text-sm tracking-wide">PDF Downloaded!</div>
-                            <div className="text-green-400 text-[11px] font-mono mt-0.5 truncate max-w-[180px]">{downloadSuccess}</div>
+                            <div className="text-slate-900 font-bold text-sm tracking-wide">PDF Downloaded!</div>
+                            <div className="text-emerald-600 text-[11px] font-mono mt-0.5 truncate max-w-[180px]">{downloadSuccess}</div>
                         </div>
                     </div>
                 </div>
@@ -1504,58 +1087,46 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
     };
 
     return (
-        <div className="min-h-screen bg-[#030712] text-white font-sans">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
             {/* Grid Background */}
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
             </div>
 
-            {/* Navbar */}
-            <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
-                <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-                    <button onClick={onHome} className="flex items-center gap-3">
-                        <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">What<span className="text-blue-500">My</span>Rank</span>
-                    </button>
-                    <div className="flex items-center gap-4">
-                        <button onClick={onHome} className="text-xs font-bold text-gray-400 uppercase hover:text-white transition">Home</button>
-                        <button
-                            onClick={onGetAudit}
-                            className="px-5 py-2 bg-white text-black rounded-full font-bold text-sm transition hover:scale-105"
-                        >
-                            Get Audit
-                        </button>
-                        {session && <UserMenu session={session} />}
-                    </div>
-                </div>
-            </nav>
+            <Navbar
+                onHome={onHome}
+                onStart={onGetAudit}
+                onReports={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                ctaLabel="Get Audit"
+            />
 
             {/* Content */}
             <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 pt-32 pb-20">
                 {/* Header */}
                 <div className="mb-12">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/20 border border-blue-500/30 text-blue-400 text-[10px] md:text-xs font-mono mb-6 backdrop-blur-md">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_10px_rgba(59,130,246,0.6)]"></span>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-600 text-[10px] md:text-xs font-mono mb-6 backdrop-blur-md">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shadow-sm"></span>
                         AUDIT HISTORY
                     </div>
-                    <h1 className="text-3xl md:text-5xl font-bold tracking-tighter text-white">My <span className="text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600">Reports</span></h1>
-                    <p className="text-gray-400 mt-3 text-sm md:text-base">All your past GMB audit reports, ready to download.</p>
+                    <h1 className="text-3xl md:text-5xl font-bold tracking-tighter text-slate-900">My <span className="text-transparent bg-clip-text bg-gradient-to-b from-blue-600 to-cyan-600">Reports</span></h1>
+                    <p className="text-slate-600 mt-3 text-sm md:text-base">All your past GMB audit reports, ready to download.</p>
                 </div>
 
                 {/* Search */}
                 {reports.length > 0 && (
                     <div className="relative mb-6">
-                        <svg className="w-4 h-4 text-gray-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                        <svg className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search reports by business name..."
-                            className="w-full bg-[#0B1120] border border-white/10 focus:border-cyan-500/40 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-gray-500 outline-none transition"
+                            className="w-full bg-white border border-slate-200 focus:border-blue-300 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition"
                         />
                         {searchQuery && (
                             <button
                                 onClick={() => setSearchQuery("")}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition"
                                 aria-label="Clear search"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -1567,49 +1138,49 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                 {/* No Reports Empty State */}
                 {reports.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-24 text-center">
-                        <div className="w-20 h-20 rounded-2xl bg-[#0B1120] border border-white/10 flex items-center justify-center mb-6 shadow-[0_0_40px_-10px_rgba(6,182,212,0.3)]">
-                            <svg className="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mb-6 shadow-sm">
+                            <svg className="w-10 h-10 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-3">No Reports Created Yet</h2>
-                        <p className="text-gray-500 text-sm max-w-sm mb-8 leading-relaxed">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-3">No Reports Created Yet</h2>
+                        <p className="text-slate-500 text-sm max-w-sm mb-8 leading-relaxed">
                             Once you generate a GMB audit report, it will appear here. Your reports are saved automatically.
                         </p>
                         <button
                             onClick={onGetAudit}
-                            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] transform hover:scale-105"
+                            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-xl font-bold text-sm tracking-widest uppercase transition shadow-sm hover:shadow-sm transform hover:scale-105"
                         >
                             Get Your First Audit →
                         </button>
                     </div>
                 ) : filteredReports.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <p className="text-gray-400 text-sm">No reports match "<span className="text-white font-semibold">{searchQuery}</span>"</p>
-                        <button onClick={() => setSearchQuery("")} className="mt-4 text-cyan-400 text-xs font-bold hover:underline">Clear search</button>
+                        <p className="text-slate-600 text-sm">No reports match "<span className="text-slate-900 font-semibold">{searchQuery}</span>"</p>
+                        <button onClick={() => setSearchQuery("")} className="mt-4 text-blue-600 text-xs font-bold hover:underline">Clear search</button>
                     </div>
                 ) : (
                     <div className="space-y-4">
                         {filteredReports.map((saved, i) => (
                             <div
                                 key={saved.id}
-                                className="group bg-[#0B1120] border border-white/5 hover:border-cyan-500/30 rounded-2xl p-5 md:p-6 transition-all duration-300 flex flex-col md:flex-row md:items-center gap-4 md:gap-6"
+                                className="group bg-white border border-slate-200 hover:border-blue-200 rounded-2xl p-5 md:p-6 transition-all duration-300 flex flex-col md:flex-row md:items-center gap-4 md:gap-6"
                             >
                                 {/* Report Number */}
-                                <div className="hidden md:flex w-10 h-10 shrink-0 rounded-xl bg-blue-500/10 border border-blue-500/20 items-center justify-center">
-                                    <span className="text-blue-400 font-bold text-sm font-mono">#{i + 1}</span>
+                                <div className="hidden md:flex w-10 h-10 shrink-0 rounded-xl bg-blue-50 border border-blue-200 items-center justify-center">
+                                    <span className="text-blue-600 font-bold text-sm font-mono">#{i + 1}</span>
                                 </div>
 
                                 {/* Info */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">
+                                        <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                                             <span className="w-1 h-1 rounded-full bg-green-400"></span>
                                             COMPLETED
                                         </span>
                                     </div>
-                                    <h3 className="text-white font-bold text-lg truncate group-hover:text-cyan-100 transition">{saved.gmbName}</h3>
-                                    <p className="text-gray-500 text-xs font-mono mt-0.5">
+                                    <h3 className="text-slate-900 font-bold text-lg truncate group-hover:text-blue-800 transition">{saved.gmbName}</h3>
+                                    <p className="text-slate-500 text-xs font-mono mt-0.5">
                                         <svg className="w-3 h-3 inline mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                         {formatDate(saved.createdAt)}
                                     </p>
@@ -1619,7 +1190,7 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                                 <button
                                     onClick={() => handleDownload(saved)}
                                     disabled={downloading === saved.id || externalDownloadingId === saved.id}
-                                    className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-500 disabled:bg-green-900 disabled:text-green-600 text-white rounded-xl font-bold text-xs transition group-hover:shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+                                    className="shrink-0 flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-500 disabled:bg-green-900 disabled:text-green-600 text-white rounded-xl font-bold text-xs transition group-hover:shadow-sm"
                                 >
                                     {(downloading === saved.id || externalDownloadingId === saved.id) ? (
                                         <>
@@ -1650,25 +1221,25 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                             id="report-content-redownload"
                             style={{
                                 width: "794px",
-                                background: "#030712",
-                                color: "white",
+                                background: "#ffffff",
+                                color: "#0f172a",
                                 fontFamily: "Arial, sans-serif",
                                 padding: "40px",
                                 boxSizing: "border-box",
                             }}
                         >
                             {/* === HEADER === */}
-                            <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "32px", paddingBottom: "24px", borderBottom: "1px solid #e2e8f0" }}>
                                 {/* Score badge */}
-                                <div style={{ flexShrink: 0, width: "90px", height: "90px", borderRadius: "20px", background: "linear-gradient(135deg, #1e3a5f 0%, #0e7490 100%)", border: "1px solid rgba(6,182,212,0.5)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                <div style={{ flexShrink: 0, width: "90px", height: "90px", borderRadius: "20px", background: "#3666a3", border: "1px solid #164a8c", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                                     <div style={{ fontSize: "36px", fontWeight: "900", color: "#ffffff", lineHeight: 1 }}>{report?.audit_score ?? "—"}</div>
-                                    <div style={{ fontSize: "10px", color: "#67e8f9", fontWeight: "bold", letterSpacing: "2px", marginTop: "3px" }}>/ 100</div>
+                                    <div style={{ fontSize: "10px", color: "#dde8f4", fontWeight: "bold", letterSpacing: "2px", marginTop: "3px" }}>/ 100</div>
                                 </div>
                                 {/* Title block */}
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontSize: "9px", color: "#06b6d4", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "6px" }}>WhatMyRank — Google Business Profile Audit</div>
-                                    <div style={{ fontSize: "22px", fontWeight: "900", color: "#ffffff", wordBreak: "break-word" }}>{activeReport.gmbName}</div>
-                                    <div style={{ fontSize: "11px", color: "#6b7280", marginTop: "4px" }}>Generated: {formatDate(activeReport.createdAt)}</div>
+                                    <div style={{ fontSize: "9px", color: "#3666a3", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "6px" }}>WhatMyRank — Google Business Profile Audit</div>
+                                    <div style={{ fontSize: "22px", fontWeight: "900", color: "#0f172a", wordBreak: "break-word" }}>{activeReport.gmbName}</div>
+                                    <div style={{ fontSize: "11px", color: "#64748b", marginTop: "4px" }}>Generated: {formatDate(activeReport.createdAt)}</div>
                                 </div>
                             </div>
 
@@ -1680,10 +1251,10 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                                     { label: activeReport.gmbName, data: me, isMe: true },
                                     ...comps.slice(0, 2).map((c: any) => ({ label: c.title || c.name || c.business_name || "Competitor", data: c, isMe: false }))
                                 ];
-                                const thS: React.CSSProperties = { padding: "10px 14px", color: "#9ca3af", fontWeight: "bold", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", borderBottom: "2px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", textAlign: "center" as const };
+                                const thS: React.CSSProperties = { padding: "10px 14px", color: "#475569", fontWeight: "bold", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", borderBottom: "2px solid #e2e8f0", background: "#f8fafc", textAlign: "center" as const };
                                 return (
                                     <div style={{ marginBottom: "36px" }}>
-                                        <div style={{ fontSize: "10px", color: "#06b6d4", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "14px" }}>Competitor Comparison</div>
+                                        <div style={{ fontSize: "10px", color: "#3666a3", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "14px" }}>Competitor Comparison</div>
                                         <table style={{ width: "714px", borderCollapse: "collapse", tableLayout: "fixed" }}>
                                             <colgroup>
                                                 <col style={{ width: "264px" }} />
@@ -1705,16 +1276,16 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                                             </thead>
                                             <tbody>
                                                 {rows.map((r, i) => (
-                                                    <tr key={i} style={{ background: r.isMe ? "rgba(6,182,212,0.07)" : (i % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"), borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: r.isMe ? "#67e8f9" : "#e5e7eb", fontWeight: r.isMe ? "bold" : "normal", wordBreak: "break-word" }}>
-                                                            {r.isMe && <span style={{ background: "#0e7490", color: "#67e8f9", fontSize: "8px", fontWeight: "bold", padding: "2px 6px", borderRadius: "4px", marginRight: "7px" }}>YOU</span>}
+                                                    <tr key={i} style={{ background: r.isMe ? "#f0f5fa" : (i % 2 === 0 ? "#f8fafc" : "#ffffff"), borderBottom: "1px solid #e2e8f0" }}>
+                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: r.isMe ? "#164a8c" : "#1e293b", fontWeight: r.isMe ? "bold" : "normal", wordBreak: "break-word" }}>
+                                                            {r.isMe && <span style={{ background: "#3666a3", color: "#ffffff", fontSize: "8px", fontWeight: "bold", padding: "2px 6px", borderRadius: "4px", marginRight: "7px" }}>YOU</span>}
                                                             {r.label}
                                                         </td>
-                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#a78bfa", fontWeight: "bold", textAlign: "center" }}>{r.data?.audit_score ?? "—"}</td>
-                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#fbbf24", fontWeight: "bold", textAlign: "center" }}>{r.data?.rating ?? "—"} ⭐</td>
-                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#e5e7eb", textAlign: "center" }}>{r.data?.reviews ?? r.data?.total_reviews ?? "—"}</td>
-                                                        <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: "bold", textAlign: "center", color: String(r.data?.audit_gap ?? "").includes("-") ? "#f87171" : "#34d399" }}>{r.data?.audit_gap ?? "—"}</td>
-                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#e5e7eb", textAlign: "center" }}>{r.data?.photos ?? "—"}</td>
+                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#7c3aed", fontWeight: "bold", textAlign: "center" }}>{r.data?.audit_score ?? "—"}</td>
+                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#d97706", fontWeight: "bold", textAlign: "center" }}>{r.data?.rating ?? "—"} ⭐</td>
+                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#1e293b", textAlign: "center" }}>{r.data?.reviews ?? r.data?.total_reviews ?? "—"}</td>
+                                                        <td style={{ padding: "12px 14px", fontSize: "13px", fontWeight: "bold", textAlign: "center", color: String(r.data?.audit_gap ?? "").includes("-") ? "#dc2626" : "#059669" }}>{r.data?.audit_gap ?? "—"}</td>
+                                                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "#1e293b", textAlign: "center" }}>{r.data?.photos ?? "—"}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -1730,19 +1301,19 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                                 const metrics = COMPARISON_METRICS;
                                 return (
                                     <div style={{ marginBottom: "36px" }}>
-                                        <div style={{ fontSize: "10px", color: "#06b6d4", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "14px" }}>Profile Metrics Breakdown</div>
+                                        <div style={{ fontSize: "10px", color: "#3666a3", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "14px" }}>Profile Metrics Breakdown</div>
                                         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                                             {metrics.slice(0, 8).map((metric: any) => (
-                                                <div key={metric.key} style={{ background: "#0B1120", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "14px 16px" }}>
-                                                    <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "bold", marginBottom: "10px" }}>{metric.label}</div>
+                                                <div key={metric.key} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "14px 16px" }}>
+                                                    <div style={{ fontSize: "11px", color: "#475569", fontWeight: "bold", marginBottom: "10px" }}>{metric.label}</div>
                                                     <div style={{ display: "flex", gap: "12px" }}>
                                                         {allEntities.map((entity: any) => (
                                                             <div key={entity.key} style={{ flex: 1 }}>
-                                                                <div style={{ fontSize: "10px", color: entity.key === "me" ? "#67e8f9" : "#c4b5fd", marginBottom: "4px", fontWeight: "bold" }}>{entity.label}</div>
-                                                                <div style={{ height: "6px", background: "rgba(255,255,255,0.08)", borderRadius: "3px", overflow: "hidden" }}>
-                                                                    <div style={{ height: "100%", width: `${Math.min(100, (metric.getValue(entity.data) / (metric.max || 5)) * 100)}%`, background: entity.key === "me" ? "#06b6d4" : "#8b5cf6", borderRadius: "3px" }} />
+                                                                <div style={{ fontSize: "10px", color: entity.key === "me" ? "#164a8c" : "#6d28d9", marginBottom: "4px", fontWeight: "bold" }}>{entity.label}</div>
+                                                                <div style={{ height: "6px", background: "#e2e8f0", borderRadius: "3px", overflow: "hidden" }}>
+                                                                    <div style={{ height: "100%", width: `${Math.min(100, (metric.getValue(entity.data) / (metric.max || 5)) * 100)}%`, background: entity.key === "me" ? "#3666a3" : "#8b5cf6", borderRadius: "3px" }} />
                                                                 </div>
-                                                                <div style={{ fontSize: "10px", color: "#d1d5db", marginTop: "3px" }}>{metric.display(entity.data)}</div>
+                                                                <div style={{ fontSize: "10px", color: "#334155", marginTop: "3px" }}>{metric.display(entity.data)}</div>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -1756,14 +1327,14 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                             {/* === ACTION PLAN === */}
                             {report?.action_plan?.length > 0 && (
                                 <div style={{ marginBottom: "36px" }}>
-                                    <div style={{ fontSize: "10px", color: "#06b6d4", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "14px" }}>Action Plan</div>
+                                    <div style={{ fontSize: "10px", color: "#3666a3", fontWeight: "bold", letterSpacing: "3px", textTransform: "uppercase", marginBottom: "14px" }}>Action Plan</div>
                                     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                         {report.action_plan.map((item: any, i: number) => (
-                                            <div key={i} style={{ background: "#0B1120", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "12px 16px", display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                                                <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "rgba(6,182,212,0.18)", border: "1px solid rgba(6,182,212,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#06b6d4", fontWeight: "bold", flexShrink: 0 }}>{i + 1}</div>
+                                            <div key={i} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "12px 16px", display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                                                <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#dde8f4", border: "1px solid #bfd3ea", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#3666a3", fontWeight: "bold", flexShrink: 0 }}>{i + 1}</div>
                                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                                    <div style={{ fontSize: "13px", color: "#ffffff", fontWeight: "bold", marginBottom: item.description ? "5px" : 0 }}>{item.title || item.action || String(item)}</div>
-                                                    {item.description && <div style={{ fontSize: "12px", color: "#9ca3af", lineHeight: "1.6" }}>{item.description}</div>}
+                                                    <div style={{ fontSize: "13px", color: "#0f172a", fontWeight: "bold", marginBottom: item.description ? "5px" : 0 }}>{item.title || item.action || String(item)}</div>
+                                                    {item.description && <div style={{ fontSize: "12px", color: "#475569", lineHeight: "1.6" }}>{item.description}</div>}
                                                 </div>
                                             </div>
                                         ))}
@@ -1772,9 +1343,9 @@ function ReportsPage({ session, onHome, onGetAudit, onTriggerDownload, externalD
                             )}
 
                             {/* === FOOTER === */}
-                            <div style={{ paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <div style={{ fontSize: "10px", color: "#4b5563" }}>Powered by Addinfi · WhatMyRank GMB Audit Pro</div>
-                                <div style={{ fontSize: "10px", color: "#4b5563" }}>Confidential · {new Date().getFullYear()}</div>
+                            <div style={{ paddingTop: "20px", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div style={{ fontSize: "10px", color: "#64748b" }}>Powered by Addinfi · WhatMyRank GMB Audit Pro</div>
+                                <div style={{ fontSize: "10px", color: "#64748b" }}>Confidential · {new Date().getFullYear()}</div>
                             </div>
                         </div>
                     );
@@ -1975,7 +1546,6 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         return false;
     });
     const [couponError, setCouponError] = useState("");
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [reportReady, setReportReady] = useState(false);
     const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
 
@@ -2451,7 +2021,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
         overlay.id = 'pdf-loader-overlay';
         overlay.style.cssText = `
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.6); display: flex; align-items: center;
+            background: rgba(15,23,42,0.35); display: flex; align-items: center;
             justify-content: center; z-index: 99999; backdrop-filter: blur(4px);
         `;
         overlay.innerHTML = `
@@ -2460,17 +2030,17 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 @keyframes pdf-pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
             </style>
             <div style="
-                background: linear-gradient(135deg,#1e293b 0%,#0f172a 100%);
-                border: 1px solid rgba(59,130,246,0.4); border-radius: 16px;
+                background: #ffffff;
+                border: 1px solid #e2e8f0; border-radius: 16px;
                 padding: 28px 36px; text-align: center; min-width: 220px;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+                box-shadow: 0 20px 40px rgba(15,23,42,0.35);
             ">
                 <div style="
-                    width: 44px; height: 44px; border: 3px solid rgba(59,130,246,0.2);
-                    border-top-color: #3b82f6; border-radius: 50%;
+                    width: 44px; height: 44px; border: 3px solid #dde8f4;
+                    border-top-color: #3666a3; border-radius: 50%;
                     animation: pdf-spin 0.8s linear infinite; margin: 0 auto 16px;
                 "></div>
-                <div style="color:#f1f5f9;font-weight:600;font-size:15px;margin-bottom:6px;">
+                <div style="color:#0f172a;font-weight:600;font-size:15px;margin-bottom:6px;">
                     Generating PDF...
                 </div>
                 <div style="color:#64748b;font-size:12px;animation:pdf-pulse 1.5s ease-in-out infinite;">
@@ -2508,7 +2078,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 scrollY: 0,
                 windowWidth: 1440, // <--- FORCES DESKTOP LAYOUT
                 width: 1440,       // <--- ENSURES CONTAINER IS WIDE
-                backgroundColor: "#030712", // Match your background color
+                backgroundColor: "#ffffff", // Match your background color
                 onclone: (clonedDoc) => {
                     const clonedElement = clonedDoc.getElementById('report-content');
                     if (clonedElement) {
@@ -2630,7 +2200,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             <div className="relative group cursor-pointer" onClick={handleRestrictedAction}>
                 <div className="blur-sm select-none opacity-50 pointer-events-none grayscale">{children}</div>
                 <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="bg-black/60 p-3 rounded-full border border-cyan-500/50 text-cyan-400 group-hover:text-white group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(6,182,212,0.5)]">
+                    <div className="bg-slate-900/40 p-3 rounded-full border border-blue-300 text-cyan-400 group-hover:text-white group-hover:scale-110 transition-all shadow-sm">
                         <LockIcon />
                     </div>
                 </div>
@@ -2639,162 +2209,61 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
     };
 
     return (
-        <div className={`bg-[#030712] font-sans text-white flex flex-col justify-between ${step === 1 ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
-            <div className="mx-auto w-full max-w-[95rem] bg-[#030712] shadow-none flex-grow relative flex flex-col">
+        <div className={`bg-slate-50 font-sans text-slate-900 flex flex-col justify-between ${step === 1 ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+            <div className="mx-auto w-full max-w-[95rem] bg-slate-50 shadow-none flex-grow relative flex flex-col">
 
-                {/* HEADER */}
-                {/* HEADER / NAVBAR */}
-                <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#030712]/80 backdrop-blur-xl">
-                    <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-
-                        {/* Logo (Clicking also goes home) */}
-                        <div className="flex items-center gap-3 cursor-pointer" onClick={onHome}>
-                            <span className="text-lg md:text-xl font-bold tracking-tight text-gray-100">What<span className="text-blue-500">My</span>Rank</span>
-                        </div>
-
-                        {/* Desktop Actions */}
-                        <div className="hidden md:flex items-center gap-4">
-
-
-                            {/* Download Button (Visible only at Step 3) */}
-                            {step === 3 && !errorMsg && (
-                                <button
-                                    onClick={initiateDownload}
-                                    disabled={downloading}
-                                    data-html2canvas-ignore="true"
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-xs md:text-sm hover:bg-green-700 transition flex items-center gap-2"
-                                >
-                                    {downloading ? "Generating..." : "Download PDF 📥"}
-                                </button>
-                            )}
-
-                            {/* Reset Button (Visible only if user has moved past Step 1) */}
-                            {step > 1 && (
-                                <button
-                                    onClick={handleReset}
-                                    className="text-xs md:text-sm text-gray-400 hover:text-red-400 font-medium transition"
-                                >
-                                    Reset
-                                </button>
-                            )}
-
-                            <div className="flex items-center gap-4">
-                                {/* STATE A: Find My Business (Steps 1 & 2) */}
-                                {step < 3 && (
-                                    <>
-                                        <button onClick={onHome} className="text-xs font-bold text-gray-400 uppercase">
-                                            Home
-                                        </button>
-                                    </>
-                                )}
-
-                                {/* STATE B: Report is Created (Step 3) */}
-                                {step === 3 && (
-                                    <>
-                                        <button onClick={onHome} className="text-xs font-bold text-gray-400 uppercase">
-                                            Home
-                                        </button>
-                                    </>
-                                )}
-                                <button
-                                    onClick={onReports}
-                                    className="text-xs font-bold text-gray-400 uppercase hover:text-cyan-400 transition flex items-center gap-1"
-                                >
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                    My Reports
-                                </button>
-                                {session && (
-                                    <UserMenu session={session} />
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Mobile Menu Toggle */}
-                        <div className="md:hidden flex items-center">
+                <Navbar
+                    onHome={onHome}
+                    onReports={onReports}
+                    showCta={false}
+                    actions={<>
+                        {step === 3 && !errorMsg && (
                             <button
-                                className="text-gray-300 hover:text-white focus:outline-none"
-                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                                onClick={initiateDownload}
+                                disabled={downloading}
+                                data-html2canvas-ignore="true"
+                                className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-emerald-700 transition flex items-center gap-2"
                             >
-                                {isMobileMenuOpen ? (
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                ) : (
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                                )}
+                                {downloading ? "Generating..." : "Download PDF"}
                             </button>
-                        </div>
-                    </div>
-
-                    {/* Mobile Menu Dropdown */}
-                    {isMobileMenuOpen && (
-                        <div className="md:hidden bg-[#030712] border-b border-white/10 px-4 py-6 space-y-4 animate-[fadeIn_0.2s_ease-out] flex flex-col items-center text-center">
-                            {step === 3 && !errorMsg && (
-                                <button
-                                    onClick={() => { setIsMobileMenuOpen(false); initiateDownload(); }}
-                                    disabled={downloading}
-                                    className="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-bold text-sm hover:bg-green-700 transition flex items-center justify-center gap-2 mb-4"
-                                >
-                                    {downloading ? "Generating..." : "Download PDF 📥"}
-                                </button>
-                            )}
-
-                            {step > 1 && (
-                                <button
-                                    onClick={() => {
-                                        setIsMobileMenuOpen(false);
-                                        handleReset();
-                                    }}
-                                    className="w-full text-center text-sm text-gray-400 hover:text-red-400 font-medium transition py-3 border-b border-white/5"
-                                >
-                                    Reset Audit
-                                </button>
-                            )}
-
+                        )}
+                        {step > 1 && (
+                            <button onClick={handleReset} className="text-sm text-slate-600 hover:text-red-600 font-medium transition">
+                                Reset
+                            </button>
+                        )}
+                    </>}
+                    mobileActions={(step === 3 && !errorMsg) || step > 1 ? <>
+                        {step === 3 && !errorMsg && (
                             <button
-                                onClick={() => {
-                                    setIsMobileMenuOpen(false);
-                                    onHome();
-                                }}
-                                className="w-full text-center text-sm text-gray-400 hover:text-white font-medium transition py-3"
+                                onClick={initiateDownload}
+                                disabled={downloading}
+                                className="w-full bg-emerald-600 text-white px-4 py-3 rounded-lg font-semibold text-sm hover:bg-emerald-700 transition"
                             >
-                                Home
+                                {downloading ? "Generating..." : "Download PDF"}
                             </button>
-                            <button
-                                onClick={() => {
-                                    setIsMobileMenuOpen(false);
-                                    onReports();
-                                }}
-                                className="w-full text-center text-sm font-medium text-cyan-400 uppercase tracking-widest hover:text-white transition py-3 border-b border-white/5"
-                            >
-                                📄 My Reports
+                        )}
+                        {step > 1 && (
+                            <button onClick={handleReset} className="w-full py-3 rounded-lg border border-slate-200 text-sm text-slate-700 hover:text-red-600 font-medium transition">
+                                Reset Audit
                             </button>
-
-                            {session && (
-                                <button
-                                    onClick={() => { setIsMobileMenuOpen(false); signOut(); }}
-                                    className="w-full text-center text-sm text-gray-400 hover:text-white font-medium transition py-3"
-                                >
-                                    Sign Out
-                                </button>
-                            )}
-
-
-                        </div>
-                    )}
-                </nav>
+                        )}
+                    </> : undefined}
+                />
 
                 {/* STEP 1: FIND ME */}
                 {step === 1 && (
                     <div className="flex-grow flex flex-col items-center justify-center pt-24 pb-12 px-4 animate-[fadeIn_0.5s_ease-out]">
-                        <h2 className="text-4xl font-extrabold text-white mb-3 tracking-tight">Find Your Business</h2>
-                        <p className="text-gray-400 text-lg mb-10">Search for your GMB profile to start the audit.</p>
+                        <h2 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Find Your Business</h2>
+                        <p className="text-slate-600 text-lg mb-10">Search for your GMB profile to start the audit.</p>
                         <div className="relative w-full max-w-2xl">
                             <div className="relative flex items-center">
-                                <div className="absolute left-4 text-gray-400"><SearchIcon /></div>
-                                <input className="w-full bg-[#0B1120] border border-white/10 pl-12 pr-12 py-5 rounded-xl text-xl text-white placeholder-gray-500 shadow-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition" placeholder="Type business name..." value={myQuery} onChange={e => { setMyQuery(e.target.value); setMyBusiness(null); }} />
+                                <div className="absolute left-4 text-slate-600"><SearchIcon /></div>
+                                <input className="w-full bg-white border border-slate-200 pl-12 pr-12 py-5 rounded-xl text-xl text-slate-900 placeholder-slate-400 shadow-xl focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition" placeholder="Type business name..." value={myQuery} onChange={e => { setMyQuery(e.target.value); setMyBusiness(null); }} />
                                 {myQuery && (
                                     <button
                                         onClick={() => { setMyQuery(""); setMySuggestions([]); setMyBusiness(null); }}
-                                        className="absolute right-4 text-gray-400 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full"
+                                        className="absolute right-4 text-slate-600 hover:text-slate-900 transition-colors p-1 hover:bg-slate-100 rounded-full"
                                         aria-label="Clear search"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -2802,18 +2271,18 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                 )}
                             </div>
                             {mySuggestions.length > 0 && !myBusiness && (
-                                <div className="absolute top-full left-0 w-full bg-[#0B1120] border border-white/10 rounded-xl shadow-2xl mt-2 z-50 max-h-80 overflow-y-auto text-left">
+                                <div className="absolute top-full left-0 w-full bg-white border border-slate-200 rounded-xl shadow-2xl mt-2 z-50 max-h-80 overflow-y-auto text-left">
                                     {mySuggestions.map((place, i) => (
-                                        <div key={place.place_id || place.cid || i} className="p-4 hover:bg-cyan-500/10 cursor-pointer border-b border-white/5 last:border-0 flex justify-between items-start group transition-colors" onClick={() => { setMyBusiness(place); setStep(2); setMyQuery(place.title); setMySuggestions([]); }}>
+                                        <div key={place.place_id || place.cid || i} className="p-4 hover:bg-blue-50 cursor-pointer border-b border-slate-200 last:border-0 flex justify-between items-start group transition-colors" onClick={() => { setMyBusiness(place); setStep(2); setMyQuery(place.title); setMySuggestions([]); }}>
                                             <div className="flex items-start gap-3">
-                                                <div className="mt-1 bg-white/5 p-2 rounded-full group-hover:bg-cyan-500/20 group-hover:text-cyan-400 text-gray-400 transition"><MapPinIcon /></div>
+                                                <div className="mt-1 bg-slate-50 p-2 rounded-full group-hover:bg-blue-100 group-hover:text-blue-600 text-slate-600 transition"><MapPinIcon /></div>
                                                 <div>
-                                                    <div className="font-bold text-lg text-gray-200 group-hover:text-cyan-400 transition-colors">{place.title}</div>
-                                                    <div className="text-sm text-gray-500">{place.address}</div>({place.reviews || place.user_ratings_total || place.ratingCount || 0} reviews)
-                                                    <div className="flex items-center gap-2 mt-1"><span className="flex items-center gap-1 bg-yellow-500/10 text-yellow-500 px-2 py-0.5 rounded text-xs font-bold border border-yellow-500/20"><StarIcon /> {place.rating || "N/A"}</span><span className="text-xs text-gray-500 font-medium">(</span></div>
+                                                    <div className="font-bold text-lg text-slate-800 group-hover:text-blue-600 transition-colors">{place.title}</div>
+                                                    <div className="text-sm text-slate-500">{place.address}</div>({place.reviews || place.user_ratings_total || place.ratingCount || 0} reviews)
+                                                    <div className="flex items-center gap-2 mt-1"><span className="flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-xs font-bold border border-amber-200"><StarIcon /> {place.rating || "N/A"}</span><span className="text-xs text-slate-500 font-medium">(</span></div>
                                                 </div>
                                             </div>
-                                            <span className="text-xs bg-cyan-500/10 border border-cyan-500/20 px-2 py-1 rounded group-hover:bg-cyan-500/20 text-cyan-400 font-bold mt-2">SELECT</span>
+                                            <span className="text-xs bg-blue-50 border border-blue-200 px-2 py-1 rounded group-hover:bg-blue-100 text-blue-600 font-bold mt-2">SELECT</span>
                                         </div>
                                     ))}
                                 </div>
@@ -2826,29 +2295,29 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 {step === 2 && !errorMsg && (
                     <div className="flex-grow pt-24 md:pt-32 px-4 md:px-10 pb-10 space-y-8 max-w-4xl mx-auto animate-[fadeIn_0.5s_ease-out]">
                         {/* TARGET CARD */}
-                        <div className="bg-[#0B1120] border border-cyan-500/30 p-6 rounded-2xl flex flex-col md:flex-row items-center gap-4 shadow-[0_0_30px_-10px_rgba(6,182,212,0.15)] relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-[50px] -z-10"></div>
-                            <div className="bg-gradient-to-br from-blue-600 to-cyan-600 text-white p-4 rounded-xl shadow-lg shadow-blue-500/20 font-bold text-2xl w-14 h-14 flex items-center justify-center">{myBusiness?.title.charAt(0)}</div>
+                        <div className="bg-white border border-blue-200 p-6 rounded-2xl flex flex-col md:flex-row items-center gap-4 shadow-sm relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-[50px] -z-10"></div>
+                            <div className="bg-gradient-to-br from-blue-600 to-cyan-600 text-white p-4 rounded-xl shadow-lg shadow-slate-200 font-bold text-2xl w-14 h-14 flex items-center justify-center">{myBusiness?.title.charAt(0)}</div>
                             <div className="flex-1 text-center md:text-left">
-                                <div className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest mb-1">Auditing Target</div>
-                                <div className="font-bold text-2xl text-white tracking-tight">{myBusiness?.title}</div>
+                                <div className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1">Auditing Target</div>
+                                <div className="font-bold text-2xl text-slate-900 tracking-tight">{myBusiness?.title}</div>
                                 <div className="flex items-center justify-center md:justify-start gap-2 mt-2">
-                                    <span className="flex items-center gap-1 text-sm font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 px-2 py-1 rounded-md"><StarIcon /> {myBusiness?.rating || "N/A"}</span>
-                                    <span className="text-sm text-gray-500 font-medium tracking-tight">({myBusiness?.reviews || myBusiness?.user_ratings_total || myBusiness?.ratingCount || 0} reviews)</span>
+                                    <span className="flex items-center gap-1 text-sm font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded-md"><StarIcon /> {myBusiness?.rating || "N/A"}</span>
+                                    <span className="text-sm text-slate-500 font-medium tracking-tight">({myBusiness?.reviews || myBusiness?.user_ratings_total || myBusiness?.ratingCount || 0} reviews)</span>
                                 </div>
                             </div>
-                            <button onClick={() => setStep(1)} className="px-4 py-2 text-sm font-medium text-gray-400 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition">Change</button>
+                            <button onClick={() => setStep(1)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 hover:text-slate-900 transition">Change</button>
                         </div>
 
 
                         <div className="flex flex-col md:flex-row justify-between items-center mt-12 mb-6 gap-4">
-                            <h2 className="text-2xl font-bold text-white text-center md:text-left">Step 2: Add Competitors <span className="text-sm font-normal text-gray-500 ml-2 block md:inline">(Max 2)</span></h2>
+                            <h2 className="text-2xl font-bold text-slate-900 text-center md:text-left">Step 2: Add Competitors <span className="text-sm font-normal text-slate-500 ml-2 block md:inline">(Max 2)</span></h2>
                         </div>
 
                         <div className="relative z-50">
                             <div className="relative flex items-center">
                                 <input
-                                    className="w-full bg-[#0B1120] border border-white/10 p-4 pr-12 rounded-xl text-lg text-white placeholder-gray-500 focus:border-cyan-500 outline-none transition"
+                                    className="w-full bg-white border border-slate-200 p-4 pr-12 rounded-xl text-lg text-slate-900 placeholder-slate-400 focus:border-cyan-500 outline-none transition"
 
                                     // --- NEW: Dynamic Placeholder ---
                                     placeholder={competitors.length === 1 ? "You can add one more GMB profile..." : "Search for a competitor..."}
@@ -2859,7 +2328,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                 {compQuery && (
                                     <button
                                         onClick={() => { setCompQuery(""); setCompSuggestions([]); }}
-                                        className="absolute right-4 text-gray-400 hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full"
+                                        className="absolute right-4 text-slate-600 hover:text-slate-900 transition-colors p-1 hover:bg-slate-100 rounded-full"
                                         aria-label="Clear search"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -2867,7 +2336,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                 )}
                             </div>
                             {compSuggestions.length > 0 && (
-                                <div className="absolute top-full left-0 w-full bg-[#0B1120] border border-white/10 rounded-xl shadow-2xl mt-2 max-h-60 overflow-y-auto z-50">
+                                <div className="absolute top-full left-0 w-full bg-white border border-slate-200 rounded-xl shadow-2xl mt-2 max-h-60 overflow-y-auto z-50">
                                     {compSuggestions.map((place, i) => {
                                         // FIX: Define the ID once, handling both formats
                                         const uniqueId = place.place_id || place.cid;
@@ -2877,15 +2346,15 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             <div
                                                 key={uniqueId || i}
                                                 onClick={() => toggleCompetitor(place)}
-                                                className={`p-4 cursor-pointer border-b border-white/5 flex justify-between items-center transition-colors ${isAdded ? 'bg-green-900/20' : 'hover:bg-white/5'}`}
+                                                className={`p-4 cursor-pointer border-b border-slate-200 flex justify-between items-center transition-colors ${isAdded ? 'bg-emerald-50' : 'hover:bg-slate-50'}`}
                                             >
-                                                <div className="font-medium text-gray-200 truncate pr-4">{place.title}</div>
-                                                <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5 whitespace-nowrap">
-                                                    <span className="flex items-center gap-1 text-yellow-500 font-bold bg-yellow-500/10 px-1.5 py-0.5 rounded border border-yellow-500/20">
+                                                <div className="font-medium text-slate-800 truncate pr-4">{place.title}</div>
+                                                <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5 whitespace-nowrap">
+                                                    <span className="flex items-center gap-1 text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
                                                         <StarIcon /> {place.rating || "N/A"}
                                                     </span>
                                                 </div>
-                                                <span className={`ml-auto font-bold text-xs px-3 py-1 rounded whitespace-nowrap border ${isAdded ? 'bg-white/10 border-white/20 text-gray-400' : 'bg-green-500/10 border-green-500/50 text-green-400 hover:bg-green-500/20'}`}>
+                                                <span className={`ml-auto font-bold text-xs px-3 py-1 rounded whitespace-nowrap border ${isAdded ? 'bg-slate-100 border-slate-300 text-slate-600' : 'bg-emerald-50 border-emerald-300 text-emerald-600 hover:bg-emerald-100'}`}>
                                                     {isAdded ? "ADDED ✓" : "+ ADD"}
                                                 </span>
                                             </div>
@@ -2897,9 +2366,9 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                             {competitors.map((place) => (
-                                <div key={place.place_id || place.cid} className="p-4 border border-green-500/50 bg-green-500/10 rounded-xl flex justify-between items-center shadow-[0_0_15px_rgba(34,197,94,0.1)] backdrop-blur-sm">
-                                    <div className="font-bold text-green-400 truncate pr-2">{place.title}</div>
-                                    <button onClick={() => toggleCompetitor(place)} className="text-red-400 hover:bg-red-500/20 p-2 rounded text-sm font-bold flex-shrink-0 transition">✕</button>
+                                <div key={place.place_id || place.cid} className="p-4 border border-emerald-300 bg-emerald-50 rounded-xl flex justify-between items-center shadow-sm backdrop-blur-sm">
+                                    <div className="font-bold text-emerald-600 truncate pr-2">{place.title}</div>
+                                    <button onClick={() => toggleCompetitor(place)} className="text-red-600 hover:bg-red-100 p-2 rounded text-sm font-bold flex-shrink-0 transition">✕</button>
                                 </div>
                             ))}
                         </div>
@@ -2907,10 +2376,10 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                         {competitors.length > 0 && (
                             <div className="flex justify-center pt-4">
-                                <button onClick={() => setShowLeadModal(true)} disabled={loading} className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-3 text-sm">
+                                <button onClick={() => setShowLeadModal(true)} disabled={loading} className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-bold shadow-sm hover:scale-105 transition disabled:opacity-50 disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-3 text-sm">
                                     {loading ? (
                                         <>
-                                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                            <span className="w-4 h-4 border-2 border-slate-300 border-t-white rounded-full animate-spin"></span>
                                             Processing...
                                         </>
                                     ) : (
@@ -2930,13 +2399,13 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 {errorMsg && (
                     <div className="flex-grow flex flex-col items-center justify-center min-h-[500px] p-8 text-center">
                         <ErrorIcon />
-                        <h2 className="text-3xl font-bold text-white mb-4">Report Cannot Be Analyzed</h2>
-                        <div className="bg-red-500/10 border border-red-500/30 p-6 rounded-xl max-w-2xl w-full">
-                            <p className="text-red-400 font-medium mb-2">Reason for failure:</p>
-                            <p className="text-gray-300 font-mono text-sm break-words">{errorMsg}</p>
+                        <h2 className="text-3xl font-bold text-slate-900 mb-4">Report Cannot Be Analyzed</h2>
+                        <div className="bg-red-50 border border-red-200 p-6 rounded-xl max-w-2xl w-full">
+                            <p className="text-red-600 font-medium mb-2">Reason for failure:</p>
+                            <p className="text-slate-700 font-mono text-sm break-words">{errorMsg}</p>
                         </div>
                         <div className="mt-8 flex gap-4">
-                            <button onClick={() => setErrorMsg(null)} className="px-6 py-3 bg-white/10 text-white rounded-lg font-bold hover:bg-white/20 transition">Try Again</button>
+                            <button onClick={() => setErrorMsg(null)} className="px-6 py-3 bg-slate-100 text-slate-900 rounded-lg font-bold hover:bg-slate-200 transition">Try Again</button>
                             <button onClick={() => window.location.reload()} className="px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition">Restart</button>
                         </div>
                     </div>
@@ -2945,7 +2414,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                 {/* STEP 3: REPORT */}
                 {step === 3 && report && !errorMsg && (
                     // WRAPPER REF FOR PDF CAPTURE (UPDATED STYLES FOR PDF MODE)
-                    <div ref={reportRef} id="report-content" className="bg-[#030712] pt-16 md:pt-32 px-4 md:px-12 pb-40 min-h-screen text-white" style={{
+                    <div ref={reportRef} id="report-content" className="bg-slate-50 pt-16 md:pt-32 px-4 md:px-12 pb-40 min-h-screen text-slate-900" style={{
                         width: '100%',
                         maxWidth: '100vw',
                         overflowX: 'hidden',
@@ -2959,8 +2428,8 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                         }
                     } as React.CSSProperties}>
 
-                        <div className="bg-[#0B1120] border border-white/10 py-12 px-8 md:px-16 rounded-xl shadow-2xl mb-12 relative overflow-hidden">
-                            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+                        <div className="bg-white border border-slate-200 py-12 px-8 md:px-16 rounded-xl shadow-2xl mb-12 relative overflow-hidden">
+                            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-blue-50 to-transparent"></div>
                             <div className="relative z-10 flex flex-col md:flex-row items-center gap-10 md:gap-16">
 
                                 {/* LEFT — GMB Logo */}
@@ -2969,24 +2438,24 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                         <img
                                             src="/gmb.png"
                                             alt="GMB Logo"
-                                            className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(66,133,244,0.3)]"
+                                            className="w-full h-full object-contain"
                                         />
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-lg font-black text-white tracking-tight">WhatMyRank</div>
-                                        <div className="text-xs font-bold text-blue-400 tracking-[0.15em] uppercase">Google Business Profile Audit</div>
+                                        <div className="text-lg font-black text-slate-900 tracking-tight">WhatMyRank</div>
+                                        <div className="text-xs font-bold text-blue-600 tracking-[0.15em] uppercase">Google Business Profile Audit</div>
                                     </div>
                                 </div>
 
                                 {/* Divider */}
-                                <div className="hidden md:block w-px h-48 bg-gradient-to-b from-transparent via-white/15 to-transparent"></div>
+                                <div className="hidden md:block w-px h-48 bg-gradient-to-b from-transparent via-slate-200 to-transparent"></div>
 
                                 {/* RIGHT — Score + Rating Bar */}
                                 <div className="flex-1 flex flex-col items-center text-center">
-                                    <div className="text-sm font-bold tracking-[0.3em] text-cyan-400 uppercase mb-4">Overall Performance</div>
+                                    <div className="text-sm font-bold tracking-[0.3em] text-blue-600 uppercase mb-4">Overall Performance</div>
                                     <div className="flex items-baseline gap-2">
-                                        <div className="text-8xl md:text-9xl font-black tracking-tighter text-white">{report.audit_score}<span className="text-4xl md:text-5xl text-gray-500">/100</span></div>
-                                        <span className="text-xs font-medium text-gray-400 opacity-90 -mt-2">- Powered by Addinfi</span>
+                                        <div className="text-8xl md:text-9xl font-black tracking-tighter text-slate-900">{report.audit_score}<span className="text-4xl md:text-5xl text-slate-500">/100</span></div>
+                                        <span className="text-xs font-medium text-slate-600 opacity-90 -mt-2">- Powered by Addinfi</span>
                                     </div>
 
                                     {/* Rating Scale Bar */}
@@ -2995,11 +2464,11 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             {/* Score Position Indicator */}
                                             <div className="absolute -top-5 transition-all duration-500" style={{ left: `${Math.min(Math.max(report.audit_score || 0, 0), 100)}%`, transform: 'translateX(-50%)' }}>
                                                 <div className="flex flex-col items-center">
-                                                    <svg className="w-3 h-3 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 12 12"><path d="M6 9L1 3h10L6 9z" /></svg>
+                                                    <svg className="w-3 h-3 text-slate-900 drop-shadow-lg" fill="currentColor" viewBox="0 0 12 12"><path d="M6 9L1 3h10L6 9z" /></svg>
                                                 </div>
                                             </div>
                                             {/* Gradient Bar */}
-                                            <div className="flex h-2.5 rounded-full overflow-hidden border border-white/10">
+                                            <div className="flex h-2.5 rounded-full overflow-hidden border border-slate-200">
                                                 <div className="w-1/4 bg-gradient-to-r from-red-600 to-red-400"></div>
                                                 <div className="w-1/4 bg-gradient-to-r from-orange-500 to-amber-400"></div>
                                                 <div className="w-1/4 bg-gradient-to-r from-yellow-400 to-lime-400"></div>
@@ -3008,20 +2477,20 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             {/* Labels */}
                                             <div className="flex mt-2.5">
                                                 <div className="w-1/4 text-center">
-                                                    <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">Poor</span>
-                                                    <span className="block text-[8px] text-white font-mono mt-0.5">0 – 25</span>
+                                                    <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider">Poor</span>
+                                                    <span className="block text-[8px] text-slate-900 font-mono mt-0.5">0 – 25</span>
                                                 </div>
                                                 <div className="w-1/4 text-center">
-                                                    <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider">Average</span>
-                                                    <span className="block text-[8px] text-white font-mono mt-0.5">26 – 50</span>
+                                                    <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">Average</span>
+                                                    <span className="block text-[8px] text-slate-900 font-mono mt-0.5">26 – 50</span>
                                                 </div>
                                                 <div className="w-1/4 text-center">
-                                                    <span className="text-[10px] font-bold text-yellow-400 uppercase tracking-wider">Good</span>
-                                                    <span className="block text-[8px] text-white font-mono mt-0.5">51 – 75</span>
+                                                    <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Good</span>
+                                                    <span className="block text-[8px] text-slate-900 font-mono mt-0.5">51 – 75</span>
                                                 </div>
                                                 <div className="w-1/4 text-center">
-                                                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Excellent</span>
-                                                    <span className="block text-[8px] text-white font-mono mt-0.5">76 – 100</span>
+                                                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Excellent</span>
+                                                    <span className="block text-[8px] text-slate-900 font-mono mt-0.5">76 – 100</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -3036,7 +2505,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                             {/* ========================================================== */}
                             {/* KEY METRICS & COMPETITIVE COMPARISON                      */}
                             {/* ========================================================== */}
-                            <div className="space-y-6 font-sans text-gray-300">
+                            <div className="space-y-6 font-sans text-slate-700">
 
                                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
 
@@ -3045,11 +2514,11 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                     <div className="lg:col-span-4 flex flex-col gap-4 lg:gap-6">
 
                                         {/* 1. PERFORMANCE SCORE */}
-                                        <div className="bg-[#0B1120] border border-white/10 rounded-2xl p-6 lg:p-8 flex flex-col items-center text-center">
-                                            <h3 className="text-gray-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-6">Performance Score</h3>
+                                        <div className="bg-white border border-slate-200 rounded-2xl p-6 lg:p-8 flex flex-col items-center text-center">
+                                            <h3 className="text-slate-500 font-bold tracking-[0.2em] text-[10px] uppercase mb-6">Performance Score</h3>
                                             <div className="relative w-32 h-32 lg:w-36 lg:h-36 mb-6">
                                                 <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                                                    <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
+                                                    <circle cx="60" cy="60" r="52" fill="none" stroke="#e2e8f0" strokeWidth="8" />
                                                     <circle
                                                         cx="60" cy="60" r="52" fill="none" stroke="#22d3ee" strokeWidth="8" strokeLinecap="round"
                                                         strokeDasharray={2 * Math.PI * 52}
@@ -3058,33 +2527,33 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                     />
                                                 </svg>
                                                 <div className="absolute inset-0 flex items-center justify-center">
-                                                    <span className="text-4xl lg:text-5xl font-black text-white tracking-tighter">{report.audit_score}</span>
+                                                    <span className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter">{report.audit_score}</span>
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-2 w-full">
-                                                <div className="flex justify-between items-center text-xs px-3 py-2.5 bg-white/[0.03] rounded-lg border border-white/5"><span className="text-gray-500 uppercase font-bold text-[10px] tracking-wide">Audit Gap</span><span className={`font-mono font-bold ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-emerald-400"}`}>{report.matrix?.me?.audit_gap || "N/A"}</span></div>
-                                                <div className="flex justify-between items-center text-xs px-3 py-2.5 bg-white/[0.03] rounded-lg border border-white/5"><span className="text-gray-500 uppercase font-bold text-[10px] tracking-wide">Market Position</span><span className={`font-bold text-[10px] uppercase ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-400" : "text-emerald-400"}`}>{report.matrix?.me?.audit_gap?.includes("-") ? "Behind Leader" : "Market Leader"}</span></div>
+                                                <div className="flex justify-between items-center text-xs px-3 py-2.5 bg-slate-50 rounded-lg border border-slate-200"><span className="text-slate-500 uppercase font-bold text-[10px] tracking-wide">Audit Gap</span><span className={`font-mono font-bold ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-600" : "text-emerald-600"}`}>{report.matrix?.me?.audit_gap || "N/A"}</span></div>
+                                                <div className="flex justify-between items-center text-xs px-3 py-2.5 bg-slate-50 rounded-lg border border-slate-200"><span className="text-slate-500 uppercase font-bold text-[10px] tracking-wide">Market Position</span><span className={`font-bold text-[10px] uppercase ${report.matrix?.me?.audit_gap?.includes("-") ? "text-red-600" : "text-emerald-600"}`}>{report.matrix?.me?.audit_gap?.includes("-") ? "Behind Leader" : "Market Leader"}</span></div>
                                             </div>
                                         </div>
 
                                         {/* 2. TRUST MATRIX (LOCKED) */}
                                         <div className="relative">
                                             {!isUnlocked && (
-                                                <div onClick={() => setShowLeadModal(true)} className="absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-md bg-[#0B1120]/80 rounded-2xl lg:rounded-3xl border border-white/10 cursor-pointer group">
-                                                    <div className="bg-[#0B1120] p-2 lg:p-3 rounded-full border border-cyan-500/30 mb-2 group-hover:scale-110 transition-transform"><LockIcon /></div>
-                                                    <span className="text-[8px] lg:text-[10px] text-cyan-400 font-bold uppercase tracking-widest text-center px-2">Trust Matrix Locked</span>
+                                                <div onClick={() => setShowLeadModal(true)} className="absolute inset-0 z-50 flex flex-col items-center justify-center backdrop-blur-md bg-white/80 rounded-2xl lg:rounded-3xl border border-slate-200 cursor-pointer group">
+                                                    <div className="bg-white p-2 lg:p-3 rounded-full border border-blue-200 mb-2 group-hover:scale-110 transition-transform"><LockIcon /></div>
+                                                    <span className="text-[8px] lg:text-[10px] text-blue-600 font-bold uppercase tracking-widest text-center px-2">Trust Matrix Locked</span>
                                                 </div>
                                             )}
-                                            <div className={`bg-[#0B1120] border border-white/10 rounded-2xl lg:rounded-3xl p-4 lg:p-6 relative overflow-hidden flex-1 min-h-[180px] lg:min-h-[200px] ${!isUnlocked ? 'blur-sm opacity-50 grayscale select-none' : ''}`}>
-                                                <h3 className="text-gray-500 font-bold tracking-[0.2em] text-[8px] lg:text-[10px] uppercase mb-4 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Trust Matrix</h3>
+                                            <div className={`bg-white border border-slate-200 rounded-2xl lg:rounded-3xl p-4 lg:p-6 relative overflow-hidden flex-1 min-h-[180px] lg:min-h-[200px] ${!isUnlocked ? 'blur-sm opacity-50 grayscale select-none' : ''}`}>
+                                                <h3 className="text-slate-500 font-bold tracking-[0.2em] text-[8px] lg:text-[10px] uppercase mb-4 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Trust Matrix</h3>
                                                 <div className="space-y-3 lg:space-y-4">
                                                     <div>
-                                                        <div className="flex justify-between text-[8px] lg:text-[10px] uppercase mb-1"><span className="text-white font-bold">Positive Sentiment</span><span className="text-emerald-400">{report.matrix?.me?.sentiment?.match(/\d+/)?.[0] || 0}%</span></div>
-                                                        <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden flex"><div className="bg-emerald-500 h-full" style={{ width: `${report.matrix?.me?.sentiment?.match(/\d+/)?.[0] || 0}%` }}></div><div className="w-1 h-full bg-white relative z-10" style={{ left: `-${100 - (parseInt(report.matrix?.competitors?.[0]?.sentiment?.match(/\d+/)?.[0]) || 50)}%` }}></div></div>
+                                                        <div className="flex justify-between text-[8px] lg:text-[10px] uppercase mb-1"><span className="text-slate-900 font-bold">Positive Sentiment</span><span className="text-emerald-600">{report.matrix?.me?.sentiment?.match(/\d+/)?.[0] || 0}%</span></div>
+                                                        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden flex"><div className="bg-emerald-500 h-full" style={{ width: `${report.matrix?.me?.sentiment?.match(/\d+/)?.[0] || 0}%` }}></div><div className="w-1 h-full bg-white relative z-10" style={{ left: `-${100 - (parseInt(report.matrix?.competitors?.[0]?.sentiment?.match(/\d+/)?.[0]) || 50)}%` }}></div></div>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-2 lg:gap-3">
-                                                        <div className="bg-white/5 rounded-xl p-2 lg:p-3 border border-white/5"><span className="text-gray-400 text-[8px] lg:text-[9px] uppercase font-bold block mb-1">NPS Score</span><div className="flex items-center gap-1 lg:gap-2"><span className="text-white font-bold font-mono text-sm lg:text-lg">{report.matrix?.me?.nps}</span><span className="text-[8px] lg:text-[9px] text-gray-600">vs {report.matrix?.competitors?.[0]?.nps}</span></div></div>
-                                                        <div className="bg-white/5 rounded-xl p-2 lg:p-3 border border-white/5"><span className="text-gray-400 text-[8px] lg:text-[9px] uppercase font-bold block mb-1">Keyword Heat</span><div className="flex items-center gap-1 lg:gap-2"><span className="text-cyan-400 font-bold font-mono text-sm lg:text-lg">{report.matrix?.me?.keyword_sentiment || "8.5"}</span><span className="text-[8px] lg:text-[9px] text-gray-600">/ 10</span></div></div>
+                                                        <div className="bg-slate-50 rounded-xl p-2 lg:p-3 border border-slate-200"><span className="text-slate-600 text-[8px] lg:text-[9px] uppercase font-bold block mb-1">NPS Score</span><div className="flex items-center gap-1 lg:gap-2"><span className="text-slate-900 font-bold font-mono text-sm lg:text-lg">{report.matrix?.me?.nps}</span><span className="text-[8px] lg:text-[9px] text-slate-500">vs {report.matrix?.competitors?.[0]?.nps}</span></div></div>
+                                                        <div className="bg-slate-50 rounded-xl p-2 lg:p-3 border border-slate-200"><span className="text-slate-600 text-[8px] lg:text-[9px] uppercase font-bold block mb-1">Keyword Heat</span><div className="flex items-center gap-1 lg:gap-2"><span className="text-blue-600 font-bold font-mono text-sm lg:text-lg">{report.matrix?.me?.keyword_sentiment || "8.5"}</span><span className="text-[8px] lg:text-[9px] text-slate-500">/ 10</span></div></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -3092,17 +2561,17 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                     </div>
 
                                     {/* RIGHT: COMPETITIVE COMPARISON — VS scoreboard */}
-                                    <div className="lg:col-span-8 bg-[#0B1120] border border-white/10 rounded-2xl overflow-hidden flex flex-col h-full">
-                                        <div className="px-6 py-5 border-b border-white/10">
-                                            <h3 className="text-white font-bold text-sm">Competitive Comparison</h3>
-                                            <p className="text-xs text-gray-500 mt-0.5">Head-to-head, round by round</p>
+                                    <div className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl overflow-hidden flex flex-col h-full">
+                                        <div className="px-6 py-5 border-b border-slate-200">
+                                            <h3 className="text-slate-900 font-bold text-sm">Competitive Comparison</h3>
+                                            <p className="text-xs text-slate-500 mt-0.5">Head-to-head, round by round</p>
                                         </div>
 
                                         {(() => {
                                             const glowMap: Record<string, string> = {
-                                                'bg-cyan-500': 'ring-cyan-400/60 shadow-cyan-500/20 bg-cyan-500/10',
-                                                'bg-purple-500': 'ring-purple-400/60 shadow-purple-500/20 bg-purple-500/10',
-                                                'bg-indigo-500': 'ring-indigo-400/60 shadow-indigo-500/20 bg-indigo-500/10',
+                                                'bg-cyan-500': 'ring-blue-300 shadow-slate-200 bg-blue-50',
+                                                'bg-purple-500': 'ring-violet-300 shadow-slate-200 bg-violet-50',
+                                                'bg-indigo-500': 'ring-indigo-300 shadow-slate-200 bg-indigo-50',
                                             };
                                             const gridStyle = { gridTemplateColumns: `repeat(${comparisonEntities.length}, minmax(0,1fr))` };
                                             const scoreOf = (entityKey: string) => comparisonMetrics.filter((m) => {
@@ -3116,15 +2585,15 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             return (
                                                 <>
                                                     {/* Match score */}
-                                                    <div className="px-6 py-6 border-b border-white/10 grid gap-3" style={gridStyle}>
+                                                    <div className="px-6 py-6 border-b border-slate-200 grid gap-3" style={gridStyle}>
                                                         {comparisonEntities.map((entity) => (
                                                             <div key={entity.key} className="text-center">
                                                                 <div className={`text-4xl lg:text-5xl font-black font-mono ${entity.textClass}`}>{scoreOf(entity.key)}</div>
                                                                 <div className="flex items-center justify-center gap-1.5 mt-1.5">
                                                                     <span className={`w-1.5 h-1.5 rounded-full ${entity.barClass}`}></span>
-                                                                    <span className="text-[9px] text-gray-500 uppercase tracking-widest font-bold truncate max-w-[7rem]">{entity.label}</span>
+                                                                    <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold truncate max-w-[7rem]">{entity.label}</span>
                                                                 </div>
-                                                                <div className="text-[9px] text-gray-600 uppercase tracking-widest mt-0.5">metrics won</div>
+                                                                <div className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">metrics won</div>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -3136,9 +2605,9 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                             const values = comparisonEntities.map((e) => metric.getValue(e.data));
                                                             const best = Math.max(...values);
                                                             return (
-                                                                <div key={metric.key} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+                                                                <div key={metric.key} className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
                                                                     <div className="text-center mb-3">
-                                                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.15em]">{metric.label}</span>
+                                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em]">{metric.label}</span>
                                                                     </div>
                                                                     <div className="grid gap-3" style={gridStyle}>
                                                                         {comparisonEntities.map((entity, i) => {
@@ -3147,16 +2616,16 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                                                 <div
                                                                                     key={entity.key}
                                                                                     onClick={isLockedMetric ? handleRestrictedAction : undefined}
-                                                                                    className={`relative rounded-xl py-3 px-2 text-center border transition-all ${isLockedMetric ? 'border-white/5 bg-white/[0.01] cursor-pointer' : isWinner ? `border-transparent ring-1 ${glowMap[entity.barClass] || 'ring-white/30 bg-white/5'} shadow-lg` : 'border-white/5 bg-white/[0.01]'}`}
+                                                                                    className={`relative rounded-xl py-3 px-2 text-center border transition-all ${isLockedMetric ? 'border-slate-200 bg-slate-50 cursor-pointer' : isWinner ? `border-transparent ring-1 ${glowMap[entity.barClass] || 'ring-slate-300 bg-slate-50'} shadow-lg` : 'border-slate-200 bg-slate-50'}`}
                                                                                 >
                                                                                     {isWinner && <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs">👑</span>}
                                                                                     {isLockedMetric ? (
-                                                                                        <div className="flex items-center justify-center gap-1.5 text-gray-600">
+                                                                                        <div className="flex items-center justify-center gap-1.5 text-slate-500">
                                                                                             <LockIcon />
                                                                                             <span className="text-xs blur-[3px] select-none">••••</span>
                                                                                         </div>
                                                                                     ) : (
-                                                                                        <span className={`font-mono font-bold text-sm lg:text-base ${isWinner ? 'text-white' : 'text-gray-400'}`}>{metric.display(entity.data)}</span>
+                                                                                        <span className={`font-mono font-bold text-sm lg:text-base ${isWinner ? 'text-slate-900' : 'text-slate-600'}`}>{metric.display(entity.data)}</span>
                                                                                     )}
                                                                                 </div>
                                                                             );
@@ -3168,9 +2637,9 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                     </div>
 
                                                     {!isUnlocked && (
-                                                        <div className="px-6 py-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-between gap-3">
-                                                            <span className="text-xs text-gray-400">Content Engine & Products rounds are locked</span>
-                                                            <button onClick={handleRestrictedAction} className="text-xs font-bold text-cyan-400 hover:underline shrink-0">Unlock @ ₹99</button>
+                                                        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+                                                            <span className="text-xs text-slate-600">Content Engine & Products rounds are locked</span>
+                                                            <button onClick={handleRestrictedAction} className="text-xs font-bold text-blue-600 hover:underline shrink-0">Unlock @ ₹99</button>
                                                         </div>
                                                     )}
                                                 </>
@@ -3191,20 +2660,20 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                                         if (days > 28) {
                                             return (
-                                                <div className="mb-8 bg-red-900/10 border border-red-500/50 rounded-xl p-6 flex items-start gap-4">
-                                                    <div className="p-3 bg-red-500/20 rounded-lg shrink-0 border border-red-500/30">
+                                                <div className="mb-8 bg-red-50 border border-red-300 rounded-xl p-6 flex items-start gap-4">
+                                                    <div className="p-3 bg-red-100 rounded-lg shrink-0 border border-red-200">
                                                         <WarningIcon />
                                                     </div>
                                                     <div>
-                                                        <h3 className="text-red-400 font-bold text-lg mb-1 uppercase tracking-wider flex items-center gap-2">
+                                                        <h3 className="text-red-600 font-bold text-lg mb-1 uppercase tracking-wider flex items-center gap-2">
                                                             Critical Attention Needed
                                                         </h3>
-                                                        <p className="text-gray-300 text-sm leading-relaxed">
-                                                            No new reviews detected for <span className="text-white font-bold">{days} days</span>.
+                                                        <p className="text-slate-700 text-sm leading-relaxed">
+                                                            No new reviews detected for <span className="text-slate-900 font-bold">{days} days</span>.
                                                             Your profile is becoming dormant, which negatively impacts local ranking velocity.
                                                         </p>
-                                                        <div className="mt-3 inline-block bg-red-500/20 px-3 py-1 rounded border border-red-500/30">
-                                                            <span className="text-xs font-bold text-red-300 uppercase tracking-wide">Recommended Action: Initiate SMS review campaign immediately</span>
+                                                        <div className="mt-3 inline-block bg-red-100 px-3 py-1 rounded border border-red-200">
+                                                            <span className="text-xs font-bold text-red-700 uppercase tracking-wide">Recommended Action: Initiate SMS review campaign immediately</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -3213,12 +2682,12 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                         return null;
                                     })()}
 
-                                    <div className="bg-[#0B1120] p-8 rounded-2xl border border-white/10">
+                                    <div className="bg-white p-8 rounded-2xl border border-slate-200">
                                         <div className="flex items-center gap-3 mb-4">
-                                            <span className="bg-cyan-500/10 text-cyan-400 p-2 rounded-lg border border-cyan-500/20"><SearchIcon /></span>
-                                            <h3 className="font-bold text-white text-lg">Executive Summary</h3>
+                                            <span className="bg-blue-50 text-blue-600 p-2 rounded-lg border border-blue-200"><SearchIcon /></span>
+                                            <h3 className="font-bold text-slate-900 text-lg">Executive Summary</h3>
                                         </div>
-                                        <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-7 text-base">
+                                        <ul className="list-disc pl-6 space-y-3 text-slate-700 leading-7 text-base">
                                             {executiveSummaryPoints.map((point: string, index: number) => (
                                                 <li key={index}>{point}</li>
                                             ))}
@@ -3231,13 +2700,13 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                             <div className="grid lg:grid-cols-2 gap-8 mt-12">
 
                                 {/* 1. PROFILE GAPS CARD (Red/Alert Theme) */}
-                                <div className="bg-[#0B1120] rounded-2xl border border-red-500/20 overflow-hidden flex flex-col">
+                                <div className="bg-white rounded-2xl border border-red-200 overflow-hidden flex flex-col">
                                     {/* Header */}
-                                    <div className="p-6 border-b border-red-500/10 bg-red-500/5 flex items-center gap-4">
-                                        <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/20 text-red-500 shadow-[0_0_15px_-3px_rgba(239,68,68,0.4)]">
+                                    <div className="p-6 border-b border-red-200 bg-red-50 flex items-center gap-4">
+                                        <div className="p-3 bg-red-50 rounded-lg border border-red-200 text-red-600 shadow-sm">
                                             <ErrorIcon />
                                         </div>
-                                        <h3 className="text-lg font-bold text-white tracking-wide uppercase">Your Profile Gaps</h3>
+                                        <h3 className="text-lg font-bold text-slate-900 tracking-wide uppercase">Your Profile Gaps</h3>
                                     </div>
 
                                     {/* List Content */}
@@ -3246,24 +2715,24 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             {/* Top 3 Gaps (Always Visible) */}
                                             {report.weaknesses?.slice(0, 3).map((item: string, i: number) => (
                                                 <li key={i} className="flex items-start gap-4 group">
-                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 text-xs font-bold group-hover:bg-red-500 group-hover:text-white transition-colors">✕</span>
-                                                    <span className="text-gray-300 text-sm leading-relaxed font-medium group-hover:text-gray-100 transition-colors">{item}</span>
+                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-red-50 text-red-500 flex items-center justify-center border border-red-200 text-xs font-bold group-hover:bg-red-500 group-hover:text-white transition-colors">✕</span>
+                                                    <span className="text-slate-700 text-sm leading-relaxed font-medium group-hover:text-slate-900 transition-colors">{item}</span>
                                                 </li>
-                                            )) || <p className="text-gray-500 italic px-2">No critical gaps detected.</p>}
+                                            )) || <p className="text-slate-500 italic px-2">No critical gaps detected.</p>}
 
                                             {/* Locked Gaps (Blurred) */}
                                             {!isUnlocked && report.weaknesses?.length > 3 && (
-                                                <div className="relative mt-2 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
-                                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/95 z-10 flex flex-col items-center justify-center text-center -mx-6 -mb-6 pb-4">
-                                                        <div className="bg-[#0B1120] p-3 rounded-full border border-red-500/30 text-red-400 shadow-[0_0_20px_-5px_rgba(239,68,68,0.4)] group-hover/lock:scale-110 transition-transform mb-2">
+                                                <div className="relative mt-2 pt-4 border-t border-dashed border-slate-200 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/95 z-10 flex flex-col items-center justify-center text-center -mx-6 -mb-6 pb-4">
+                                                        <div className="bg-white p-3 rounded-full border border-red-200 text-red-600 shadow-sm group-hover/lock:scale-110 transition-transform mb-2">
                                                             <LockIcon />
                                                         </div>
-                                                        <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest border-b border-red-500/30 pb-0.5">Unlock {report.weaknesses.length - 3} More Gaps</span>
+                                                        <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest border-b border-red-200 pb-0.5">Unlock {report.weaknesses.length - 3} More Gaps</span>
                                                     </div>
                                                     {/* Visual Fake Content */}
                                                     <div className="space-y-4 opacity-30 blur-[2px] pointer-events-none select-none grayscale">
-                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-red-500/20"></span><span className="h-4 bg-white/10 rounded w-3/4"></span></li>
-                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-red-500/20"></span><span className="h-4 bg-white/10 rounded w-2/3"></span></li>
+                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-red-100"></span><span className="h-4 bg-slate-100 rounded w-3/4"></span></li>
+                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-red-100"></span><span className="h-4 bg-slate-100 rounded w-2/3"></span></li>
                                                     </div>
                                                 </div>
                                             )}
@@ -3271,8 +2740,8 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             {/* Unlocked Remaining Gaps */}
                                             {isUnlocked && report.weaknesses?.slice(3).map((item: string, i: number) => (
                                                 <li key={i + 3} className="flex items-start gap-4 group animate-[fadeIn_0.5s_ease-out]">
-                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 text-xs font-bold group-hover:bg-red-500 group-hover:text-white transition-colors">✕</span>
-                                                    <span className="text-gray-300 text-sm leading-relaxed font-medium group-hover:text-gray-100 transition-colors">{item}</span>
+                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-red-50 text-red-500 flex items-center justify-center border border-red-200 text-xs font-bold group-hover:bg-red-500 group-hover:text-white transition-colors">✕</span>
+                                                    <span className="text-slate-700 text-sm leading-relaxed font-medium group-hover:text-slate-900 transition-colors">{item}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -3280,13 +2749,13 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                 </div>
 
                                 {/* 2. PROFILE WINS CARD (Green/Success Theme) */}
-                                <div className="bg-[#0B1120] rounded-2xl border border-green-500/20 overflow-hidden flex flex-col">
+                                <div className="bg-white rounded-2xl border border-emerald-200 overflow-hidden flex flex-col">
                                     {/* Header */}
-                                    <div className="p-6 border-b border-green-500/10 bg-green-500/5 flex items-center gap-4">
-                                        <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20 text-green-500 shadow-[0_0_15px_-3px_rgba(34,197,94,0.4)]">
+                                    <div className="p-6 border-b border-emerald-200 bg-emerald-50 flex items-center gap-4">
+                                        <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-emerald-600 shadow-sm">
                                             <TrophyIcon />
                                         </div>
-                                        <h3 className="text-lg font-bold text-white tracking-wide uppercase">Profile Wins</h3>
+                                        <h3 className="text-lg font-bold text-slate-900 tracking-wide uppercase">Profile Wins</h3>
                                     </div>
 
                                     {/* List Content */}
@@ -3295,24 +2764,24 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             {/* Top 3 Wins (Always Visible) */}
                                             {report.competitor_strengths?.slice(0, 3).map((item: string, i: number) => (
                                                 <li key={i} className="flex items-start gap-4 group">
-                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center border border-green-500/20 text-xs font-bold group-hover:bg-green-500 group-hover:text-white transition-colors">✓</span>
-                                                    <span className="text-gray-300 text-sm leading-relaxed font-medium group-hover:text-gray-100 transition-colors">{item}</span>
+                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-emerald-50 text-green-500 flex items-center justify-center border border-emerald-200 text-xs font-bold group-hover:bg-green-500 group-hover:text-white transition-colors">✓</span>
+                                                    <span className="text-slate-700 text-sm leading-relaxed font-medium group-hover:text-slate-900 transition-colors">{item}</span>
                                                 </li>
-                                            )) || <p className="text-gray-500 italic px-2">Analyzing competitive advantages...</p>}
+                                            )) || <p className="text-slate-500 italic px-2">Analyzing competitive advantages...</p>}
 
                                             {/* Locked Wins (Blurred) */}
                                             {!isUnlocked && report.competitor_strengths?.length > 3 && (
-                                                <div className="relative mt-2 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
-                                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/95 z-10 flex flex-col items-center justify-center text-center -mx-6 -mb-6 pb-4">
-                                                        <div className="bg-[#0B1120] p-3 rounded-full border border-green-500/30 text-green-400 shadow-[0_0_20px_-5px_rgba(34,197,94,0.4)] group-hover/lock:scale-110 transition-transform mb-2">
+                                                <div className="relative mt-2 pt-4 border-t border-dashed border-slate-200 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/95 z-10 flex flex-col items-center justify-center text-center -mx-6 -mb-6 pb-4">
+                                                        <div className="bg-white p-3 rounded-full border border-emerald-200 text-emerald-600 shadow-sm group-hover/lock:scale-110 transition-transform mb-2">
                                                             <LockIcon />
                                                         </div>
-                                                        <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest border-b border-green-500/30 pb-0.5">Unlock All Wins</span>
+                                                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest border-b border-emerald-200 pb-0.5">Unlock All Wins</span>
                                                     </div>
                                                     {/* Visual Fake Content */}
                                                     <div className="space-y-4 opacity-30 blur-[2px] pointer-events-none select-none grayscale">
-                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-green-500/20"></span><span className="h-4 bg-white/10 rounded w-3/4"></span></li>
-                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-green-500/20"></span><span className="h-4 bg-white/10 rounded w-2/3"></span></li>
+                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-emerald-100"></span><span className="h-4 bg-slate-100 rounded w-3/4"></span></li>
+                                                        <li className="flex items-start gap-4"><span className="w-5 h-5 rounded-full bg-emerald-100"></span><span className="h-4 bg-slate-100 rounded w-2/3"></span></li>
                                                     </div>
                                                 </div>
                                             )}
@@ -3320,8 +2789,8 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             {/* Unlocked Remaining Wins */}
                                             {isUnlocked && report.competitor_strengths?.slice(3).map((item: string, i: number) => (
                                                 <li key={i + 3} className="flex items-start gap-4 group animate-[fadeIn_0.5s_ease-out]">
-                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center border border-green-500/20 text-xs font-bold group-hover:bg-green-500 group-hover:text-white transition-colors">✓</span>
-                                                    <span className="text-gray-300 text-sm leading-relaxed font-medium group-hover:text-gray-100 transition-colors">{item}</span>
+                                                    <span className="flex-shrink-0 mt-1 w-5 h-5 rounded-full bg-emerald-50 text-green-500 flex items-center justify-center border border-emerald-200 text-xs font-bold group-hover:bg-green-500 group-hover:text-white transition-colors">✓</span>
+                                                    <span className="text-slate-700 text-sm leading-relaxed font-medium group-hover:text-slate-900 transition-colors">{item}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -3335,24 +2804,24 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                                     {/* Section Header */}
                                     <div className="text-center mb-8">
-                                        <h3 className="text-xl font-bold text-white">How to Close the Gap</h3>
-                                        <p className="text-sm text-gray-500 mt-1">Fixes grouped by area, safest first</p>
+                                        <h3 className="text-xl font-bold text-slate-900">How to Close the Gap</h3>
+                                        <p className="text-sm text-slate-500 mt-1">Fixes grouped by area, safest first</p>
                                     </div>
 
                                     <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
 
                                         {/* 1. REPUTATION MODULE */}
-                                        <div className="bg-[#0B1120] rounded-2xl border border-blue-500/20 overflow-hidden relative group hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.2)] transition-all duration-500">
+                                        <div className="bg-white rounded-2xl border border-blue-200 overflow-hidden relative group hover:shadow-sm transition-all duration-500">
                                             {/* Header */}
                                             <div className="h-1 bg-gradient-to-r from-blue-600 to-cyan-400"></div>
-                                            <div className="p-5 border-b border-white/5 bg-blue-900/5 flex justify-between items-center">
+                                            <div className="p-5 border-b border-slate-200 bg-blue-50 flex justify-between items-center">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                                    <div className="p-2 rounded bg-blue-50 text-blue-600 border border-blue-200">
                                                         <StarIcon />
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-bold text-white text-sm tracking-wide">Reputation</h3>
-                                                        <p className="text-[10px] text-blue-400/70 font-mono uppercase">Priority: High</p>
+                                                        <h3 className="font-bold text-slate-900 text-sm tracking-wide">Reputation</h3>
+                                                        <p className="text-[10px] text-blue-600 font-mono uppercase">Priority: High</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -3360,16 +2829,16 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             {/* Content List */}
                                             <div className="p-5 space-y-6 relative">
                                                 {/* Connecting Line */}
-                                                <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-blue-500/30 to-transparent"></div>
+                                                <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-blue-50 to-transparent"></div>
 
                                                 {/* STEP 1 (Always Visible) */}
                                                 <div className="relative flex gap-4">
-                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-blue-500 text-blue-500 flex items-center justify-center z-10 shadow-[0_0_10px_rgba(59,130,246,0.4)] group-hover:scale-110 transition-transform">
+                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-blue-500 text-blue-600 flex items-center justify-center z-10 shadow-sm group-hover:scale-110 transition-transform">
                                                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-blue-400 text-xs font-bold uppercase mb-1">Immediate Action</h4>
-                                                        <p className="text-gray-400 text-sm leading-relaxed">{report.gap_analysis.reputation?.[0]}</p>
+                                                        <h4 className="text-blue-600 text-xs font-bold uppercase mb-1">Immediate Action</h4>
+                                                        <p className="text-slate-600 text-sm leading-relaxed">{report.gap_analysis.reputation?.[0]}</p>
                                                     </div>
                                                 </div>
 
@@ -3377,32 +2846,32 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                 {isUnlocked ? (
                                                     report.gap_analysis.reputation?.slice(1).map((fix: string, i: number) => (
                                                         <div key={i} className="relative flex gap-4 animate-[fadeIn_0.5s_ease-out]">
-                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-blue-500/50 text-blue-400/80 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
+                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-blue-300 text-blue-600 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
                                                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
                                                             </div>
                                                             <div>
-                                                                <h4 className="text-blue-400/80 text-xs font-bold uppercase mb-1">Follow-up Protocol</h4>
-                                                                <p className="text-gray-400 text-sm leading-relaxed">{fix}</p>
+                                                                <h4 className="text-blue-600 text-xs font-bold uppercase mb-1">Follow-up Protocol</h4>
+                                                                <p className="text-slate-600 text-sm leading-relaxed">{fix}</p>
                                                             </div>
                                                         </div>
                                                     ))
                                                 ) : (
                                                     // LOCKED STATE
-                                                    <div className="relative mt-4 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
-                                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/90 z-0"></div>
+                                                    <div className="relative mt-4 pt-4 border-t border-dashed border-slate-200 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/90 z-0"></div>
                                                         <div className="relative z-10 flex flex-col items-center justify-center py-6 text-center space-y-3">
-                                                            <div className="w-10 h-10 rounded-full bg-black/60 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)] group-hover/lock:scale-110 transition-transform">
+                                                            <div className="w-10 h-10 rounded-full bg-slate-900/40 border border-blue-200 flex items-center justify-center text-blue-400 shadow-sm group-hover/lock:scale-110 transition-transform">
                                                                 <LockIcon />
                                                             </div>
-                                                            <div className="text-xs font-medium text-gray-500 group-hover/lock:text-blue-400 transition-colors">
+                                                            <div className="text-xs font-medium text-slate-500 group-hover/lock:text-blue-400 transition-colors">
                                                                 2 Advanced Strategies Hidden <br />
                                                                 <span className="font-bold underline decoration-blue-500/50 underline-offset-2">Tap to Unlock</span>
                                                             </div>
                                                         </div>
                                                         {/* Fake Blurred Text for Effect */}
                                                         <div className="absolute inset-0 blur-[4px] opacity-30 select-none pointer-events-none grayscale pt-6 pl-10">
-                                                            <p className="text-sm text-gray-500">Implement automated SMS review generation...</p>
-                                                            <p className="text-sm text-gray-500 mt-2">Filter negative feedback via gateway...</p>
+                                                            <p className="text-sm text-slate-500">Implement automated SMS review generation...</p>
+                                                            <p className="text-sm text-slate-500 mt-2">Filter negative feedback via gateway...</p>
                                                         </div>
                                                     </div>
                                                 )}
@@ -3410,31 +2879,31 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                         </div>
 
                                         {/* 2. ENGAGEMENT MODULE */}
-                                        <div className="bg-[#0B1120] rounded-2xl border border-purple-500/20 overflow-hidden relative group hover:shadow-[0_0_30px_-10px_rgba(168,85,247,0.2)] transition-all duration-500">
+                                        <div className="bg-white rounded-2xl border border-violet-200 overflow-hidden relative group hover:shadow-sm transition-all duration-500">
                                             <div className="h-1 bg-gradient-to-r from-purple-600 to-pink-400"></div>
-                                            <div className="p-5 border-b border-white/5 bg-purple-900/5 flex justify-between items-center">
+                                            <div className="p-5 border-b border-slate-200 bg-violet-50 flex justify-between items-center">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                                    <div className="p-2 rounded bg-violet-50 text-violet-600 border border-violet-200">
                                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-bold text-white text-sm tracking-wide">Engagement</h3>
-                                                        <p className="text-[10px] text-purple-400/70 font-mono uppercase">Priority: Medium</p>
+                                                        <h3 className="font-bold text-slate-900 text-sm tracking-wide">Engagement</h3>
+                                                        <p className="text-[10px] text-violet-600 font-mono uppercase">Priority: Medium</p>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div className="p-5 space-y-6 relative">
-                                                <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-purple-500/30 to-transparent"></div>
+                                                <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-violet-50 to-transparent"></div>
 
                                                 {/* STEP 1 */}
                                                 <div className="relative flex gap-4">
-                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-purple-500 text-purple-500 flex items-center justify-center z-10 shadow-[0_0_10px_rgba(168,85,247,0.4)] group-hover:scale-110 transition-transform">
+                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-purple-500 text-violet-600 flex items-center justify-center z-10 shadow-sm group-hover:scale-110 transition-transform">
                                                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-purple-400 text-xs font-bold uppercase mb-1">Content Fix</h4>
-                                                        <p className="text-gray-400 text-sm leading-relaxed">{report.gap_analysis.engagement?.[0]}</p>
+                                                        <h4 className="text-violet-600 text-xs font-bold uppercase mb-1">Content Fix</h4>
+                                                        <p className="text-slate-600 text-sm leading-relaxed">{report.gap_analysis.engagement?.[0]}</p>
                                                     </div>
                                                 </div>
 
@@ -3442,30 +2911,30 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                 {isUnlocked ? (
                                                     report.gap_analysis.engagement?.slice(1).map((fix: string, i: number) => (
                                                         <div key={i} className="relative flex gap-4 animate-[fadeIn_0.5s_ease-out]">
-                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-purple-500/50 text-purple-400/80 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
+                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-violet-300 text-violet-600 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
                                                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h7l-1.5-4.5L20 13H13l1.5 4.5L3 10z" /></svg>
                                                             </div>
                                                             <div>
-                                                                <h4 className="text-purple-400/80 text-xs font-bold uppercase mb-1">Interaction Boost</h4>
-                                                                <p className="text-gray-400 text-sm leading-relaxed">{fix}</p>
+                                                                <h4 className="text-violet-600 text-xs font-bold uppercase mb-1">Interaction Boost</h4>
+                                                                <p className="text-slate-600 text-sm leading-relaxed">{fix}</p>
                                                             </div>
                                                         </div>
                                                     ))
                                                 ) : (
-                                                    <div className="relative mt-4 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
-                                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/90 z-0"></div>
+                                                    <div className="relative mt-4 pt-4 border-t border-dashed border-slate-200 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/90 z-0"></div>
                                                         <div className="relative z-10 flex flex-col items-center justify-center py-6 text-center space-y-3">
-                                                            <div className="w-10 h-10 rounded-full bg-black/60 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.3)] group-hover/lock:scale-110 transition-transform">
+                                                            <div className="w-10 h-10 rounded-full bg-slate-900/40 border border-violet-200 flex items-center justify-center text-purple-400 shadow-sm group-hover/lock:scale-110 transition-transform">
                                                                 <LockIcon />
                                                             </div>
-                                                            <div className="text-xs font-medium text-gray-500 group-hover/lock:text-purple-400 transition-colors">
+                                                            <div className="text-xs font-medium text-slate-500 group-hover/lock:text-purple-400 transition-colors">
                                                                 2 Content Scripts Hidden <br />
                                                                 <span className="font-bold underline decoration-purple-500/50 underline-offset-2">Tap to Unlock</span>
                                                             </div>
                                                         </div>
                                                         <div className="absolute inset-0 blur-[4px] opacity-30 select-none pointer-events-none grayscale pt-6 pl-10">
-                                                            <p className="text-sm text-gray-500">Post 3x weekly using high-contrast visuals...</p>
-                                                            <p className="text-sm text-gray-500 mt-2">Respond to Q&A within 2 hours...</p>
+                                                            <p className="text-sm text-slate-500">Post 3x weekly using high-contrast visuals...</p>
+                                                            <p className="text-sm text-slate-500 mt-2">Respond to Q&A within 2 hours...</p>
                                                         </div>
                                                     </div>
                                                 )}
@@ -3473,31 +2942,31 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                         </div>
 
                                         {/* 3. RELEVANCE MODULE */}
-                                        <div className="bg-[#0B1120] rounded-2xl border border-green-500/20 overflow-hidden relative group hover:shadow-[0_0_30px_-10px_rgba(34,197,94,0.2)] transition-all duration-500">
+                                        <div className="bg-white rounded-2xl border border-emerald-200 overflow-hidden relative group hover:shadow-sm transition-all duration-500">
                                             <div className="h-1 bg-gradient-to-r from-green-600 to-emerald-400"></div>
-                                            <div className="p-5 border-b border-white/5 bg-green-900/5 flex justify-between items-center">
+                                            <div className="p-5 border-b border-slate-200 bg-emerald-50 flex justify-between items-center">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 rounded bg-green-500/10 text-green-400 border border-green-500/20">
+                                                    <div className="p-2 rounded bg-emerald-50 text-emerald-600 border border-emerald-200">
                                                         <MapPinIcon />
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-bold text-white text-sm tracking-wide">Relevance</h3>
-                                                        <p className="text-[10px] text-green-400/70 font-mono uppercase">Priority: Critical</p>
+                                                        <h3 className="font-bold text-slate-900 text-sm tracking-wide">Relevance</h3>
+                                                        <p className="text-[10px] text-emerald-600 font-mono uppercase">Priority: Critical</p>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div className="p-5 space-y-6 relative">
-                                                <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-green-500/30 to-transparent"></div>
+                                                <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-emerald-50 to-transparent"></div>
 
                                                 {/* STEP 1 */}
                                                 <div className="relative flex gap-4">
-                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-green-500 text-green-500 flex items-center justify-center z-10 shadow-[0_0_10px_rgba(34,197,94,0.4)] group-hover:scale-110 transition-transform">
+                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-green-500 text-emerald-600 flex items-center justify-center z-10 shadow-sm group-hover:scale-110 transition-transform">
                                                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3zm0 0v6m-6 0h12" /></svg>
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-green-400 text-xs font-bold uppercase mb-1">Keyword Injection</h4>
-                                                        <p className="text-gray-400 text-sm leading-relaxed">{report.gap_analysis.relevance?.[0]}</p>
+                                                        <h4 className="text-emerald-600 text-xs font-bold uppercase mb-1">Keyword Injection</h4>
+                                                        <p className="text-slate-600 text-sm leading-relaxed">{report.gap_analysis.relevance?.[0]}</p>
                                                     </div>
                                                 </div>
 
@@ -3505,30 +2974,30 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                 {isUnlocked ? (
                                                     report.gap_analysis.relevance?.slice(1).map((fix: string, i: number) => (
                                                         <div key={i} className="relative flex gap-4 animate-[fadeIn_0.5s_ease-out]">
-                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-green-500/50 text-green-400/80 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
+                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-emerald-300 text-emerald-600 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
                                                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12l5 5L20 7" /></svg>
                                                             </div>
                                                             <div>
-                                                                <h4 className="text-green-400/80 text-xs font-bold uppercase mb-1">Authority Signal</h4>
-                                                                <p className="text-gray-400 text-sm leading-relaxed">{fix}</p>
+                                                                <h4 className="text-emerald-600 text-xs font-bold uppercase mb-1">Authority Signal</h4>
+                                                                <p className="text-slate-600 text-sm leading-relaxed">{fix}</p>
                                                             </div>
                                                         </div>
                                                     ))
                                                 ) : (
-                                                    <div className="relative mt-4 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
-                                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/90 z-0"></div>
+                                                    <div className="relative mt-4 pt-4 border-t border-dashed border-slate-200 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/90 z-0"></div>
                                                         <div className="relative z-10 flex flex-col items-center justify-center py-6 text-center space-y-3">
-                                                            <div className="w-10 h-10 rounded-full bg-black/60 border border-green-500/30 flex items-center justify-center text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)] group-hover/lock:scale-110 transition-transform">
+                                                            <div className="w-10 h-10 rounded-full bg-slate-900/40 border border-emerald-200 flex items-center justify-center text-green-400 shadow-sm group-hover/lock:scale-110 transition-transform">
                                                                 <LockIcon />
                                                             </div>
-                                                            <div className="text-xs font-medium text-gray-500 group-hover/lock:text-green-400 transition-colors">
+                                                            <div className="text-xs font-medium text-slate-500 group-hover/lock:text-green-400 transition-colors">
                                                                 2 Geo-Grid Fixes Hidden <br />
                                                                 <span className="font-bold underline decoration-green-500/50 underline-offset-2">Tap to Unlock</span>
                                                             </div>
                                                         </div>
                                                         <div className="absolute inset-0 blur-[4px] opacity-30 select-none pointer-events-none grayscale pt-6 pl-10">
-                                                            <p className="text-sm text-gray-500">Update secondary categories to match buyer intent...</p>
-                                                            <p className="text-sm text-gray-500 mt-2">Embed geo-coordinates in photo metadata...</p>
+                                                            <p className="text-sm text-slate-500">Update secondary categories to match buyer intent...</p>
+                                                            <p className="text-sm text-slate-500 mt-2">Embed geo-coordinates in photo metadata...</p>
                                                         </div>
                                                     </div>
                                                 )}
@@ -3537,31 +3006,31 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                                         {/* 4. ACCESSIBILITY MODULE */}
                                         {report.gap_analysis.accessibility && report.gap_analysis.accessibility.length > 0 && (
-                                            <div className="bg-[#0B1120] rounded-2xl border border-amber-500/20 overflow-hidden relative group hover:shadow-[0_0_30px_-10px_rgba(245,158,11,0.2)] transition-all duration-500">
+                                            <div className="bg-white rounded-2xl border border-amber-200 overflow-hidden relative group hover:shadow-sm transition-all duration-500">
                                                 <div className="h-1 bg-gradient-to-r from-amber-600 to-yellow-400"></div>
-                                                <div className="p-5 border-b border-white/5 bg-amber-900/5 flex justify-between items-center">
+                                                <div className="p-5 border-b border-slate-200 bg-amber-50 flex justify-between items-center">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="p-2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                                        <div className="p-2 rounded bg-amber-50 text-amber-600 border border-amber-200">
                                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M12 3a4 4 0 110 8 4 4 0 010-8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg>
                                                         </div>
                                                         <div>
-                                                            <h3 className="font-bold text-white text-sm tracking-wide">Accessibility</h3>
-                                                            <p className="text-[10px] text-amber-400/70 font-mono uppercase">Priority: Medium</p>
+                                                            <h3 className="font-bold text-slate-900 text-sm tracking-wide">Accessibility</h3>
+                                                            <p className="text-[10px] text-amber-600 font-mono uppercase">Priority: Medium</p>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <div className="p-5 space-y-6 relative">
-                                                    <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-amber-500/30 to-transparent"></div>
+                                                    <div className="absolute left-[29px] top-8 bottom-8 w-px bg-gradient-to-b from-amber-50 to-transparent"></div>
 
                                                     {/* STEP 1 */}
                                                     <div className="relative flex gap-4">
-                                                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-amber-500 text-amber-500 flex items-center justify-center z-10 shadow-[0_0_10px_rgba(245,158,11,0.4)] group-hover:scale-110 transition-transform">
+                                                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-amber-500 text-amber-600 flex items-center justify-center z-10 shadow-sm group-hover:scale-110 transition-transform">
                                                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                                         </div>
                                                         <div>
-                                                            <h4 className="text-amber-400 text-xs font-bold uppercase mb-1">First Fix</h4>
-                                                            <p className="text-gray-400 text-sm leading-relaxed">{report.gap_analysis.accessibility[0]}</p>
+                                                            <h4 className="text-amber-600 text-xs font-bold uppercase mb-1">First Fix</h4>
+                                                            <p className="text-slate-600 text-sm leading-relaxed">{report.gap_analysis.accessibility[0]}</p>
                                                         </div>
                                                     </div>
 
@@ -3569,23 +3038,23 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                                     {isUnlocked ? (
                                                         report.gap_analysis.accessibility.slice(1).map((fix: string, i: number) => (
                                                             <div key={i} className="relative flex gap-4 animate-[fadeIn_0.5s_ease-out]">
-                                                                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#0B1120] border border-amber-500/50 text-amber-400/80 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
+                                                                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-amber-300 text-amber-600 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">
                                                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12l5 5L20 7" /></svg>
                                                                 </div>
                                                                 <div>
-                                                                    <h4 className="text-amber-400/80 text-xs font-bold uppercase mb-1">Follow-up Fix</h4>
-                                                                    <p className="text-gray-400 text-sm leading-relaxed">{fix}</p>
+                                                                    <h4 className="text-amber-600 text-xs font-bold uppercase mb-1">Follow-up Fix</h4>
+                                                                    <p className="text-slate-600 text-sm leading-relaxed">{fix}</p>
                                                                 </div>
                                                             </div>
                                                         ))
                                                     ) : (
-                                                        <div className="relative mt-4 pt-4 border-t border-dashed border-white/10 cursor-pointer group/lock" onClick={handleRestrictedAction}>
-                                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0B1120]/90 z-0"></div>
+                                                        <div className="relative mt-4 pt-4 border-t border-dashed border-slate-200 cursor-pointer group/lock" onClick={handleRestrictedAction}>
+                                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/90 z-0"></div>
                                                             <div className="relative z-10 flex flex-col items-center justify-center py-6 text-center space-y-3">
-                                                                <div className="w-10 h-10 rounded-full bg-black/60 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.3)] group-hover/lock:scale-110 transition-transform">
+                                                                <div className="w-10 h-10 rounded-full bg-slate-900/40 border border-amber-200 flex items-center justify-center text-amber-400 shadow-sm group-hover/lock:scale-110 transition-transform">
                                                                     <LockIcon />
                                                                 </div>
-                                                                <div className="text-xs font-medium text-gray-500 group-hover/lock:text-amber-400 transition-colors">
+                                                                <div className="text-xs font-medium text-slate-500 group-hover/lock:text-amber-400 transition-colors">
                                                                     More Fixes Hidden <br />
                                                                     <span className="font-bold underline decoration-amber-500/50 underline-offset-2">Tap to Unlock</span>
                                                                 </div>
@@ -3604,11 +3073,11 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                 <div className="mt-16 space-y-8">
                                     <div className="flex items-center justify-between px-2">
                                         <div>
-                                            <h3 className="text-xl font-bold text-white tracking-wide">Your 4-Week Action Plan</h3>
-                                            <p className="text-sm text-gray-500 mt-1">Step-by-step, safest changes first</p>
+                                            <h3 className="text-xl font-bold text-slate-900 tracking-wide">Your 4-Week Action Plan</h3>
+                                            <p className="text-sm text-slate-500 mt-1">Step-by-step, safest changes first</p>
                                         </div>
-                                        <div className="hidden md:flex items-center px-4 py-2 rounded-full bg-white/5 border border-white/10">
-                                            <span className="text-xs font-mono text-gray-400">~30 days total</span>
+                                        <div className="hidden md:flex items-center px-4 py-2 rounded-full bg-slate-50 border border-slate-200">
+                                            <span className="text-xs font-mono text-slate-600">~30 days total</span>
                                         </div>
                                     </div>
 
@@ -3619,40 +3088,40 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             const tasks = isPartial ? week.tasks?.slice(0, Math.ceil((week.tasks?.length || 0) / 2)) : week.tasks;
 
                                             return (
-                                                <div key={i} className={`relative bg-[#0B1120] rounded-2xl border overflow-hidden ${isWeekLocked ? 'border-white/5 opacity-60' : 'border-white/10'}`}>
-                                                    <div className="p-6 border-b border-white/5">
+                                                <div key={i} className={`relative bg-white rounded-2xl border overflow-hidden ${isWeekLocked ? 'border-slate-200 opacity-60' : 'border-slate-200'}`}>
+                                                    <div className="p-6 border-b border-slate-200">
                                                         <div className="flex justify-between items-start mb-3">
-                                                            <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border border-cyan-500/20 bg-cyan-500/10 text-cyan-400">
+                                                            <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border border-blue-200 bg-blue-50 text-blue-600">
                                                                 Week {i + 1}
                                                             </span>
-                                                            <span className="text-[10px] font-mono text-gray-500 flex items-center gap-1">
+                                                            <span className="text-[10px] font-mono text-slate-500 flex items-center gap-1">
                                                                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                                 {week.time_est}
                                                             </span>
                                                         </div>
-                                                        <h4 className="text-lg font-bold text-white mb-1">{week.week}</h4>
-                                                        <p className="text-xs text-gray-400 uppercase tracking-wide">{week.focus}</p>
+                                                        <h4 className="text-lg font-bold text-slate-900 mb-1">{week.week}</h4>
+                                                        <p className="text-xs text-slate-600 uppercase tracking-wide">{week.focus}</p>
                                                     </div>
 
                                                     <div className="relative p-6 min-h-[180px]">
                                                         {isWeekLocked ? (
                                                             <div className="h-full flex flex-col items-center justify-center text-center cursor-pointer py-6" onClick={handleRestrictedAction}>
-                                                                <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-3 text-gray-500"><LockIcon /></div>
-                                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Locked</span>
+                                                                <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center mb-3 text-slate-500"><LockIcon /></div>
+                                                                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Locked</span>
                                                             </div>
                                                         ) : (
                                                             <ul className="space-y-3">
                                                                 {tasks?.map((task: string, k: number) => (
                                                                     <li key={k} className="flex items-start gap-3">
                                                                         <div className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-cyan-500"></div>
-                                                                        <span className="text-sm text-gray-300 leading-snug">{task}</span>
+                                                                        <span className="text-sm text-slate-700 leading-snug">{task}</span>
                                                                     </li>
                                                                 ))}
                                                             </ul>
                                                         )}
                                                         {isPartial && (
-                                                            <div className="absolute inset-x-0 bottom-0 pt-16 pb-6 bg-gradient-to-t from-[#0B1120] via-[#0B1120]/95 to-transparent flex items-end justify-center cursor-pointer" onClick={handleRestrictedAction}>
-                                                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-600/20 border border-cyan-500/40 text-cyan-400 text-xs font-bold uppercase tracking-wider hover:bg-cyan-600 hover:text-white transition-all">
+                                                            <div className="absolute inset-x-0 bottom-0 pt-16 pb-6 bg-gradient-to-t from-white via-white/95 to-transparent flex items-end justify-center cursor-pointer" onClick={handleRestrictedAction}>
+                                                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 border border-blue-300 text-cyan-400 text-xs font-bold uppercase tracking-wider hover:bg-cyan-600 hover:text-white transition-all">
                                                                     <LockIcon /><span>Unlock Full Plan</span>
                                                                 </div>
                                                             </div>
@@ -3667,37 +3136,37 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                             {/* GLOSSARY & DISCLAIMER */}
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="h-px bg-white/10 flex-1"></div>
+                                    <div className="h-px bg-slate-100 flex-1"></div>
                                     <div className="flex items-center gap-3">
-                                        <span className="bg-white/5 text-gray-400 p-2 rounded-lg border border-white/10"><BookIcon /></span>
-                                        <h3 className="font-bold text-gray-100 text-xl uppercase tracking-wide">Metric Definitions</h3>
+                                        <span className="bg-slate-50 text-slate-600 p-2 rounded-lg border border-slate-200"><BookIcon /></span>
+                                        <h3 className="font-bold text-slate-900 text-xl uppercase tracking-wide">Metric Definitions</h3>
                                     </div>
-                                    <div className="h-px bg-white/10 flex-1"></div>
+                                    <div className="h-px bg-slate-100 flex-1"></div>
                                 </div>
 
                                 {/* Definitions Grid */}
-                                <div className="bg-[#0B1120] p-8 rounded-2xl shadow-lg border border-white/10">
+                                <div className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200">
                                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-6 text-sm">
                                         {METRIC_DEFINITIONS.map((def, i) => (
                                             <div key={i} className="flex flex-col">
-                                                <span className="font-bold text-gray-200 mb-1">{def.label}</span>
-                                                <span className="text-gray-500 leading-snug">{def.desc}</span>
+                                                <span className="font-bold text-slate-800 mb-1">{def.label}</span>
+                                                <span className="text-slate-500 leading-snug">{def.desc}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
                                 {/* LEGAL DISCLAIMER */}
-                                <div className="mt-8 p-4 rounded-xl border border-white/5 bg-white/[0.02] text-center">
-                                    <p className="text-[10px] text-gray-500 leading-relaxed max-w-4xl mx-auto">
-                                        <span className="font-bold text-gray-400 uppercase">Disclaimer:</span> All analysis, insights, and recommendations provided in this report are generated by artificial intelligence. These suggestions are for informational purposes only. Implementation of any strategies is at the sole discretion and risk of the user. We are not liable for any negative outcomes, including but not limited to profile suspension, blacklisting, ranking drops, or loss of data that may occur from applying these recommendations.
+                                <div className="mt-8 p-4 rounded-xl border border-slate-200 bg-slate-50 text-center">
+                                    <p className="text-[10px] text-slate-500 leading-relaxed max-w-4xl mx-auto">
+                                        <span className="font-bold text-slate-600 uppercase">Disclaimer:</span> All analysis, insights, and recommendations provided in this report are generated by artificial intelligence. These suggestions are for informational purposes only. Implementation of any strategies is at the sole discretion and risk of the user. We are not liable for any negative outcomes, including but not limited to profile suspension, blacklisting, ranking drops, or loss of data that may occur from applying these recommendations.
                                     </p>
                                     <div className="flex items-center justify-center gap-6 mt-4">
-                                        <Link href="/terms-and-conditions" className="text-[10px] text-gray-500 hover:text-cyan-400 transition uppercase tracking-wider font-bold">Terms & Conditions</Link>
-                                        <span className="text-gray-700">|</span>
-                                        <Link href="/privacy-policy" className="text-[10px] text-gray-500 hover:text-cyan-400 transition uppercase tracking-wider font-bold">Privacy Policy</Link>
-                                        <span className="text-gray-700">|</span>
-                                        <Link href="/refund-policy" className="text-[10px] text-gray-500 hover:text-cyan-400 transition uppercase tracking-wider font-bold">Refund Policy</Link>
+                                        <Link href="/terms-and-conditions" className="text-[10px] text-slate-500 hover:text-blue-600 transition uppercase tracking-wider font-bold">Terms & Conditions</Link>
+                                        <span className="text-slate-400">|</span>
+                                        <Link href="/privacy-policy" className="text-[10px] text-slate-500 hover:text-blue-600 transition uppercase tracking-wider font-bold">Privacy Policy</Link>
+                                        <span className="text-slate-400">|</span>
+                                        <Link href="/refund-policy" className="text-[10px] text-slate-500 hover:text-blue-600 transition uppercase tracking-wider font-bold">Refund Policy</Link>
                                     </div>
                                 </div>
                             </div>
@@ -3708,7 +3177,7 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                 {/* --- GOURMET BREW LOADER --- */}
                 {loading && (
-                    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#030712]/95 backdrop-blur-xl transition-all duration-300 overflow-hidden">
+                    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/95 backdrop-blur-xl transition-all duration-300 overflow-hidden">
 
                         {/* Background Atmosphere */}
                         <div className="absolute inset-0 bg-radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.1) 0%, transparent 70%) pointer-events-none"></div>
@@ -3718,18 +3187,18 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                             {/* 1. Floating "Data Spices" (Falling particles) */}
                             <div className="absolute -top-12 left-0 w-full h-full z-0">
-                                <div className="absolute top-0 left-1/4 w-1 h-1 bg-white/40 rounded-full animate-[fall_3s_linear_infinite]"></div>
-                                <div className="absolute top-[-10px] left-1/2 w-1.5 h-1.5 bg-amber-300/40 rounded-full animate-[fall_4s_linear_infinite_1s]"></div>
-                                <div className="absolute top-[-5px] left-3/4 w-1 h-1 bg-white/30 rounded-full animate-[fall_2.5s_linear_infinite_0.5s]"></div>
+                                <div className="absolute top-0 left-1/4 w-1 h-1 bg-slate-200 rounded-full animate-[fall_3s_linear_infinite]"></div>
+                                <div className="absolute top-[-10px] left-1/2 w-1.5 h-1.5 bg-amber-200 rounded-full animate-[fall_4s_linear_infinite_1s]"></div>
+                                <div className="absolute top-[-5px] left-3/4 w-1 h-1 bg-slate-200 rounded-full animate-[fall_2.5s_linear_infinite_0.5s]"></div>
                             </div>
 
                             {/* 2. The Cup */}
                             <div className="relative w-36 h-44 z-10">
                                 {/* Handle */}
-                                <div className="absolute top-8 -right-5 w-14 h-20 border-[6px] border-white/10 rounded-r-3xl pointer-events-none shadow-lg"></div>
+                                <div className="absolute top-8 -right-5 w-14 h-20 border-[6px] border-slate-200 rounded-r-3xl pointer-events-none shadow-lg"></div>
 
                                 {/* Glass Body */}
-                                <div className="w-full h-full border-[3px] border-white/20 border-t-0 rounded-b-[3rem] relative overflow-hidden bg-white/5 backdrop-blur-md shadow-[0_0_40px_-10px_rgba(245,158,11,0.3)]">
+                                <div className="w-full h-full border-[3px] border-slate-300 border-t-0 rounded-b-[3rem] relative overflow-hidden bg-slate-50 backdrop-blur-md shadow-sm">
 
                                     {/* The Liquid (Coffee/Amber Gradient) — fills at the pace of the real wait, not a fixed timer */}
                                     <div
@@ -3740,13 +3209,13 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                         <div className="w-full h-3 bg-[#fcd34d] absolute top-0 blur-[1px] opacity-80 animate-[wave_2s_linear_infinite]"></div>
 
                                         {/* Wavy Surface */}
-                                        <div className="w-[200%] h-6 bg-white/10 absolute -top-3 animate-[wave_2.5s_linear_infinite] rounded-[50%]"></div>
+                                        <div className="w-[200%] h-6 bg-slate-100 absolute -top-3 animate-[wave_2.5s_linear_infinite] rounded-[50%]"></div>
 
                                         {/* Vigorously Boiling Bubbles */}
-                                        <div className="absolute bottom-0 left-1/4 w-2 h-2 bg-white/40 rounded-full animate-[bubble_1.5s_ease-in_infinite]"></div>
-                                        <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-white/20 rounded-full animate-[bubble_2s_ease-in_infinite_0.2s]"></div>
-                                        <div className="absolute bottom-0 left-3/4 w-2 h-2 bg-white/30 rounded-full animate-[bubble_1.8s_ease-in_infinite_0.5s]"></div>
-                                        <div className="absolute bottom-4 left-1/3 w-1 h-1 bg-amber-200/50 rounded-full animate-[bubble_2.2s_ease-in_infinite_1s]"></div>
+                                        <div className="absolute bottom-0 left-1/4 w-2 h-2 bg-slate-200 rounded-full animate-[bubble_1.5s_ease-in_infinite]"></div>
+                                        <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-slate-200 rounded-full animate-[bubble_2s_ease-in_infinite_0.2s]"></div>
+                                        <div className="absolute bottom-0 left-3/4 w-2 h-2 bg-slate-200 rounded-full animate-[bubble_1.8s_ease-in_infinite_0.5s]"></div>
+                                        <div className="absolute bottom-4 left-1/3 w-1 h-1 bg-amber-200 rounded-full animate-[bubble_2.2s_ease-in_infinite_1s]"></div>
                                     </div>
                                 </div>
 
@@ -3755,35 +3224,35 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                             </div>
 
                             {/* 3. Heating Element Glow (Bottom) */}
-                            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-24 h-4 bg-orange-500/50 blur-xl rounded-full animate-pulse"></div>
+                            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-24 h-4 bg-orange-200 blur-xl rounded-full animate-pulse"></div>
 
                             {/* 4. Enhanced Steam (Top) */}
                             <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex gap-3 justify-center z-0">
-                                <div className="w-2 h-10 bg-white/10 rounded-full blur-md animate-[steam_2.5s_ease-out_infinite]"></div>
-                                <div className="w-2 h-14 bg-white/20 rounded-full blur-md animate-[steam_3s_ease-out_infinite_0.5s]"></div>
-                                <div className="w-2 h-8 bg-white/10 rounded-full blur-md animate-[steam_2s_ease-out_infinite_1s]"></div>
+                                <div className="w-2 h-10 bg-slate-100 rounded-full blur-md animate-[steam_2.5s_ease-out_infinite]"></div>
+                                <div className="w-2 h-14 bg-slate-200 rounded-full blur-md animate-[steam_3s_ease-out_infinite_0.5s]"></div>
+                                <div className="w-2 h-8 bg-slate-100 rounded-full blur-md animate-[steam_2s_ease-out_infinite_1s]"></div>
                             </div>
                         </div>
 
                         {/* Text & Status */}
                         <div className="mt-12 text-center relative z-20 space-y-4">
-                            <h3 className="text-3xl font-black text-white tracking-tight">
-                                BREWING <span className="text-amber-500">INSIGHTS</span>
+                            <h3 className="text-3xl font-black text-slate-900 tracking-tight">
+                                BREWING <span className="text-amber-600">INSIGHTS</span>
                             </h3>
 
-                            <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-full inline-block backdrop-blur-md">
-                                <p key={loadingMsgIndex} className="text-amber-200 font-mono text-xs tracking-widest uppercase animate-[fade-in-up_0.4s_ease-out]">
+                            <div className="bg-slate-50 border border-slate-200 px-6 py-3 rounded-full inline-block backdrop-blur-md">
+                                <p key={loadingMsgIndex} className="text-amber-800 font-mono text-xs tracking-widest uppercase animate-[fade-in-up_0.4s_ease-out]">
                                     <span className="mr-2 animate-spin inline-block">⏳</span>
                                     {LOADING_MESSAGES[loadingMsgIndex % LOADING_MESSAGES.length]}
                                 </p>
                             </div>
-                            <div className="mx-auto h-2 w-64 rounded-full bg-white/10 border border-white/10 overflow-hidden">
+                            <div className="mx-auto h-2 w-64 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
                                 <div
                                     className="h-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-[3000ms] ease-out"
                                     style={{ width: reportReady ? '100%' : `${Math.min(90, (loadingMsgIndex + 1) * 6)}%` }}
                                 />
                             </div>
-                            <p className="text-gray-500 text-[11px] max-w-xs mx-auto leading-relaxed">
+                            <p className="text-slate-500 text-[11px] max-w-xs mx-auto leading-relaxed">
                                 A deep, personalized audit takes real analysis — this usually takes up to 90 seconds. Please keep this tab open.
                             </p>
                         </div>
@@ -3792,23 +3261,23 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                 {/* --- LEAD CAPTURE MODAL --- */}
                 {showLeadModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-[fadeIn_0.2s_ease-out]">
-                        <div className="bg-[#0B1120] rounded-2xl shadow-2xl max-w-md w-full p-8 text-center border border-white/10 relative">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-md p-4 animate-[fadeIn_0.2s_ease-out]">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center border border-slate-200 relative">
                             <button
                                 onClick={() => { setShowLeadModal(false); setLeadCouponCode(""); setLeadCouponError(""); setLeadCouponApplied(false); }}
-                                className="absolute top-4 right-4 text-gray-500 hover:text-white transition"
+                                className="absolute top-4 right-4 text-slate-500 hover:text-slate-900 transition"
                             >✕</button>
 
-                            <h2 className="text-2xl font-bold text-white mb-2">Almost There</h2>
-                            <p className="text-gray-400 mb-6 text-sm">Enter your details to unlock the full GMB audit report.</p>
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">Almost There</h2>
+                            <p className="text-slate-600 mb-6 text-sm">Enter your details to unlock the full GMB audit report.</p>
 
                             <form onSubmit={handleLeadSubmit} className="space-y-4 text-left">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email Address</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
                                     <input
                                         type="email"
                                         required
-                                        className="w-full bg-[#020617] border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none text-white transition"
+                                        className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:border-cyan-500 outline-none text-slate-900 transition"
                                         placeholder="you@example.com"
                                         value={leadData.email}
                                         onChange={(e) => setLeadData({ ...leadData, email: e.target.value })}
@@ -3816,11 +3285,11 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phone Number</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Phone Number</label>
                                     <input
                                         type="tel"
                                         required
-                                        className="w-full bg-[#020617] border border-white/10 p-3 rounded-xl focus:border-cyan-500 outline-none text-white transition"
+                                        className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:border-cyan-500 outline-none text-slate-900 transition"
                                         placeholder="+91 98765 00000"
                                         value={leadData.phone}
                                         onChange={(e) => setLeadData({ ...leadData, phone: e.target.value })}
@@ -3829,15 +3298,15 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                                 {/* --- COUPON CODE SECTION --- */}
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Coupon Code <span className="text-gray-600 normal-case font-normal">(optional)</span></label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Coupon Code <span className="text-slate-500 normal-case font-normal">(optional)</span></label>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
-                                            className={`flex-1 bg-[#020617] border p-3 rounded-xl outline-none text-white transition text-sm ${leadCouponApplied
-                                                ? "border-green-500/60 text-green-400"
+                                            className={`flex-1 bg-slate-50 border p-3 rounded-xl outline-none text-slate-900 transition text-sm ${leadCouponApplied
+                                                ? "border-emerald-300 text-emerald-600"
                                                 : leadCouponError
-                                                    ? "border-red-500/60"
-                                                    : "border-white/10 focus:border-cyan-500"
+                                                    ? "border-red-300"
+                                                    : "border-slate-200 focus:border-cyan-500"
                                                 }`}
                                             placeholder="Enter coupon code"
                                             value={leadCouponCode}
@@ -3848,40 +3317,40 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                             type="button"
                                             onClick={handleLeadCouponApply}
                                             disabled={!leadCouponCode.trim() || leadCouponApplied || isCheckingCoupon}
-                                            className="px-4 py-3 rounded-xl font-bold text-sm transition bg-white/10 hover:bg-white/20 text-white border border-white/10 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                                            className="px-4 py-3 rounded-xl font-bold text-sm transition bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                                         >
                                             {leadCouponApplied ? "✓ Applied" : isCheckingCoupon ? "Checking…" : "Apply"}
                                         </button>
                                     </div>
                                     {leadCouponApplied && (
-                                        <p className="text-green-400 text-xs mt-1.5 flex items-center gap-1">
+                                        <p className="text-emerald-600 text-xs mt-1.5 flex items-center gap-1">
                                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                                             {leadCouponDiscount === 100 ? "Coupon applied! Payment waived." : `Coupon applied! ${leadCouponDiscount}% off.`}
                                         </p>
                                     )}
                                     {leadCouponError && (
-                                        <p className="text-red-400 text-xs mt-1.5">{leadCouponError}</p>
+                                        <p className="text-red-600 text-xs mt-1.5">{leadCouponError}</p>
                                     )}
                                 </div>
 
                                 {/* PRICE LINE */}
                                 {!leadCouponApplied ? (
                                     <div className="flex items-center justify-between px-1 pt-1">
-                                        <span className="text-gray-400 text-xs">Unlock full audit report</span>
+                                        <span className="text-slate-600 text-xs">Unlock full audit report</span>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-white font-bold text-sm">₹99</span>
-                                            <span className="text-gray-500 line-through text-xs">₹999</span>
+                                            <span className="text-slate-900 font-bold text-sm">₹99</span>
+                                            <span className="text-slate-500 line-through text-xs">₹999</span>
                                         </div>
                                     </div>
                                 ) : leadCouponDiscount === 100 ? (
                                     <div className="flex items-center justify-between px-1 pt-1">
-                                        <span className="text-green-400 text-xs font-medium">🎉 Coupon applied — Payment waived!</span>
-                                        <span className="text-green-400 font-bold text-sm">FREE</span>
+                                        <span className="text-emerald-600 text-xs font-medium">🎉 Coupon applied — Payment waived!</span>
+                                        <span className="text-emerald-600 font-bold text-sm">FREE</span>
                                     </div>
                                 ) : (
                                     <div className="flex items-center justify-between px-1 pt-1">
-                                        <span className="text-green-400 text-xs font-medium">🎉 Coupon applied — {leadCouponDiscount}% off!</span>
-                                        <span className="text-green-400 font-bold text-sm">-{leadCouponDiscount}%</span>
+                                        <span className="text-emerald-600 text-xs font-medium">🎉 Coupon applied — {leadCouponDiscount}% off!</span>
+                                        <span className="text-emerald-600 font-bold text-sm">-{leadCouponDiscount}%</span>
                                     </div>
                                 )}
 
@@ -3890,8 +3359,8 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
                                     type="submit"
                                     disabled={isSubmitting}
                                     className={`w-full text-white py-4 rounded-xl font-bold transition mt-1 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed ${leadCouponApplied
-                                        ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)]"
-                                        : "bg-gradient-to-r from-blue-600 to-cyan-600 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                                        ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-sm"
+                                        : "bg-gradient-to-r from-blue-600 to-cyan-600 hover:shadow-sm"
                                         }`}
                                 >
                                     {isSubmitting ? (
@@ -3922,15 +3391,15 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                 {/* --- PAYMENT SUCCESS MODAL --- */}
                 {isPaymentSuccess && (
-                    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/95 backdrop-blur-md animate-[fadeIn_0.3s_ease-out]">
-                        <div className="bg-[#0B1120] rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-green-500/20 relative overflow-hidden">
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/50 backdrop-blur-md animate-[fadeIn_0.3s_ease-out]">
+                        <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-emerald-200 relative overflow-hidden">
                             {/* Animated Background Glow */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-cyan-500/5 to-transparent animate-pulse pointer-events-none"></div>
+                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-blue-50 to-transparent animate-pulse pointer-events-none"></div>
 
                             {/* Success Checkmark Animation */}
                             <div className="relative z-10 mb-6 flex justify-center">
-                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-500/20 to-cyan-500/20 border-4 border-green-500/30 flex items-center justify-center animate-[scale-in_0.5s_ease-out] shadow-[0_0_40px_rgba(34,197,94,0.4)]">
-                                    <svg className="w-12 h-12 text-green-400 animate-[checkmark_0.6s_ease-out_0.2s_both]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-50 to-blue-50 border-4 border-emerald-200 flex items-center justify-center animate-[scale-in_0.5s_ease-out] shadow-sm">
+                                    <svg className="w-12 h-12 text-emerald-600 animate-[checkmark_0.6s_ease-out_0.2s_both]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
@@ -3938,10 +3407,10 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
 
                             {/* Success Text */}
                             <div className="relative z-10 space-y-3">
-                                <h2 className="text-3xl font-black text-white tracking-tight animate-[fadeIn_0.5s_ease-out_0.3s_both]">
+                                <h2 className="text-3xl font-black text-slate-900 tracking-tight animate-[fadeIn_0.5s_ease-out_0.3s_both]">
                                     Payment Successful!
                                 </h2>
-                                <p className="text-gray-400 text-sm animate-[fadeIn_0.5s_ease-out_0.4s_both]">
+                                <p className="text-slate-600 text-sm animate-[fadeIn_0.5s_ease-out_0.4s_both]">
                                     Unlocking your full GMB audit report...
                                 </p>
 
@@ -3963,19 +3432,19 @@ function DashboardLogic({ onHome, onReports, preloadedData, onDownloadComplete }
             </div>
 
             {/* --- FOOTER FOR BOTH LANDING & DASHBOARD --- */}
-            <footer className={`border-t border-white/5 text-center relative z-10 bg-[#02040a] ${step === 1 ? 'py-6' : 'py-12'}`}>
+            <footer className={`border-t border-slate-200 text-center relative z-10 bg-slate-50 ${step === 1 ? 'py-6' : 'py-12'}`}>
                 <div className="flex items-center justify-center gap-2 mb-4 opacity-50">
                     <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                    <span className="text-[10px] md:text-xs font-mono text-gray-400">ALL SYSTEMS OPERATIONAL</span>
+                    <span className="text-[10px] md:text-xs font-mono text-slate-600">ALL SYSTEMS OPERATIONAL</span>
                 </div>
                 <div className="flex items-center justify-center gap-4 mb-3">
-                    <Link href="/terms-and-conditions" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Terms</Link>
-                    <span className="text-gray-700">•</span>
-                    <Link href="/privacy-policy" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Privacy</Link>
-                    <span className="text-gray-700">•</span>
-                    <Link href="/refund-policy" className="text-[10px] md:text-xs text-gray-500 hover:text-cyan-400 transition font-mono">Refund Policy</Link>
+                    <Link href="/terms-and-conditions" className="text-[10px] md:text-xs text-slate-500 hover:text-blue-600 transition font-mono">Terms</Link>
+                    <span className="text-slate-400">•</span>
+                    <Link href="/privacy-policy" className="text-[10px] md:text-xs text-slate-500 hover:text-blue-600 transition font-mono">Privacy</Link>
+                    <span className="text-slate-400">•</span>
+                    <Link href="/refund-policy" className="text-[10px] md:text-xs text-slate-500 hover:text-blue-600 transition font-mono">Refund Policy</Link>
                 </div>
-                <p className="text-gray-600 text-[10px] md:text-xs font-mono">&copy; {new Date().getFullYear()} ADDINFI DIGITECH PVT. LTD. // SECURE CONNECTION</p>
+                <p className="text-slate-500 text-[10px] md:text-xs font-mono">&copy; {new Date().getFullYear()} ADDINFI DIGITECH PVT. LTD. // SECURE CONNECTION</p>
             </footer>
         </div>
     );

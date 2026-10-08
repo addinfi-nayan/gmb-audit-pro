@@ -1,17 +1,23 @@
-"use client";
 import React from "react";
+import type { Metadata } from "next";
 import PolicyLayout from "../../components/PolicyLayout";
+
+export const metadata: Metadata = {
+    title: "Terms & Conditions",
+    description: "Terms and conditions for using WhatMyRank, the GMB audit tool for Google Business Profiles by Addinfi Digitech Pvt. Ltd.",
+    alternates: { canonical: "/terms-and-conditions" },
+};
 
 const TermsAndConditions = () => {
     return (
         <PolicyLayout title="Terms & Conditions">
             <section className="space-y-4">
-                <p className="font-mono text-cyan-400 text-xs uppercase tracking-widest">Effective Date: 20th February 2026</p>
-                <div className="h-px bg-white/5 w-full"></div>
+                <p className="font-mono text-blue-600 text-xs uppercase tracking-widest">Effective Date: 20th February 2026</p>
+                <div className="h-px bg-slate-50 w-full"></div>
             </section>
 
             <section className="space-y-4">
-                <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                     1. Introduction
                 </h2>
@@ -20,7 +26,7 @@ const TermsAndConditions = () => {
             </section>
 
             <section className="space-y-4">
-                <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                     2. Nature of Service
                 </h2>
@@ -31,8 +37,8 @@ const TermsAndConditions = () => {
                     <li>Is intended strictly for informational and research purposes.</li>
                     <li>Should NOT be considered final, verified, or legally binding data.</li>
                 </ul>
-                <div className="bg-red-500/5 border border-red-500/20 p-4 rounded-xl mt-4">
-                    <h3 className="text-red-400 font-bold mb-2 uppercase text-sm tracking-widest">Important Disclaimer</h3>
+                <div className="bg-red-50 border border-red-200 p-4 rounded-xl mt-4">
+                    <h3 className="text-red-600 font-bold mb-2 uppercase text-sm tracking-widest">Important Disclaimer</h3>
                     <p className="text-sm">Users must not completely rely on the data provided by this platform.</p>
                     <p className="text-sm mt-2">We strongly recommend that users conduct their own independent verification, research, and validation before making any business, financial, marketing, or strategic decisions.</p>
                     <p className="text-sm mt-2 font-bold">Addinfi shall not be liable for any losses, damages, or consequences arising from reliance on the data provided.</p>
@@ -40,7 +46,7 @@ const TermsAndConditions = () => {
             </section>
 
             <section className="space-y-4">
-                <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                     3. No Professional Advice
                 </h2>
@@ -56,17 +62,17 @@ const TermsAndConditions = () => {
             </section>
 
             <section className="space-y-4">
-                <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                     4. Third-Party Platforms Disclaimer
                 </h2>
                 <p>This website may reference third-party platforms including but not limited to:</p>
-                <ul className="list-disc pl-6 space-y-2 text-blue-400 font-medium">
+                <ul className="list-disc pl-6 space-y-2 text-blue-600 font-medium">
                     <li>Google</li>
                     <li>Meta (Facebook/Instagram)</li>
                 </ul>
-                <div className="bg-white/5 border border-white/10 p-4 rounded-xl mt-4">
-                    <h3 className="text-gray-200 font-bold mb-2 uppercase text-sm tracking-widest">Trademark & Endorsement Disclaimer</h3>
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl mt-4">
+                    <h3 className="text-slate-800 font-bold mb-2 uppercase text-sm tracking-widest">Trademark & Endorsement Disclaimer</h3>
                     <p className="text-sm">This site is not part of the Meta website or Meta Inc. Additionally, this site is NOT endorsed by Meta in any way. META™ is a trademark of META, Inc.</p>
                     <p className="text-sm mt-2">This site is not part of the Google website or Google LLC. Additionally, this site is NOT endorsed by Google in any way. Google™ is a trademark of Google LLC.</p>
                     <p className="text-sm mt-2">All trademarks, brand names, and logos belong to their respective owners.</p>
@@ -74,7 +80,7 @@ const TermsAndConditions = () => {
             </section>
 
             <section className="space-y-4">
-                <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                     5. Accuracy of Information
                 </h2>
@@ -88,7 +94,7 @@ const TermsAndConditions = () => {
             </section>
 
             <section className="space-y-4">
-                <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                     6. Limitation of Liability
                 </h2>
@@ -96,7 +102,7 @@ const TermsAndConditions = () => {
             </section>
 
             <section className="space-y-4">
-                <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                     7. User Responsibilities
                 </h2>
@@ -104,13 +110,13 @@ const TermsAndConditions = () => {
                 <ul className="list-disc pl-6 space-y-2">
                     <li>Not to misuse, scrape, reverse engineer, or replicate the system.</li>
                     <li>Not to use data for unlawful or unethical purposes.</li>
-                    <li>That any changes made based on audit reports are at your <span className="text-white font-bold underline decoration-blue-500/50">sole risk and discretion</span>.</li>
+                    <li>That any changes made based on audit reports are at your <span className="text-slate-900 font-bold underline decoration-blue-300">sole risk and discretion</span>.</li>
                     <li>Not to hold Addinfi liable for business decisions or implementation outcomes made using this tool.</li>
                 </ul>
             </section>
 
             <section className="space-y-4">
-                <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                     8. Intellectual Property
                 </h2>
@@ -118,7 +124,7 @@ const TermsAndConditions = () => {
             </section>
 
             <section className="space-y-4">
-                <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                     9. Modification of Terms
                 </h2>
@@ -126,16 +132,16 @@ const TermsAndConditions = () => {
             </section>
 
             <section className="space-y-4">
-                <h2 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-3">
                     <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
                     10. Governing Law
                 </h2>
                 <p>These Terms shall be governed by and interpreted in accordance with the laws of India. Any disputes shall fall under the jurisdiction of courts located in Nagpur, Maharashtra, India.</p>
             </section>
 
-            <section className="mt-12 p-8 rounded-2xl bg-gradient-to-br from-blue-600/10 to-cyan-600/10 border border-blue-500/20">
-                <h2 className="text-xl font-bold text-white mb-4">Questions?</h2>
-                <p className="text-sm text-gray-400">If you have any questions regarding these Terms & Conditions, please contact us at <a href="mailto:info@addinfi.com" className="text-cyan-400 hover:underline">info@addinfi.com</a>.</p>
+            <section className="mt-12 p-8 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-50 border border-blue-200">
+                <h2 className="text-xl font-bold text-slate-900 mb-4">Questions?</h2>
+                <p className="text-sm text-slate-600">If you have any questions regarding these Terms & Conditions, please contact us at <a href="mailto:info@addinfi.com" className="text-blue-600 hover:underline">info@addinfi.com</a>.</p>
             </section>
         </PolicyLayout>
     );

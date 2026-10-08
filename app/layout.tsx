@@ -1,13 +1,34 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers"; // Import the file you just created
+import { Providers } from "./providers";
+import { SEO_DESCRIPTION, SEO_TITLE, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "GMB Audit Tool | GBP & Competitor Analysis",
-  description: "Analyze your GBP with a detailed GMB audit tool. Compare competitors, find ranking gaps, and improve Google Maps visibility.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: SEO_TITLE, template: `%s | ${SITE_NAME}` },
+  description: SEO_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    "GMB audit tool", "Google Business Profile audit", "GBP audit tool", "Google My Business audit",
+    "GMB audit report", "GMB competitor analysis", "local SEO audit", "Google Maps ranking", "GMB audit India",
+  ],
+  authors: [{ name: "Addinfi Digitech Pvt. Ltd.", url: "https://addinfi.com" }],
+  creator: "Addinfi",
+  publisher: "Addinfi Digitech Pvt. Ltd.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
+    locale: "en_IN",
+  },
+  twitter: { card: "summary_large_image", title: SEO_TITLE, description: SEO_DESCRIPTION },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
 };
 
 export default function RootLayout({
@@ -16,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en-IN" style={{ colorScheme: "light" }}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         {/* Google Tag Manager */}

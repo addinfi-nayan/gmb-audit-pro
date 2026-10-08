@@ -391,7 +391,7 @@ export default function AdminPage() {
 
     if (status === "loading" || (authState === "checking" && loadingData)) {
         return (
-            <div className="min-h-screen bg-[#030712] text-white flex items-center justify-center">
+            <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center">
                 <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
             </div>
         );
@@ -399,22 +399,22 @@ export default function AdminPage() {
 
     if (!session) {
         return (
-            <div className="min-h-screen bg-[#030712] text-white flex flex-col items-center justify-center gap-4 px-4 text-center">
+            <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col items-center justify-center gap-4 px-4 text-center">
                 <h1 className="text-2xl font-bold">Sign in required</h1>
-                <p className="text-gray-400 max-w-sm">Sign in with the Google account on the admin allowlist to access this panel.</p>
-                <Link href="/" className="px-5 py-2.5 bg-white text-black rounded-full font-bold text-sm hover:scale-105 transition">Go to app</Link>
+                <p className="text-slate-600 max-w-sm">Sign in with the Google account on the admin allowlist to access this panel.</p>
+                <Link href="/" className="px-5 py-2.5 bg-blue-600 text-white rounded-full font-bold text-sm hover:scale-105 transition">Go to app</Link>
             </div>
         );
     }
 
     if (authState === "denied") {
         return (
-            <div className="min-h-screen bg-[#030712] text-white flex flex-col items-center justify-center gap-4 px-4 text-center">
-                <h1 className="text-2xl font-bold text-red-400">Not authorized</h1>
-                <p className="text-gray-400 max-w-sm">
-                    {session.user.email} isn't on the admin allowlist. Add it to <code className="text-cyan-400">ADMIN_EMAILS</code> in your server env to grant access.
+            <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col items-center justify-center gap-4 px-4 text-center">
+                <h1 className="text-2xl font-bold text-red-600">Not authorized</h1>
+                <p className="text-slate-600 max-w-sm">
+                    {session.user.email} isn't on the admin allowlist. Add it to <code className="text-blue-600">ADMIN_EMAILS</code> in your server env to grant access.
                 </p>
-                <Link href="/" className="px-5 py-2.5 bg-white text-black rounded-full font-bold text-sm hover:scale-105 transition">Go to app</Link>
+                <Link href="/" className="px-5 py-2.5 bg-blue-600 text-white rounded-full font-bold text-sm hover:scale-105 transition">Go to app</Link>
             </div>
         );
     }
@@ -434,51 +434,51 @@ export default function AdminPage() {
         <button
             onClick={() => { setTab(item.id); setMobileNavOpen(false); setSearch(""); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition text-left ${tab === item.id
-                ? "bg-gradient-to-r from-blue-600/15 to-cyan-600/15 text-white border border-cyan-500/30 shadow-[0_0_16px_rgba(6,182,212,0.12)]"
-                : "text-gray-400 hover:bg-white/5 hover:text-white border border-transparent"
+                ? "bg-gradient-to-r from-blue-50 to-blue-50 text-slate-900 border border-blue-200 shadow-sm"
+                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent"
                 }`}
         >
-            <span className={tab === item.id ? "text-cyan-400" : "text-gray-500"}>{item.icon}</span>
+            <span className={tab === item.id ? "text-blue-600" : "text-slate-500"}>{item.icon}</span>
             <span className="flex-1">{item.label}</span>
-            <span className={`text-xs font-mono px-1.5 py-0.5 rounded-md min-w-[1.75rem] text-center ${tab === item.id ? "bg-cyan-500/20 text-cyan-300" : "bg-white/5 text-gray-500"}`}>
+            <span className={`text-xs font-mono px-1.5 py-0.5 rounded-md min-w-[1.75rem] text-center ${tab === item.id ? "bg-blue-100 text-blue-700" : "bg-slate-50 text-slate-500"}`}>
                 {item.count}
             </span>
         </button>
     );
 
     return (
-        <div className="min-h-screen bg-[#030712] text-white font-sans">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
             </div>
 
-            <nav className="sticky top-0 z-30 border-b border-white/5 bg-[#030712]/90 backdrop-blur-xl">
+            <nav className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur-xl">
                 <div className="px-4 md:px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setMobileNavOpen((v) => !v)}
-                            className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg border border-white/10 text-gray-300"
+                            className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-700"
                             aria-label="Toggle navigation"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                         </button>
-                        <Link href="/" className="text-lg font-bold tracking-tight text-gray-100">
-                            What<span className="text-blue-500">My</span>Rank <span className="text-cyan-400 font-mono text-xs align-top">ADMIN</span>
+                        <Link href="/" className="text-lg font-bold tracking-tight text-slate-900">
+                            What<span className="text-blue-600">My</span>Rank <span className="text-blue-600 font-mono text-xs align-top">ADMIN</span>
                         </Link>
                     </div>
                     <div className="flex items-center gap-4">
-                        <span className="text-xs text-gray-500 font-mono hidden sm:inline">{session.user.email}</span>
-                        <Link href="/" className="text-xs font-bold text-gray-400 uppercase hover:text-white transition">Back to App</Link>
-                        <button onClick={() => signOut()} className="text-xs font-bold text-red-400 uppercase hover:text-red-300 transition">Sign Out</button>
+                        <span className="text-xs text-slate-500 font-mono hidden sm:inline">{session.user.email}</span>
+                        <Link href="/" className="text-xs font-bold text-slate-600 uppercase hover:text-slate-900 transition">Back to App</Link>
+                        <button onClick={() => signOut()} className="text-xs font-bold text-red-600 uppercase hover:text-red-700 transition">Sign Out</button>
                     </div>
                 </div>
             </nav>
 
             <div className="relative z-10 flex flex-col md:flex-row">
                 {/* Sidebar */}
-                <aside className={`md:w-64 md:shrink-0 md:sticky md:top-16 md:h-[calc(100vh-4rem)] border-b md:border-b-0 md:border-r border-white/5 bg-[#0B1120]/60 backdrop-blur-xl overflow-y-auto ${mobileNavOpen ? "block" : "hidden md:block"}`}>
+                <aside className={`md:w-64 md:shrink-0 md:sticky md:top-16 md:h-[calc(100vh-4rem)] border-b md:border-b-0 md:border-r border-slate-200 bg-white/60 backdrop-blur-xl overflow-y-auto ${mobileNavOpen ? "block" : "hidden md:block"}`}>
                     <div className="p-4 space-y-1">
-                        <p className="px-4 pt-2 pb-3 text-[10px] font-bold text-gray-600 uppercase tracking-widest">Manage</p>
+                        <p className="px-4 pt-2 pb-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Manage</p>
                         {NAV_ITEMS.map((item) => <NavButton key={item.id} item={item} />)}
                     </div>
                 </aside>
@@ -486,10 +486,10 @@ export default function AdminPage() {
                 {/* Main content */}
                 <main className="flex-1 min-w-0 px-4 md:px-10 py-8 md:py-10">
                     <div className="flex items-center gap-3 mb-1">
-                        <span className="text-cyan-400">{activeNavItem.icon}</span>
+                        <span className="text-blue-600">{activeNavItem.icon}</span>
                         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{activeNavItem.label}</h1>
                     </div>
-                    <p className="text-gray-500 text-sm mb-8">
+                    <p className="text-slate-500 text-sm mb-8">
                         {tab === "dashboard" && "Revenue, reports, and signups — filterable by time range and coupon."}
                         {tab === "users" && "Every signed-up account and their premium status."}
                         {tab === "reports" && "Every generated audit report — re-download the PDF for any user."}
@@ -500,18 +500,18 @@ export default function AdminPage() {
 
                     {!loadingData && tab !== "dashboard" && (
                         <div className="relative mb-6 max-w-md">
-                            <svg className="w-4 h-4 text-gray-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                            <svg className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
                             <input
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder={SEARCH_PLACEHOLDERS[tab]}
-                                className="w-full bg-[#0B1120] border border-white/10 focus:border-cyan-500/40 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-gray-500 outline-none transition"
+                                className="w-full bg-white border border-slate-200 focus:border-blue-300 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition"
                             />
                             {search && (
                                 <button
                                     onClick={() => setSearch("")}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition"
                                     aria-label="Clear search"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -521,12 +521,12 @@ export default function AdminPage() {
                     )}
 
                     {loadingData ? (
-                        <div className="text-gray-500 text-sm">Loading…</div>
+                        <div className="text-slate-500 text-sm">Loading…</div>
                     ) : tab === "dashboard" ? (
                         <div className="space-y-6">
                             {/* Filters */}
                             <div className="flex flex-wrap items-center gap-3">
-                                <div className="inline-flex bg-[#0B1120] border border-white/10 rounded-xl p-1">
+                                <div className="inline-flex bg-white border border-slate-200 rounded-xl p-1">
                                     {([
                                         { id: "day", label: "Today" },
                                         { id: "week", label: "7 Days" },
@@ -538,7 +538,7 @@ export default function AdminPage() {
                                             onClick={() => setDashRange(r.id)}
                                             className={`px-4 py-2 rounded-lg text-xs font-bold transition ${dashRange === r.id
                                                 ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
-                                                : "text-gray-400 hover:text-white"
+                                                : "text-slate-600 hover:text-slate-900"
                                                 }`}
                                         >
                                             {r.label}
@@ -549,7 +549,7 @@ export default function AdminPage() {
                                 <select
                                     value={dashCoupon}
                                     onChange={(e) => setDashCoupon(e.target.value)}
-                                    className="bg-[#0B1120] border border-white/10 focus:border-cyan-500/40 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-300 outline-none transition [color-scheme:dark]"
+                                    className="bg-white border border-slate-200 focus:border-blue-300 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none transition [color-scheme:dark]"
                                 >
                                     <option value="">All Coupons</option>
                                     {Array.from(new Set(payments.map((p) => p.coupon_code).filter(Boolean))).map((code) => (
@@ -561,24 +561,24 @@ export default function AdminPage() {
                             {/* Stat tiles */}
                             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                                 {[
-                                    { label: "Revenue", value: `₹${totalRevenue.toLocaleString("en-IN")}`, accent: "text-cyan-400" },
-                                    { label: "Payments", value: dashPayments.length, accent: "text-blue-400" },
-                                    { label: "Avg Order Value", value: `₹${avgOrderValue.toLocaleString("en-IN")}`, accent: "text-purple-400" },
-                                    { label: "Reports Generated", value: dashReports.length, accent: "text-green-400" },
-                                    { label: "New Users", value: dashNewUsers.length, accent: "text-amber-400" },
+                                    { label: "Revenue", value: `₹${totalRevenue.toLocaleString("en-IN")}`, accent: "text-blue-600" },
+                                    { label: "Payments", value: dashPayments.length, accent: "text-blue-600" },
+                                    { label: "Avg Order Value", value: `₹${avgOrderValue.toLocaleString("en-IN")}`, accent: "text-violet-600" },
+                                    { label: "Reports Generated", value: dashReports.length, accent: "text-emerald-600" },
+                                    { label: "New Users", value: dashNewUsers.length, accent: "text-amber-600" },
                                 ].map((tile) => (
-                                    <div key={tile.label} className="bg-[#0B1120] border border-white/10 rounded-2xl p-5">
-                                        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-2">{tile.label}</p>
+                                    <div key={tile.label} className="bg-white border border-slate-200 rounded-2xl p-5">
+                                        <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider mb-2">{tile.label}</p>
                                         <p className={`text-2xl font-bold font-mono ${tile.accent}`}>{tile.value}</p>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Revenue trend */}
-                            <div className="bg-[#0B1120] border border-white/10 rounded-2xl p-5 md:p-6">
-                                <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-5">Revenue Trend</h2>
+                            <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6">
+                                <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-5">Revenue Trend</h2>
                                 {revenueTrend.length === 0 ? (
-                                    <p className="text-gray-500 text-sm py-8 text-center">No payments in this range.</p>
+                                    <p className="text-slate-500 text-sm py-8 text-center">No payments in this range.</p>
                                 ) : (
                                     <div className="flex items-end gap-1.5 h-40 overflow-x-auto pb-1">
                                         {revenueTrend.map((b) => (
@@ -589,7 +589,7 @@ export default function AdminPage() {
                                                     style={{ height: `${Math.max(3, (b.revenue / maxTrendRevenue) * 130)}px` }}
                                                 />
                                                 {revenueTrend.length <= 14 && (
-                                                    <span className="text-[9px] text-gray-600 whitespace-nowrap">{b.label}</span>
+                                                    <span className="text-[9px] text-slate-500 whitespace-nowrap">{b.label}</span>
                                                 )}
                                             </div>
                                         ))}
@@ -598,12 +598,12 @@ export default function AdminPage() {
                             </div>
 
                             {/* Revenue by coupon */}
-                            <div className="bg-[#0B1120] border border-white/10 rounded-2xl overflow-hidden">
-                                <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider p-5 pb-0">Revenue by Coupon</h2>
+                            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+                                <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider p-5 pb-0">Revenue by Coupon</h2>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm mt-3">
                                         <thead>
-                                            <tr className="text-left text-gray-500 text-xs uppercase tracking-wider border-b border-white/5">
+                                            <tr className="text-left text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
                                                 <th className="p-4">Coupon</th>
                                                 <th className="p-4">Payments</th>
                                                 <th className="p-4">Revenue</th>
@@ -611,14 +611,14 @@ export default function AdminPage() {
                                         </thead>
                                         <tbody>
                                             {revenueByCoupon.map((row) => (
-                                                <tr key={row.code} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
-                                                    <td className="p-4 font-mono text-cyan-400">{row.code}</td>
-                                                    <td className="p-4 text-gray-400">{row.count}</td>
-                                                    <td className="p-4 text-gray-200 font-mono">₹{row.revenue.toLocaleString("en-IN")}</td>
+                                                <tr key={row.code} className="border-b border-slate-200 last:border-0 hover:bg-slate-50">
+                                                    <td className="p-4 font-mono text-blue-600">{row.code}</td>
+                                                    <td className="p-4 text-slate-600">{row.count}</td>
+                                                    <td className="p-4 text-slate-800 font-mono">₹{row.revenue.toLocaleString("en-IN")}</td>
                                                 </tr>
                                             ))}
                                             {revenueByCoupon.length === 0 && (
-                                                <tr><td colSpan={3} className="p-8 text-center text-gray-500">No payments in this range.</td></tr>
+                                                <tr><td colSpan={3} className="p-8 text-center text-slate-500">No payments in this range.</td></tr>
                                             )}
                                         </tbody>
                                     </table>
@@ -627,37 +627,37 @@ export default function AdminPage() {
                         </div>
                     ) : tab === "users" ? (
                         <div className="space-y-6">
-                            <div className="bg-[#0B1120] border border-white/10 rounded-2xl p-5">
-                                <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-3">Grant Premium by Email</h2>
+                            <div className="bg-white border border-slate-200 rounded-2xl p-5">
+                                <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3">Grant Premium by Email</h2>
                                 <div className="flex flex-col sm:flex-row gap-2">
                                     <input
                                         type="email"
                                         value={grantEmail}
                                         onChange={(e) => setGrantEmail(e.target.value)}
                                         placeholder="user@example.com"
-                                        className="flex-1 bg-[#020617] border border-white/10 p-3 rounded-xl outline-none text-white text-sm focus:border-cyan-500 transition"
+                                        className="flex-1 bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none text-slate-900 text-sm focus:border-cyan-500 transition"
                                     />
                                     <button
                                         disabled={!grantEmail.trim() || grantBusy}
                                         onClick={() => handleGrantPremium(grantEmail.trim(), true)}
-                                        className="px-5 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 transition shrink-0"
+                                        className="px-5 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 transition shrink-0"
                                     >
                                         Grant Premium
                                     </button>
                                 </div>
-                                {grantMsg && <p className="text-xs text-cyan-400 mt-2">{grantMsg}</p>}
-                                <p className="text-[11px] text-gray-500 mt-2">Works even if this person hasn't signed in yet — they'll be premium automatically the moment they do.</p>
+                                {grantMsg && <p className="text-xs text-blue-600 mt-2">{grantMsg}</p>}
+                                <p className="text-[11px] text-slate-500 mt-2">Works even if this person hasn't signed in yet — they'll be premium automatically the moment they do.</p>
                             </div>
 
                             {adminMsg && (
-                                <p className="text-xs text-red-400 bg-red-500/5 border border-red-500/20 rounded-xl px-4 py-3">{adminMsg}</p>
+                                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{adminMsg}</p>
                             )}
 
-                            <div className="bg-[#0B1120] border border-white/10 rounded-2xl overflow-hidden">
+                            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="text-left text-gray-500 text-xs uppercase tracking-wider border-b border-white/5">
+                                            <tr className="text-left text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
                                                 <th className="p-4">Email</th>
                                                 <th className="p-4">Status</th>
                                                 <th className="p-4">Admin</th>
@@ -668,31 +668,31 @@ export default function AdminPage() {
                                         </thead>
                                         <tbody>
                                             {filteredUsers.map((u) => (
-                                                <tr key={u.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
-                                                    <td className="p-4 font-mono text-xs text-gray-300">{u.email}</td>
+                                                <tr key={u.id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50">
+                                                    <td className="p-4 font-mono text-xs text-slate-700">{u.email}</td>
                                                     <td className="p-4">
                                                         {u.isPremium ? (
-                                                            <span className="px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-xs font-bold">Premium</span>
+                                                            <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold">Premium</span>
                                                         ) : (
-                                                            <span className="px-2 py-1 rounded-full bg-white/5 text-gray-400 border border-white/10 text-xs font-bold">Guest</span>
+                                                            <span className="px-2 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200 text-xs font-bold">Guest</span>
                                                         )}
                                                     </td>
                                                     <td className="p-4">
                                                         {u.isAdmin ? (
-                                                            <span className="px-2 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30 text-xs font-bold">Admin</span>
+                                                            <span className="px-2 py-1 rounded-full bg-violet-50 text-violet-600 border border-violet-200 text-xs font-bold">Admin</span>
                                                         ) : (
-                                                            <span className="text-gray-600 text-xs">—</span>
+                                                            <span className="text-slate-500 text-xs">—</span>
                                                         )}
                                                     </td>
-                                                    <td className="p-4 text-gray-400">{u.reportCount}</td>
-                                                    <td className="p-4 text-gray-500 text-xs">{formatDate(u.createdAt)}</td>
+                                                    <td className="p-4 text-slate-600">{u.reportCount}</td>
+                                                    <td className="p-4 text-slate-500 text-xs">{formatDate(u.createdAt)}</td>
                                                     <td className="p-4 text-right whitespace-nowrap">
                                                         <button
                                                             onClick={() => handleGrantPremium(u.email, !u.isPremium)}
                                                             disabled={grantBusy}
                                                             className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${u.isPremium
-                                                                ? "text-red-400 hover:bg-red-500/10"
-                                                                : "text-cyan-400 hover:bg-cyan-500/10"
+                                                                ? "text-red-600 hover:bg-red-50"
+                                                                : "text-blue-600 hover:bg-blue-50"
                                                                 }`}
                                                         >
                                                             {u.isPremium ? "Revoke" : "Make Premium"}
@@ -701,8 +701,8 @@ export default function AdminPage() {
                                                             onClick={() => handleGrantAdmin(u.email, !u.isAdmin)}
                                                             disabled={adminBusyEmail === u.email}
                                                             className={`text-xs font-bold px-3 py-1.5 rounded-lg transition disabled:opacity-40 ${u.isAdmin
-                                                                ? "text-red-400 hover:bg-red-500/10"
-                                                                : "text-purple-400 hover:bg-purple-500/10"
+                                                                ? "text-red-600 hover:bg-red-50"
+                                                                : "text-violet-600 hover:bg-violet-50"
                                                                 }`}
                                                         >
                                                             {adminBusyEmail === u.email ? "…" : u.isAdmin ? "Revoke Admin" : "Make Admin"}
@@ -711,7 +711,7 @@ export default function AdminPage() {
                                                 </tr>
                                             ))}
                                             {filteredUsers.length === 0 && (
-                                                <tr><td colSpan={6} className="p-8 text-center text-gray-500">{search ? "No users match your search." : "No users yet."}</td></tr>
+                                                <tr><td colSpan={6} className="p-8 text-center text-slate-500">{search ? "No users match your search." : "No users yet."}</td></tr>
                                             )}
                                         </tbody>
                                     </table>
@@ -719,11 +719,11 @@ export default function AdminPage() {
                             </div>
                         </div>
                     ) : tab === "reports" ? (
-                        <div className="bg-[#0B1120] border border-white/10 rounded-2xl overflow-hidden">
+                        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="text-left text-gray-500 text-xs uppercase tracking-wider border-b border-white/5">
+                                        <tr className="text-left text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
                                             <th className="p-4">Business</th>
                                             <th className="p-4">User</th>
                                             <th className="p-4">Score</th>
@@ -733,23 +733,23 @@ export default function AdminPage() {
                                     </thead>
                                     <tbody>
                                         {filteredReports.map((r) => (
-                                            <tr key={r.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
-                                                <td className="p-4 text-gray-200">{r.gmbName || "—"}</td>
-                                                <td className="p-4 font-mono text-xs text-gray-300">{r.userEmail || "—"}</td>
+                                            <tr key={r.id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50">
+                                                <td className="p-4 text-slate-800">{r.gmbName || "—"}</td>
+                                                <td className="p-4 font-mono text-xs text-slate-700">{r.userEmail || "—"}</td>
                                                 <td className="p-4">
                                                     {r.auditScore != null ? (
-                                                        <span className="px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-xs font-bold">{r.auditScore}/100</span>
+                                                        <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold">{r.auditScore}/100</span>
                                                     ) : "—"}
                                                 </td>
-                                                <td className="p-4 text-gray-500 text-xs">{formatDate(r.createdAt)}</td>
+                                                <td className="p-4 text-slate-500 text-xs">{formatDate(r.createdAt)}</td>
                                                 <td className="p-4 text-right">
                                                     <button
                                                         onClick={() => handleDownloadReport(r)}
                                                         disabled={downloadingId === r.id}
                                                         title={r.hasPdf ? "Download PDF" : "No cached PDF yet — user hasn't downloaded it themselves"}
                                                         className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition disabled:opacity-40 ${r.hasPdf
-                                                            ? "text-cyan-400 hover:bg-cyan-500/10"
-                                                            : "text-gray-600 hover:bg-white/5"
+                                                            ? "text-blue-600 hover:bg-blue-50"
+                                                            : "text-slate-500 hover:bg-slate-50"
                                                             }`}
                                                     >
                                                         <DownloadIcon />
@@ -759,18 +759,18 @@ export default function AdminPage() {
                                             </tr>
                                         ))}
                                         {filteredReports.length === 0 && (
-                                            <tr><td colSpan={5} className="p-8 text-center text-gray-500">{search ? "No reports match your search." : "No reports generated yet."}</td></tr>
+                                            <tr><td colSpan={5} className="p-8 text-center text-slate-500">{search ? "No reports match your search." : "No reports generated yet."}</td></tr>
                                         )}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     ) : tab === "leads" ? (
-                        <div className="bg-[#0B1120] border border-white/10 rounded-2xl overflow-hidden">
+                        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="text-left text-gray-500 text-xs uppercase tracking-wider border-b border-white/5">
+                                        <tr className="text-left text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
                                             <th className="p-4">Business</th>
                                             <th className="p-4">Email</th>
                                             <th className="p-4">Phone</th>
@@ -780,27 +780,27 @@ export default function AdminPage() {
                                     </thead>
                                     <tbody>
                                         {filteredLeads.map((l) => (
-                                            <tr key={l.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
-                                                <td className="p-4 text-gray-200">{l.business || "—"}</td>
-                                                <td className="p-4 font-mono text-xs text-gray-300">{l.email || "—"}</td>
-                                                <td className="p-4 text-gray-400">{l.phone || "—"}</td>
-                                                <td className="p-4">{l.coupon ? <span className="px-2 py-0.5 rounded bg-white/5 text-cyan-400 text-xs font-mono">{l.coupon}</span> : "—"}</td>
-                                                <td className="p-4 text-gray-500 text-xs">{formatDate(l.created_at)}</td>
+                                            <tr key={l.id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50">
+                                                <td className="p-4 text-slate-800">{l.business || "—"}</td>
+                                                <td className="p-4 font-mono text-xs text-slate-700">{l.email || "—"}</td>
+                                                <td className="p-4 text-slate-600">{l.phone || "—"}</td>
+                                                <td className="p-4">{l.coupon ? <span className="px-2 py-0.5 rounded bg-slate-50 text-blue-600 text-xs font-mono">{l.coupon}</span> : "—"}</td>
+                                                <td className="p-4 text-slate-500 text-xs">{formatDate(l.created_at)}</td>
                                             </tr>
                                         ))}
                                         {filteredLeads.length === 0 && (
-                                            <tr><td colSpan={5} className="p-8 text-center text-gray-500">{search ? "No leads match your search." : "No leads captured yet."}</td></tr>
+                                            <tr><td colSpan={5} className="p-8 text-center text-slate-500">{search ? "No leads match your search." : "No leads captured yet."}</td></tr>
                                         )}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     ) : tab === "searchLogs" ? (
-                        <div className="bg-[#0B1120] border border-white/10 rounded-2xl overflow-hidden">
+                        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="text-left text-gray-500 text-xs uppercase tracking-wider border-b border-white/5">
+                                        <tr className="text-left text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
                                             <th className="p-4">Business Searched</th>
                                             <th className="p-4">Phone</th>
                                             <th className="p-4">Website</th>
@@ -809,15 +809,15 @@ export default function AdminPage() {
                                     </thead>
                                     <tbody>
                                         {filteredSearchLogs.map((s) => (
-                                            <tr key={s.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
-                                                <td className="p-4 text-gray-200">{s.name || "—"}</td>
-                                                <td className="p-4 text-gray-400">{s.phone || "—"}</td>
-                                                <td className="p-4 text-gray-400 truncate max-w-xs">{s.website || "—"}</td>
-                                                <td className="p-4 text-gray-500 text-xs">{formatDate(s.created_at)}</td>
+                                            <tr key={s.id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50">
+                                                <td className="p-4 text-slate-800">{s.name || "—"}</td>
+                                                <td className="p-4 text-slate-600">{s.phone || "—"}</td>
+                                                <td className="p-4 text-slate-600 truncate max-w-xs">{s.website || "—"}</td>
+                                                <td className="p-4 text-slate-500 text-xs">{formatDate(s.created_at)}</td>
                                             </tr>
                                         ))}
                                         {filteredSearchLogs.length === 0 && (
-                                            <tr><td colSpan={4} className="p-8 text-center text-gray-500">{search ? "No search logs match your search." : "No searches logged yet."}</td></tr>
+                                            <tr><td colSpan={4} className="p-8 text-center text-slate-500">{search ? "No search logs match your search." : "No searches logged yet."}</td></tr>
                                         )}
                                     </tbody>
                                 </table>
@@ -825,20 +825,20 @@ export default function AdminPage() {
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            <div className="bg-[#0B1120] border border-white/10 rounded-2xl p-5">
-                                <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-3">Add Coupon</h2>
+                            <div className="bg-white border border-slate-200 rounded-2xl p-5">
+                                <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3">Add Coupon</h2>
                                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                                     <input
                                         value={newCouponCode}
                                         onChange={(e) => setNewCouponCode(e.target.value)}
                                         placeholder="code (e.g. launch50)"
-                                        className="col-span-2 sm:col-span-1 bg-[#020617] border border-white/10 p-3 rounded-xl outline-none text-white text-sm focus:border-cyan-500 transition"
+                                        className="col-span-2 sm:col-span-1 bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none text-slate-900 text-sm focus:border-cyan-500 transition"
                                     />
                                     <input
                                         value={newCouponNote}
                                         onChange={(e) => setNewCouponNote(e.target.value)}
                                         placeholder="note (optional)"
-                                        className="col-span-2 sm:col-span-1 bg-[#020617] border border-white/10 p-3 rounded-xl outline-none text-white text-sm focus:border-cyan-500 transition"
+                                        className="col-span-2 sm:col-span-1 bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none text-slate-900 text-sm focus:border-cyan-500 transition"
                                     />
                                     <div className="relative">
                                         <input
@@ -848,9 +848,9 @@ export default function AdminPage() {
                                             value={newCouponDiscount}
                                             onChange={(e) => setNewCouponDiscount(e.target.value)}
                                             placeholder="100"
-                                            className="w-full bg-[#020617] border border-white/10 p-3 pr-7 rounded-xl outline-none text-white text-sm focus:border-cyan-500 transition"
+                                            className="w-full bg-slate-50 border border-slate-200 p-3 pr-7 rounded-xl outline-none text-slate-900 text-sm focus:border-cyan-500 transition"
                                         />
-                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">%</span>
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">%</span>
                                     </div>
                                     <input
                                         type="number"
@@ -858,30 +858,30 @@ export default function AdminPage() {
                                         value={newCouponMaxUses}
                                         onChange={(e) => setNewCouponMaxUses(e.target.value)}
                                         placeholder="max uses (∞)"
-                                        className="bg-[#020617] border border-white/10 p-3 rounded-xl outline-none text-white text-sm focus:border-cyan-500 transition"
+                                        className="bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none text-slate-900 text-sm focus:border-cyan-500 transition"
                                     />
                                     <input
                                         type="date"
                                         value={newCouponExpiresAt}
                                         onChange={(e) => setNewCouponExpiresAt(e.target.value)}
-                                        className="bg-[#020617] border border-white/10 p-3 rounded-xl outline-none text-white text-sm focus:border-cyan-500 transition [color-scheme:dark]"
+                                        className="bg-slate-50 border border-slate-200 p-3 rounded-xl outline-none text-slate-900 text-sm focus:border-cyan-500 transition [color-scheme:dark]"
                                     />
                                 </div>
                                 <button
                                     disabled={!newCouponCode.trim() || couponBusy}
                                     onClick={handleAddCoupon}
-                                    className="mt-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 transition"
+                                    className="mt-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-bold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110 transition"
                                 >
                                     Add Coupon
                                 </button>
-                                <p className="text-[11px] text-gray-500 mt-2">Discount defaults to 100% (fully skips payment). Leave max uses / expiry blank for unlimited / never-expiring.</p>
+                                <p className="text-[11px] text-slate-500 mt-2">Discount defaults to 100% (fully skips payment). Leave max uses / expiry blank for unlimited / never-expiring.</p>
                             </div>
 
-                            <div className="bg-[#0B1120] border border-white/10 rounded-2xl overflow-hidden">
+                            <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="text-left text-gray-500 text-xs uppercase tracking-wider border-b border-white/5">
+                                            <tr className="text-left text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
                                                 <th className="p-4">Code</th>
                                                 <th className="p-4">Discount</th>
                                                 <th className="p-4">Uses</th>
@@ -893,17 +893,17 @@ export default function AdminPage() {
                                         </thead>
                                         <tbody>
                                             {filteredCoupons.map((c) => editingCode === c.code ? (
-                                                <tr key={c.code} className="border-b border-white/5 last:border-0 bg-white/[0.03]">
-                                                    <td className="p-4 font-mono text-cyan-400">{c.code}</td>
+                                                <tr key={c.code} className="border-b border-slate-200 last:border-0 bg-slate-50">
+                                                    <td className="p-4 font-mono text-blue-600">{c.code}</td>
                                                     <td className="p-4">
                                                         <div className="relative w-20">
                                                             <input
                                                                 type="number" min={1} max={100}
                                                                 value={editForm.discountPercent}
                                                                 onChange={(e) => setEditForm({ ...editForm, discountPercent: e.target.value })}
-                                                                className="w-full bg-[#020617] border border-white/10 p-2 pr-6 rounded-lg outline-none text-white text-sm focus:border-cyan-500 transition"
+                                                                className="w-full bg-slate-50 border border-slate-200 p-2 pr-6 rounded-lg outline-none text-slate-900 text-sm focus:border-cyan-500 transition"
                                                             />
-                                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">%</span>
+                                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">%</span>
                                                         </div>
                                                     </td>
                                                     <td className="p-4">
@@ -912,7 +912,7 @@ export default function AdminPage() {
                                                             value={editForm.maxUses}
                                                             onChange={(e) => setEditForm({ ...editForm, maxUses: e.target.value })}
                                                             placeholder="∞"
-                                                            className="w-20 bg-[#020617] border border-white/10 p-2 rounded-lg outline-none text-white text-sm focus:border-cyan-500 transition"
+                                                            className="w-20 bg-slate-50 border border-slate-200 p-2 rounded-lg outline-none text-slate-900 text-sm focus:border-cyan-500 transition"
                                                         />
                                                     </td>
                                                     <td className="p-4">
@@ -920,7 +920,7 @@ export default function AdminPage() {
                                                             type="date"
                                                             value={editForm.expiresAt}
                                                             onChange={(e) => setEditForm({ ...editForm, expiresAt: e.target.value })}
-                                                            className="bg-[#020617] border border-white/10 p-2 rounded-lg outline-none text-white text-sm focus:border-cyan-500 transition [color-scheme:dark]"
+                                                            className="bg-slate-50 border border-slate-200 p-2 rounded-lg outline-none text-slate-900 text-sm focus:border-cyan-500 transition [color-scheme:dark]"
                                                         />
                                                     </td>
                                                     <td className="p-4">
@@ -928,42 +928,42 @@ export default function AdminPage() {
                                                             value={editForm.note}
                                                             onChange={(e) => setEditForm({ ...editForm, note: e.target.value })}
                                                             placeholder="note"
-                                                            className="w-32 bg-[#020617] border border-white/10 p-2 rounded-lg outline-none text-white text-sm focus:border-cyan-500 transition"
+                                                            className="w-32 bg-slate-50 border border-slate-200 p-2 rounded-lg outline-none text-slate-900 text-sm focus:border-cyan-500 transition"
                                                         />
                                                     </td>
-                                                    <td className="p-4 text-gray-500 text-xs">—</td>
+                                                    <td className="p-4 text-slate-500 text-xs">—</td>
                                                     <td className="p-4 text-right whitespace-nowrap">
                                                         <button
                                                             onClick={() => saveEditCoupon(c.code)}
                                                             disabled={editBusy}
-                                                            className="text-xs font-bold px-3 py-1.5 rounded-lg text-cyan-400 hover:bg-cyan-500/10 transition disabled:opacity-40"
+                                                            className="text-xs font-bold px-3 py-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition disabled:opacity-40"
                                                         >
                                                             Save
                                                         </button>
                                                         <button
                                                             onClick={cancelEditCoupon}
-                                                            className="text-xs font-bold px-3 py-1.5 rounded-lg text-gray-400 hover:bg-white/5 transition"
+                                                            className="text-xs font-bold px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-50 transition"
                                                         >
                                                             Cancel
                                                         </button>
                                                     </td>
                                                 </tr>
                                             ) : (
-                                                <tr key={c.code} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]">
-                                                    <td className="p-4 font-mono text-cyan-400">{c.code}</td>
-                                                    <td className="p-4 text-gray-200">{c.discount_percent}%</td>
-                                                    <td className="p-4 text-gray-400">{c.used_count}{c.max_uses != null ? ` / ${c.max_uses}` : " / ∞"}</td>
-                                                    <td className={`p-4 text-xs ${isExpired(c.expires_at) ? "text-red-400" : "text-gray-400"}`}>
+                                                <tr key={c.code} className="border-b border-slate-200 last:border-0 hover:bg-slate-50">
+                                                    <td className="p-4 font-mono text-blue-600">{c.code}</td>
+                                                    <td className="p-4 text-slate-800">{c.discount_percent}%</td>
+                                                    <td className="p-4 text-slate-600">{c.used_count}{c.max_uses != null ? ` / ${c.max_uses}` : " / ∞"}</td>
+                                                    <td className={`p-4 text-xs ${isExpired(c.expires_at) ? "text-red-600" : "text-slate-600"}`}>
                                                         {c.expires_at ? formatDateShort(c.expires_at) : "Never"}
                                                         {isExpired(c.expires_at) && <span className="ml-1">(expired)</span>}
                                                     </td>
-                                                    <td className="p-4 text-gray-400">{c.note || "—"}</td>
+                                                    <td className="p-4 text-slate-600">{c.note || "—"}</td>
                                                     <td className="p-4">
                                                         <button
                                                             onClick={() => toggleCoupon(c.code, !c.active)}
                                                             className={`px-2 py-1 rounded-full text-xs font-bold border transition ${c.active
-                                                                ? "bg-green-500/10 text-green-400 border-green-500/30"
-                                                                : "bg-white/5 text-gray-500 border-white/10"
+                                                                ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                                                : "bg-slate-50 text-slate-500 border-slate-200"
                                                                 }`}
                                                         >
                                                             {c.active ? "Active" : "Inactive"}
@@ -972,13 +972,13 @@ export default function AdminPage() {
                                                     <td className="p-4 text-right whitespace-nowrap">
                                                         <button
                                                             onClick={() => startEditCoupon(c)}
-                                                            className="text-xs font-bold px-3 py-1.5 rounded-lg text-gray-300 hover:bg-white/5 transition"
+                                                            className="text-xs font-bold px-3 py-1.5 rounded-lg text-slate-700 hover:bg-slate-50 transition"
                                                         >
                                                             Edit
                                                         </button>
                                                         <button
                                                             onClick={() => deleteCoupon(c.code)}
-                                                            className="text-xs font-bold px-3 py-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition"
+                                                            className="text-xs font-bold px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-50 transition"
                                                         >
                                                             Delete
                                                         </button>
@@ -986,7 +986,7 @@ export default function AdminPage() {
                                                 </tr>
                                             ))}
                                             {filteredCoupons.length === 0 && (
-                                                <tr><td colSpan={7} className="p-8 text-center text-gray-500">{search ? "No coupons match your search." : "No coupons yet."}</td></tr>
+                                                <tr><td colSpan={7} className="p-8 text-center text-slate-500">{search ? "No coupons match your search." : "No coupons yet."}</td></tr>
                                             )}
                                         </tbody>
                                     </table>

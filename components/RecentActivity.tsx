@@ -74,17 +74,17 @@ const RecentActivity = () => {
                     transition={{ duration: 0.5, type: "spring" }}
                     className="fixed bottom-4 left-4 z-50 max-w-[300px] md:max-w-sm w-full"
                 >
-                    <div className="bg-[#0B1120]/90 backdrop-blur-md border border-blue-500/20 shadow-2xl shadow-blue-500/10 rounded-xl p-4 flex items-start gap-4">
+                    <div className="bg-white/90 backdrop-blur-md border border-blue-200 shadow-2xl shadow-slate-200 rounded-xl p-4 flex items-start gap-4">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                             {notification.name.charAt(0)}
                         </div>
                         <div>
-                            <p className="text-sm text-white font-medium">
-                                <span className="text-cyan-400 font-bold">{notification.name}</span> {notification.action}
+                            <p className="text-sm text-slate-900 font-medium">
+                                <span className="text-blue-600 font-bold">{notification.name}</span> {notification.action}
                             </p>
                             <div className="flex items-center gap-2 mt-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                                <p className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">{notification.time}</p>
+                                <p className="text-[10px] text-slate-600 font-mono uppercase tracking-wider">{notification.time}</p>
                             </div>
                         </div>
                     </div>
